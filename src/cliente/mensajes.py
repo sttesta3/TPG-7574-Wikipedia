@@ -1,22 +1,39 @@
-from safeSocket import safeSend, safeRecv
+import ast
 import socket
+from safeSocket import safeSend, safeRecv
 from collections import namedtuple
 
 FIN_MENSAJE =  b'\x00'
 DATA_MENSAJE =  b'\x01'
 LOTE_MENSAJE = b'\x02'
 
+def _seccionATexto(documento: str) -> str:
+    textSeccion = ""
+    for seccion in ast.literal_eval(documento):
+        try:
+            for parrafo in seccion["has_parts"]:
+                if parrafo["type"] == "paragraph":
+                    textSeccion += parrafo["value"] 
+        except Exception:
+            pass
+
+    return textSeccion
+
+
 class DataMensaje:
+        
     def __init__(self, fila: namedtuple) -> None:
+        self.url = fila.url
         self.resumen = str(fila.abstract)
         self.fecha = fila.date_modified.year
         self.imgUrl = "" if fila.image == None else fila.image["content_url"]
         self.lenguaje = 1 if fila.in_language["identifier"] == "en" else 0
-        self.seccion = str(fila.sections)
+        self.seccion = _seccionATexto(fila.sections)
         self.nombre = fila.name
     
 
     def aBytes(self) -> bytes:
+        urlBytes = self.url.encode("UTF-8")
         resumenBytes = self.resumen.encode("UTF-8")
         imgUrlBytes = self.imgUrl.encode("UTF-8")
         seccionBytes = self.seccion.encode("UTF-8")
@@ -24,9 +41,11 @@ class DataMensaje:
 
         bytesMensaje = DATA_MENSAJE
 
-        tamañoMensaje = len(resumenBytes) + len(imgUrlBytes) + len(seccionBytes) + len(nombreBytes)
-        bytesMensaje += (tamañoMensaje  + 16 + 3).to_bytes(4, byteorder="big")
+        tamañoMensaje = len(resumenBytes) + len(imgUrlBytes) + len(seccionBytes) + len(nombreBytes) + len(urlBytes)
+        bytesMensaje += (tamañoMensaje  + 20 + 3).to_bytes(4, byteorder="big")
         
+        bytesMensaje += len(urlBytes).to_bytes(4, byteorder="big")
+        bytesMensaje += urlBytes
         bytesMensaje += len(resumenBytes).to_bytes(4, byteorder="big")
         bytesMensaje += resumenBytes
         bytesMensaje += self.fecha.to_bytes(2, byteorder="big")
@@ -35,7 +54,7 @@ class DataMensaje:
         bytesMensaje += self.lenguaje.to_bytes(1, byteorder="big")
         bytesMensaje += len(seccionBytes).to_bytes(4, byteorder="big")
         bytesMensaje += seccionBytes
-        bytesMensaje += len(nombreBytes).to_bytes(4, byteorder="big") # Se podria analizar la seccion y reducir la cantidad de info y poner solo los textos
+        bytesMensaje += len(nombreBytes).to_bytes(4, byteorder="big")
         bytesMensaje += nombreBytes
 
         return bytesMensaje

@@ -1,0 +1,10 @@
+services:
+  cliente_1:
+    build:
+      context: ./src/
+      dockerfile: cliente/Dockerfile
+    container_name: cliente_1
+    environment:
+    - FILE=/datasets/enwiki_namespace_0_00000.parquet
+    volumes:
+    - ./datasets:/datasets

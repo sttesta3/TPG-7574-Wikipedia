@@ -6,5 +6,7 @@ services:
     container_name: cliente_1
     environment:
     - FILE=/datasets/enwiki_namespace_0_00000.parquet
+    - GATEWAYHOST=gateway
+    - GATEWAYPORT=8000
     volumes:
     - ./datasets:/datasets

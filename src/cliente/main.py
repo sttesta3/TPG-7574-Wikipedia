@@ -1,16 +1,20 @@
 import os
 import pandas as pd
+from mensajes import DataMensaje
 
-file = os.environ["FILE"]
+FILE = os.environ["FILE"]
+GATEWAYHOST = os.environ["GATEWAYHOST"]
+GATEWAYPORT = os.environ["GATEWAYPORT"]
 
-def sendParquet() -> None:
-    dataset =  pd.read_parquet(file)
-    print(dataset.head())
-
+def _sendParquet() -> None:
+    dataset =  pd.read_parquet(FILE)
+    
+    for fila in dataset.itertuples():
+        DataMensaje(fila).send(socket="")
+        break
 
 def main():
-    sendParquet()
-
+    _sendParquet()
 
 if __name__ == "__main__":
     main()

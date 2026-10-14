@@ -8,5 +8,6 @@ services:
     - FILE=/datasets/enwiki_namespace_0_00000.parquet
     - GATEWAYHOST=gateway
     - GATEWAYPORT=8000
+    - LOTE=1
     volumes:
     - ./datasets:/datasets

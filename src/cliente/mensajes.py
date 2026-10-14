@@ -1,4 +1,4 @@
-import socket
+from safeSocket import safeSend, safeRecv
 from collections import namedtuple
 
 FIN_MENSAJE =  b'\x00'
@@ -42,6 +42,7 @@ class DataMensaje:
 
     def send(self, socket: socket) -> None:
         print(self.aBytes())
+        safeSend(self.aBytes())
 
 
 class FinMensaje():

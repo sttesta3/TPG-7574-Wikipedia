@@ -1,20 +1,32 @@
 import os
+import socket
 import pandas as pd
-from mensajes import DataMensaje
+from mensajes import LoteMensaje
 
 FILE = os.environ["FILE"]
 GATEWAYHOST = os.environ["GATEWAYHOST"]
-GATEWAYPORT = os.environ["GATEWAYPORT"]
+GATEWAYPORT = int(os.environ["GATEWAYPORT"])
+LOTE = os.environ["LOTE"]
 
-def _sendParquet() -> None:
+def _enviarParquet(socket: socket) -> None:
     dataset =  pd.read_parquet(FILE)
-    
+    loteMensaje = LoteMensaje(LOTE, socket)
+
     for fila in dataset.itertuples():
-        DataMensaje(fila).send(socket="")
-        break
+        loteMensaje.agregarMensaje(fila)
+    
+    loteMensaje.send()
+
+
+def _recibirRta(socket: socket) -> None:
+    pass
+
 
 def main():
-    _sendParquet()
+    c = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    coneccion = c.connect((GATEWAYHOST, GATEWAYPORT))
+    _enviarParquet(coneccion)
+    _recibirRta(coneccion)
 
 if __name__ == "__main__":
     main()

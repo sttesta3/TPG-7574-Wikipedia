@@ -3,17 +3,19 @@ from collections import namedtuple
 
 FIN_MENSAJE =  b'\x00'
 DATA_MENSAJE =  b'\x01'
+LOTE_MENSAJE = b'\x02'
 
 class DataMensaje:
-    def __init__(self, row: namedtuple) -> None:
-        self.resumen = str(row.abstract)
-        self.fecha = row.date_modified.year
-        self.imgUrl = "" if row.image == None else row.image["content_url"]
-        self.lenguaje = 1 if row.in_language["identifier"] == "en" else 0
-        self.seccion = row.sections
-        self.nombre = row.name
+    def __init__(self, fila: namedtuple) -> None:
+        self.resumen = str(fila.abstract)
+        self.fecha = fila.date_modified.year
+        self.imgUrl = "" if fila.image == None else fila.image["content_url"]
+        self.lenguaje = 1 if fila.in_language["identifier"] == "en" else 0
+        self.seccion = fila.sections
+        self.nombre = fila.name
     
-    def _aBytes(self) -> bytes:
+
+    def aBytes(self) -> bytes:
         resumenBytes = self.resumen.encode("UTF-8")
         imgUrlBytes = self.imgUrl.encode("UTF-8")
         seccionBytes = self.seccion.encode("UTF-8")
@@ -39,7 +41,49 @@ class DataMensaje:
 
 
     def send(self, socket: socket) -> None:
-        print(self._aBytes())
+        print(self.aBytes())
 
 
+class FinMensaje():
+    def __init__(self) -> None:
+        pass
+    
 
+    def send(self, socket: socket) -> None:
+        socket.send(FIN_MENSAJE)
+
+class LoteMensaje():
+    def __init__(self, tamañoLote: int, socket: socket) -> None:
+        self.tamañoLote = tamañoLote
+        self.lote = []
+        self.socket = socket
+
+
+    def agregarMensaje(self, fila: namedtuple) -> None:
+        self.lote.append(DataMensaje(fila))
+
+        if len(self.lote) == self.tamañoLote:
+            self.send()
+            self.lote = []
+
+
+    def _aBytes(self) -> bytes:
+        bytesMensaje = LOTE_MENSAJE
+        bytesMensaje += len(self.lote).to_bytes(1, byteorder="big")
+        
+        dataMensajeBytes = b''
+        for mensaje in self.lote:
+            dataMensajeBytes += mensaje.aBytes()
+        
+        bytesMensaje += len(dataMensajeBytes).to_bytes(4, byteorder="big")
+        bytesMensaje += dataMensajeBytes
+
+        return bytesMensaje
+
+
+    def send(self) -> None:
+        if len(self.lote) == 0:
+            return
+
+        mensaje = self._aBytes()
+        self.socket.send(mensaje)

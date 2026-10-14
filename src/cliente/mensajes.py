@@ -1,4 +1,5 @@
 from safeSocket import safeSend, safeRecv
+import socket
 from collections import namedtuple
 
 FIN_MENSAJE =  b'\x00'
@@ -11,7 +12,7 @@ class DataMensaje:
         self.fecha = fila.date_modified.year
         self.imgUrl = "" if fila.image == None else fila.image["content_url"]
         self.lenguaje = 1 if fila.in_language["identifier"] == "en" else 0
-        self.seccion = fila.sections
+        self.seccion = str(fila.sections)
         self.nombre = fila.name
     
 
@@ -40,7 +41,7 @@ class DataMensaje:
         return bytesMensaje
 
 
-    def send(self, socket: socket) -> None:
+    def send(self, socket: socket.socket) -> None:
         print(self.aBytes())
         safeSend(self.aBytes())
 
@@ -50,11 +51,11 @@ class FinMensaje():
         pass
     
 
-    def send(self, socket: socket) -> None:
+    def send(self, socket: socket.socket) -> None:
         socket.send(FIN_MENSAJE)
 
 class LoteMensaje():
-    def __init__(self, tamañoLote: int, socket: socket) -> None:
+    def __init__(self, tamañoLote: int, socket: socket.socket) -> None:
         self.tamañoLote = tamañoLote
         self.lote = []
         self.socket = socket
@@ -70,7 +71,7 @@ class LoteMensaje():
 
     def _aBytes(self) -> bytes:
         bytesMensaje = LOTE_MENSAJE
-        bytesMensaje += len(self.lote).to_bytes(1, byteorder="big")
+        bytesMensaje += len(self.lote).to_bytes(2, byteorder="big")
         
         dataMensajeBytes = b''
         for mensaje in self.lote:
@@ -87,4 +88,4 @@ class LoteMensaje():
             return
 
         mensaje = self._aBytes()
-        self.socket.send(mensaje)
+        safeSend(self.socket, mensaje)

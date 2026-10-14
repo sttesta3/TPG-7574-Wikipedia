@@ -8,21 +8,23 @@ DATA_MENSAJE =  b'\x01'
 LOTE_MENSAJE = b'\x02'
 
 def _seccionATexto(documento: str) -> str:
-    textSeccion = ""
+    textoSeccion = ""
     for seccion in ast.literal_eval(documento):
         try:
             for parrafo in seccion["has_parts"]:
                 if parrafo["type"] == "paragraph":
-                    textSeccion += parrafo["value"] 
+                    textoSeccion += parrafo["value"] 
         except Exception:
             pass
 
-    return textSeccion
+    return textoSeccion
 
 
 class DataMensaje:
         
-    def __init__(self, fila: namedtuple) -> None:
+    def __init__(self, fila: namedtuple = None) -> None:
+        if fila is None:
+            return
         self.url = fila.url
         self.resumen = str(fila.abstract)
         self.fecha = fila.date_modified.year
@@ -46,23 +48,52 @@ class DataMensaje:
         
         bytesMensaje += len(urlBytes).to_bytes(4, byteorder="big")
         bytesMensaje += urlBytes
+
         bytesMensaje += len(resumenBytes).to_bytes(4, byteorder="big")
         bytesMensaje += resumenBytes
+
         bytesMensaje += self.fecha.to_bytes(2, byteorder="big")
+
         bytesMensaje += len(imgUrlBytes).to_bytes(4, byteorder="big")
         bytesMensaje += imgUrlBytes
+
         bytesMensaje += self.lenguaje.to_bytes(1, byteorder="big")
+
         bytesMensaje += len(seccionBytes).to_bytes(4, byteorder="big")
         bytesMensaje += seccionBytes
+
         bytesMensaje += len(nombreBytes).to_bytes(4, byteorder="big")
         bytesMensaje += nombreBytes
 
         return bytesMensaje
 
 
-    def send(self, socket: socket.socket) -> None:
-        print(self.aBytes())
-        safeSend(self.aBytes())
+    def deBytes(self, bytes: bytes) -> None:
+        totalLeido = 0
+        urlLen = int.from_bytes(bytes[totalLeido:4], byteorder="big")
+        self.url = bytes[totalLeido+4:urlLen].decode()
+        totalLeido += (urlLen + 4)
+
+        resumenLen = int.from_bytes(bytes[totalLeido:4], byteorder="big")
+        self.resumen = bytes[totalLeido+4:resumenLen].decode()
+        totalLeido += (resumenLen + 4)
+
+        self.fecha = int.from_bytes(bytes[totalLeido:2], byteorder="big")
+        totalLeido += 2
+
+        imgUrlLen = int.from_bytes(bytes[totalLeido:4], byteorder="big")
+        self.imgUrl = bytes[totalLeido+4:imgUrlLen].decode()
+        totalLeido += (imgUrlLen + 4)
+
+        self.lenguaje = int.from_bytes(bytes[totalLeido:1], byteorder="big")
+        totalLeido += 1
+
+        seccionLen = int.from_bytes(bytes[totalLeido:4], byteorder="big")
+        self.seccion = bytes[totalLeido+4:seccionLen].decode()
+        totalLeido += (seccionLen + 4)
+
+        nombreLen = int.from_bytes(bytes[totalLeido:4], byteorder="big")
+        self.nombre = bytes[totalLeido+4:nombreLen].decode()
 
 
 class FinMensaje():
@@ -70,8 +101,9 @@ class FinMensaje():
         pass
     
 
-    def send(self, socket: socket.socket) -> None:
-        socket.send(FIN_MENSAJE)
+    def aBytes(self) -> bytes:
+        return FIN_MENSAJE
+        
 
 class LoteMensaje():
     def __init__(self, tamañoLote: int, socket: socket.socket) -> None:
@@ -88,7 +120,7 @@ class LoteMensaje():
             self.lote = []
 
 
-    def _aBytes(self) -> bytes:
+    def aBytes(self) -> bytes:
         bytesMensaje = LOTE_MENSAJE
         bytesMensaje += len(self.lote).to_bytes(2, byteorder="big")
         
@@ -102,9 +134,10 @@ class LoteMensaje():
         return bytesMensaje
 
 
-    def send(self) -> None:
-        if len(self.lote) == 0:
-            return
+    def deBytes(self, bytes) -> None:
+        
 
-        mensaje = self._aBytes()
-        safeSend(self.socket, mensaje)
+    def obtenerLote(self) -> list[DataMensaje]:
+        lote = self.lote
+        self.lote = []
+        return lote

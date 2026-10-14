@@ -11,3 +11,13 @@ services:
     - LOTE=1
     volumes:
     - ./datasets:/datasets
+
+  gateway:
+    build:
+      context: ./src/
+      dockerfile: gateway/Dockerfile
+    container_name: gateway
+    environment:
+      - GATEWAYHOST=gateway
+      - GATEWAYPORT=8000
+      - LOTE=1

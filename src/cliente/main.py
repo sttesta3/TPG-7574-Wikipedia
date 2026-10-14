@@ -1,7 +1,7 @@
 import os
 import socket
 import pandas as pd
-from mensajes import LoteMensaje
+from mensajes import LoteMensaje, FinMensaje
 
 FILE = os.environ["FILE"]
 GATEWAYHOST = os.environ["GATEWAYHOST"]
@@ -16,6 +16,7 @@ def _enviarParquet(socket: socket.socket) -> None:
         loteMensaje.agregarMensaje(fila)
     
     loteMensaje.send()
+    FinMensaje().send()
 
 
 def _recibirRta(socket: socket.socket) -> None:

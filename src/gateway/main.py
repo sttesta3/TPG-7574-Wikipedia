@@ -1,8 +1,8 @@
 import os
 import uuid
 import socket
-import signal
 import multiprocessing
+from mensajesCliente import recvMensaje, DataMensaje
 
 GATEWAYHOST = os.environ["GATEWAYHOST"]
 GATEWAYPORT = int(os.environ["GATEWAYPORT"])
@@ -10,8 +10,10 @@ LOTE = int(os.environ["LOTE"])
 
 def handle_client_request(clientId: uuid, clientSocket: socket.socket) -> None:
     try:
-        while True:
-            
+        print("llego algo")
+        a = recvMensaje(clientSocket)
+        
+        print(a.nombre)
 
     except socket.error:
         print("The connection with the server was lost")

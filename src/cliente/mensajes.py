@@ -19,7 +19,6 @@ def _seccionATexto(documento: str) -> str:
 
     return textoSeccion
 
-
 class DataMensaje:
         
     def __init__(self, fila: namedtuple = None) -> None:
@@ -70,43 +69,57 @@ class DataMensaje:
 
     def deBytes(self, bytes: bytes) -> None:
         totalLeido = 0
-        urlLen = int.from_bytes(bytes[totalLeido:4], byteorder="big")
-        self.url = bytes[totalLeido+4:urlLen].decode()
+        urlLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
+        self.url = bytes[totalLeido+4:totalLeido+urlLen].decode()
         totalLeido += (urlLen + 4)
 
-        resumenLen = int.from_bytes(bytes[totalLeido:4], byteorder="big")
-        self.resumen = bytes[totalLeido+4:resumenLen].decode()
+        resumenLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
+        self.resumen = bytes[totalLeido+4:totalLeido+resumenLen].decode()
         totalLeido += (resumenLen + 4)
 
-        self.fecha = int.from_bytes(bytes[totalLeido:2], byteorder="big")
+        self.fecha = int.from_bytes(bytes[totalLeido:totalLeido+2], byteorder="big")
         totalLeido += 2
 
-        imgUrlLen = int.from_bytes(bytes[totalLeido:4], byteorder="big")
-        self.imgUrl = bytes[totalLeido+4:imgUrlLen].decode()
+        imgUrlLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
+        self.imgUrl = bytes[totalLeido+4:totalLeido+imgUrlLen].decode()
         totalLeido += (imgUrlLen + 4)
 
-        self.lenguaje = int.from_bytes(bytes[totalLeido:1], byteorder="big")
+        self.lenguaje = int.from_bytes(bytes[totalLeido:totalLeido+1], byteorder="big")
         totalLeido += 1
 
-        seccionLen = int.from_bytes(bytes[totalLeido:4], byteorder="big")
-        self.seccion = bytes[totalLeido+4:seccionLen].decode()
+        seccionLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
+        self.seccion = bytes[totalLeido+4:totalLeido+seccionLen].decode()
         totalLeido += (seccionLen + 4)
 
-        nombreLen = int.from_bytes(bytes[totalLeido:4], byteorder="big")
-        self.nombre = bytes[totalLeido+4:nombreLen].decode()
+        nombreLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
+        self.nombre = bytes[totalLeido+4:totalLeido+nombreLen].decode()
+
+
+    def obtenerData(self, socket: socket.socket):
+        dataInfo = safeRecv(socket, 4)
+        dataSize = int.from_bytes(dataInfo[0:4], byteorder="big")
+
+        bytes = safeRecv(self.socket, dataSize)
+
+        self.deBytes(bytes)
+
+        return self
 
 
 class FinMensaje():
-    def __init__(self) -> None:
-        pass
+    def __init__(self, socket: socket.socket) -> None:
+        self.socket = socket
     
 
     def aBytes(self) -> bytes:
         return FIN_MENSAJE
         
+    
+    def send(self) -> None:
+        safeSend(socket, FIN_MENSAJE)
 
 class LoteMensaje():
-    def __init__(self, tamañoLote: int, socket: socket.socket) -> None:
+    def __init__(self, socket: socket, tamañoLote: int = None) -> None:
         self.tamañoLote = tamañoLote
         self.lote = []
         self.socket = socket
@@ -134,10 +147,43 @@ class LoteMensaje():
         return bytesMensaje
 
 
-    def deBytes(self, bytes) -> None:
+    def deBytes(self, bytes: bytes, loteLen: int) -> None:
+        totalLeido = 0
         
+        for i in range(loteLen):
+            tamañoMensaje = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
+            self.lote.append(DataMensaje().deBytes(bytes[totalLeido:totalLeido+tamañoMensaje+4]))
+            totalLeido += tamañoMensaje + 4
+
 
     def obtenerLote(self) -> list[DataMensaje]:
-        lote = self.lote
-        self.lote = []
-        return lote
+        loteInfo = safeRecv(self.socket, 6)
+
+        loteLen = int.from_bytes(loteInfo[0:2], byteorder="big")
+        loteSize = int.from_bytes(loteInfo[2:6], byteorder="big")
+
+        bytes = safeRecv(self.socket, loteSize)
+
+        self.deBytes(bytes, loteLen)
+
+        return self.lote
+    
+    def send(self) -> None:
+        if len(self.lote) == 0:
+            return
+
+        mensaje = self.aBytes()
+        safeSend(self.socket, mensaje)
+
+
+def recvMensaje(socket: socket.socket) -> list[DataMensaje]:
+    type = safeRecv(socket, 1)
+
+    if type == FIN_MENSAJE: 
+        return None
+    elif type == LOTE_MENSAJE:
+        return LoteMensaje(socket).obtenerLote()
+    elif type == DATA_MENSAJE:
+        return [DataMensaje.obtenerData(socket)]
+    else:
+        return None

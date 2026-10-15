@@ -4,11 +4,14 @@ services:
       context: ./src/
       dockerfile: cliente/Dockerfile
     container_name: cliente_1
+    depends_on:
+    - gateway
     environment:
     - FILE=/datasets/enwiki_namespace_0_00000.parquet
     - GATEWAYHOST=gateway
     - GATEWAYPORT=8000
     - LOTE=1
+    - PYTHONUNBUFFERED=1
     volumes:
     - ./datasets:/datasets
 
@@ -21,3 +24,4 @@ services:
       - GATEWAYHOST=gateway
       - GATEWAYPORT=8000
       - LOTE=1
+      - PYTHONUNBUFFERED=1

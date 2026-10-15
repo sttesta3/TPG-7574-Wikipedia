@@ -6,7 +6,6 @@ def safeRecv(socket: socket.socket, size):
     while recived < size:
         try:
             byte_rec = socket.recv(size - recived)
-
             if byte_rec == 0:
                 return b""
 

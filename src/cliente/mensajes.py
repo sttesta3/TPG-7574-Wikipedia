@@ -9,13 +9,13 @@ LOTE_MENSAJE = b'\x02'
 
 def _seccionATexto(documento: str) -> str:
     textoSeccion = ""
-    for seccion in ast.literal_eval(documento):
-        try:
+    try:
+        for seccion in ast.literal_eval(documento):
             for parrafo in seccion["has_parts"]:
                 if parrafo["type"] == "paragraph":
                     textoSeccion += parrafo["value"] 
-        except Exception:
-            pass
+    except Exception:
+        pass
 
     return textoSeccion
 
@@ -70,29 +70,30 @@ class DataMensaje:
     def deBytes(self, bytes: bytes) -> None:
         totalLeido = 0
         urlLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
+
         self.url = bytes[totalLeido+4:totalLeido+urlLen].decode()
         totalLeido += (urlLen + 4)
 
         resumenLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
-        self.resumen = bytes[totalLeido+4:totalLeido+resumenLen].decode()
+        self.resumen = bytes[totalLeido+4:totalLeido+resumenLen+4].decode()
         totalLeido += (resumenLen + 4)
 
         self.fecha = int.from_bytes(bytes[totalLeido:totalLeido+2], byteorder="big")
         totalLeido += 2
 
         imgUrlLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
-        self.imgUrl = bytes[totalLeido+4:totalLeido+imgUrlLen].decode()
+        self.imgUrl = bytes[totalLeido+4:totalLeido+imgUrlLen+4].decode()
         totalLeido += (imgUrlLen + 4)
 
         self.lenguaje = int.from_bytes(bytes[totalLeido:totalLeido+1], byteorder="big")
         totalLeido += 1
 
         seccionLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
-        self.seccion = bytes[totalLeido+4:totalLeido+seccionLen].decode()
+        self.seccion = bytes[totalLeido+4:totalLeido+seccionLen+4].decode()
         totalLeido += (seccionLen + 4)
 
         nombreLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
-        self.nombre = bytes[totalLeido+4:totalLeido+nombreLen].decode()
+        self.nombre = bytes[totalLeido+4:totalLeido+nombreLen+4].decode()
 
 
     def obtenerData(self, socket: socket.socket):
@@ -150,20 +151,20 @@ class LoteMensaje():
     def deBytes(self, bytes: bytes, loteLen: int) -> None:
         totalLeido = 0
         
-        for i in range(loteLen):
-            tamañoMensaje = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
-            self.lote.append(DataMensaje().deBytes(bytes[totalLeido:totalLeido+tamañoMensaje+4]))
-            totalLeido += tamañoMensaje + 4
+        for _ in range(loteLen):
+            tamañoMensaje = int.from_bytes(bytes[totalLeido+1:totalLeido+5], byteorder="big")
+            msg = DataMensaje()
+            msg.deBytes(bytes[totalLeido+5:totalLeido+tamañoMensaje+5])
+            self.lote.append(msg)
+            totalLeido += tamañoMensaje + 5
 
 
     def obtenerLote(self) -> list[DataMensaje]:
         loteInfo = safeRecv(self.socket, 6)
-
         loteLen = int.from_bytes(loteInfo[0:2], byteorder="big")
         loteSize = int.from_bytes(loteInfo[2:6], byteorder="big")
 
         bytes = safeRecv(self.socket, loteSize)
-
         self.deBytes(bytes, loteLen)
 
         return self.lote

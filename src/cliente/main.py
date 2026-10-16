@@ -1,31 +1,38 @@
 import os
 import socket
 import pandas as pd
-from mensajes import LoteMensaje, FinMensaje
+from mensajesCliente import LoteMensaje, FinMensaje
+from mensajesGateway import recvMensaje
 
-DATASETPATH = os.environ["DATASETPATH"]
-TOTALDATASET = int(os.environ["TOTALDATASET"])
+DATASETPATHEN = os.environ["DATASETPATHEN"]
+DATASETPATHFR = os.environ["DATASETPATHFR"]
+TOTALDATASETS = int(os.environ["TOTALDATASETS"])
 GATEWAYHOST = os.environ["GATEWAYHOST"]
 GATEWAYPORT = int(os.environ["GATEWAYPORT"])
 LOTE = int(os.environ["LOTE"])
 
 
 def enviarParquet(socket: socket) -> None:
-    for i in range(TOTALDATASET):
-        dataset =  pd.read_parquet(DATASETPATH+ str(i).zfill(5) + ".parquet")
-        loteMensaje = LoteMensaje(socket, LOTE)
+    loteMensaje = LoteMensaje(socket, LOTE)
+    for i in range(TOTALDATASETS):
+        datasetEn = pd.read_parquet(DATASETPATHEN + str(i).zfill(5) + ".parquet")
+        datasetFr = pd.read_parquet(DATASETPATHFR + str(i).zfill(5) + ".parquet")
+
+        dataset = pd.concat([datasetEn, datasetFr])
 
         for fila in dataset.itertuples():
             loteMensaje.agregarMensaje(fila)
+            break
         
-        loteMensaje.send()
-        FinMensaje(socket).send()
-        while True:
-            continue
+    loteMensaje.send()
+    FinMensaje(socket).send()
 
 
 def recibirRta(socket: socket) -> None:
-    pass
+    while True:
+        a = recvMensaje(socket)
+
+        print(a.url)
 
 
 def main():

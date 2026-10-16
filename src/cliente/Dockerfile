@@ -6,6 +6,8 @@ COPY cliente/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY socket/safeSocket.py .
+COPY protocolo/mensajesCliente.py ./mensajesCliente.py
+COPY protocolo/mensajesGateway.py ./mensajesGateway.py
 COPY cliente .
 
 ENTRYPOINT ["python3", "main.py"]

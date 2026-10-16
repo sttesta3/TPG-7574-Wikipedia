@@ -7,7 +7,9 @@ services:
     depends_on:
     - gateway
     environment:
-    - FILE=/datasets/enwiki_namespace_0_00000.parquet
+    - DATASETPATHEN=/datasets/enwiki_namespace_0_
+    - DATASETPATHFR=/datasets/frwiki_namespace_0_
+    - TOTALDATASETS=1
     - GATEWAYHOST=gateway
     - GATEWAYPORT=8000
     - LOTE=1

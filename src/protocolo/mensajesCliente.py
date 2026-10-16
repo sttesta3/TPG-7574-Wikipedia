@@ -19,7 +19,7 @@ def _seccionATexto(documento: str) -> str:
 
     return textoSeccion
 
-class DataMensaje:
+class DataMensaje():
         
     def __init__(self, fila: namedtuple = None) -> None:
         if fila is None:
@@ -100,7 +100,7 @@ class DataMensaje:
         dataInfo = safeRecv(socket, 4)
         dataSize = int.from_bytes(dataInfo[0:4], byteorder="big")
 
-        bytes = safeRecv(self.socket, dataSize)
+        bytes = safeRecv(socket, dataSize)
 
         self.deBytes(bytes)
 
@@ -117,7 +117,7 @@ class FinMensaje():
         
     
     def send(self) -> None:
-        safeSend(socket, FIN_MENSAJE)
+        safeSend(self.socket, FIN_MENSAJE)
 
 class LoteMensaje():
     def __init__(self, socket: socket, tamañoLote: int = None) -> None:

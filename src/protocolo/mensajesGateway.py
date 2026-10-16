@@ -2,7 +2,6 @@ import socket
 from abc import ABC, abstractmethod
 from safeSocket import safeRecv, safeSend
 
-
 RESPUESTA1_MENSAJE = b'\x01'
 RESPUESTA2_MENSAJE = b'\x02'
 RESPUESTA3_MENSAJE = b'\x03'

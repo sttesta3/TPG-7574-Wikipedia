@@ -20,7 +20,6 @@ def _seccionATexto(documento: str) -> str:
     return textoSeccion
 
 class DataMensaje():
-        
     def __init__(self, fila: namedtuple = None) -> None:
         if fila is None:
             return
@@ -119,8 +118,9 @@ class FinMensaje():
     def send(self) -> None:
         safeSend(self.socket, FIN_MENSAJE)
 
+
 class LoteMensaje():
-    def __init__(self, socket: socket, tamañoLote: int = None) -> None:
+    def __init__(self, socket: socket = None, tamañoLote: int = None) -> None:
         self.tamañoLote = tamañoLote
         self.lote = []
         self.socket = socket

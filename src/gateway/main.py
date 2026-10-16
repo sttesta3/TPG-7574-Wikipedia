@@ -2,8 +2,8 @@ import os
 import uuid
 import socket
 import multiprocessing
-from mensajesCliente import recvMensaje, DataMensaje
-from mensajesGateway import Query1Mensaje, sendQuery
+from mensajesCliente import recvMensaje
+from mensajesSistema import FinMensajeSistema, LoteMensajeSistema
 from middleware import MessageMiddlewareQueue
 
 MOMHOST = os.environ["MOMHOST"]
@@ -22,10 +22,10 @@ def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
         while not eof:
             mensaje = recvMensaje(clientSocket)
             if mensaje is None:
-               eof = True
-               #colaDatos.send("EOF")
+                eof = True
+                colaDatos.send(FinMensajeSistema(clienteId).aBytes())
             else:
-                #colaDatos.send(mensaje + clienteId)
+                colaDatos.send(LoteMensajeSistema(clienteId, mensaje).aBytes())
                 pass
     except socket.error:
         print("The connection with the server was lost")

@@ -19,6 +19,7 @@ def _seccionATexto(documento: str) -> str:
 
     return textoSeccion
 
+
 class DataMensaje():
     def __init__(self, fila: namedtuple = None) -> None:
         if fila is None:
@@ -169,6 +170,7 @@ class LoteMensaje():
 
         return self.lote
     
+
     def send(self) -> None:
         if len(self.lote) == 0:
             return

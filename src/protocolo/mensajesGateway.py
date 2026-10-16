@@ -1,6 +1,8 @@
 import socket
+import uuid
 from abc import ABC, abstractmethod
 from safeSocket import safeRecv, safeSend
+from mensajesSistema import FIN_MENSAJE
 
 RESPUESTA1_MENSAJE = b'\x01'
 RESPUESTA2_MENSAJE = b'\x02'
@@ -17,8 +19,8 @@ class Respuesta(ABC):
     def deBytes(self, bytes: bytes) -> None:
         pass
 
-class Respuesta1Mensaje(Respuesta):
 
+class Respuesta1Mensaje(Respuesta):
     def __init__(self, url: str = None, fecha: int = None) -> None:
         if url is None and fecha is None:
             return
@@ -49,7 +51,6 @@ class Respuesta1Mensaje(Respuesta):
 
 
 class Respuesta2Mensaje(Respuesta):
-
     def __init__(self, nombre: str = None, url: str = None, imgBytes: bytes = None) -> None:
         if nombre is None and url is None and imgBytes is None:
             return
@@ -95,7 +96,6 @@ class Respuesta2Mensaje(Respuesta):
 
 
 class Respuesta3Mensaje(Respuesta):
-
     def __init__(self) -> None:
         pass
 
@@ -107,7 +107,6 @@ class Respuesta3Mensaje(Respuesta):
 
 
 class Respuesta4Mensaje(Respuesta):
-
     def __init__(self) -> None:
         pass
 
@@ -119,7 +118,6 @@ class Respuesta4Mensaje(Respuesta):
 
 
 class Respuesta5Mensaje(Respuesta):
-
     def __init__(self) -> None:
         pass
 
@@ -129,8 +127,10 @@ class Respuesta5Mensaje(Respuesta):
     def deBytes(self, bytes: bytes) -> None:        
         pass
 
+
 def sendRespuesta(socket: socket.socket, respuesta: Respuesta) -> None:    
     safeSend(socket, respuesta.aBytes())
+
 
 def obtenerRespuesta(socket: socket.socket, instancia: Respuesta) -> Respuesta:
     respuestaInfo = safeRecv(socket, 4)
@@ -141,6 +141,7 @@ def obtenerRespuesta(socket: socket.socket, instancia: Respuesta) -> Respuesta:
 
     return instancia
 
+
 def recvMensaje(socket: socket.socket) -> Respuesta:
     type = safeRecv(socket, 1)
 
@@ -150,3 +151,27 @@ def recvMensaje(socket: socket.socket) -> Respuesta:
         return obtenerRespuesta(socket, Respuesta2Mensaje())
     else:
         return None
+    
+def recvMensajeSistema(mensaje: bytes) -> tuple[uuid.UUID, Respuesta]:
+    type = mensaje[1]
+
+    rta = None
+
+    if type == RESPUESTA1_MENSAJE:
+        rta = Respuesta1Mensaje()
+    elif type == RESPUESTA2_MENSAJE:
+        rta = Respuesta2Mensaje()
+    elif type == RESPUESTA3_MENSAJE:
+        rta = Respuesta3Mensaje()
+    elif type == RESPUESTA4_MENSAJE:
+        rta = Respuesta4Mensaje()
+    elif rta == RESPUESTA5_MENSAJE:
+        rta = Respuesta5Mensaje()
+    elif rta == FIN_MENSAJE:
+        rta = None
+    
+    if rta is None:
+        return None
+    else:
+        rta.deBytes(mensaje[1:])
+        return rta

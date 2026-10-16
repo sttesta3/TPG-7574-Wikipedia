@@ -3,6 +3,7 @@ import uuid
 import socket
 import multiprocessing
 from mensajesCliente import recvMensaje
+from mensajesGateway import sendRespuesta, recvMensajeSistema
 from mensajesSistema import FinMensajeSistema, LoteMensajeSistema
 from middleware import MessageMiddlewareQueue
 
@@ -39,13 +40,13 @@ def manejarRespuesta(clientes: dict) -> None:
     colaRespuestas = MessageMiddlewareQueue(MOMHOST, COLARESPUESTAS)
 
     def _consumirRespuesta(message: bytes, ack, nack):
-        # clienteId, respuesta = obtenerRespuesta(message)
-        # clientSocket = clientes[clienteId]
-        # if respuesta is None:
-        #     sendRespuesta(clientSoket, EOF)
-        #     clientes[clienteId] = None
-        # else:
-        #     sendRespuesta(clientSocket, respuesta)
+        clienteId, respuesta = recvMensajeSistema(message)
+        clienteSocket = clientes[clienteId]
+        if respuesta is None:
+            sendRespuesta(clienteSocket, EOF)
+            clientes[clienteId] = None
+        else:
+            sendRespuesta(clienteSocket, respuesta)
         ack()
         
     colaRespuestas.start_consuming(_consumirRespuesta)

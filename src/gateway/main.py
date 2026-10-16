@@ -3,37 +3,60 @@ import uuid
 import socket
 import multiprocessing
 from mensajesCliente import recvMensaje, DataMensaje
-from mensajesGateway import Query1Mensaje
+from mensajesGateway import Query1Mensaje, sendQuery
+from middleware import MessageMiddlewareQueue
+
+MOMHOST = os.environ["MOMHOST"]
+COLADATOS = os.environ["COLADATOS"]
+COLARESPUESTAS = os.environ["COLARESPUESTAS"]
 
 GATEWAYHOST = os.environ["GATEWAYHOST"]
 GATEWAYPORT = int(os.environ["GATEWAYPORT"])
 LOTE = int(os.environ["LOTE"])
 
-def handle_client_request(clientId: uuid, clientSocket: socket.socket) -> None:
-    try:
-        art = None
-        while True:
-            a = recvMensaje(clientSocket)
-            print(a)
-            if a is None:
-                b = Query1Mensaje(art.url, art.fecha)
-                print(b.url)
-                b.send(clientSocket)
-            else:
-                art = a[0]
+def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
+    colaDatos = MessageMiddlewareQueue(MOMHOST, COLADATOS)
 
+    try:
+        eof = False
+        while not eof:
+            mensaje = recvMensaje(clientSocket)
+            if mensaje is None:
+               eof = True
+               #colaDatos.send("EOF")
+            else:
+                #colaDatos.send(mensaje + clienteId)
+                pass
     except socket.error:
         print("The connection with the server was lost")
     except Exception as e:
         print(e)
+    finally:
+        colaDatos.close()
 
+
+def manejarRespuesta(clientes: dict) -> None:
+    colaRespuestas = MessageMiddlewareQueue(MOMHOST, COLARESPUESTAS)
+
+    def _consumirRespuesta(message: bytes, ack, nack):
+        # clienteId, respuesta = obtenerRespuesta(message)
+        # clientSocket = clientes[clienteId]
+        # if respuesta is None:
+        #     sendRespuesta(clientSoket, EOF)
+        #     clientes[clienteId] = None
+        # else:
+        #     sendRespuesta(clientSocket, respuesta)
+        ack()
+        
+    colaRespuestas.start_consuming(_consumirRespuesta)
+    colaRespuestas.close()
 
 def main() -> None:
     with multiprocessing.Manager() as manager:
-        clients = manager.dict()
+        clientes = manager.dict()
         sigterm_received = manager.Value("c_short", 0)
         with multiprocessing.Pool(processes=os.process_cpu_count()) as processes_pool:
-            #processes_pool.apply_async(handle_client_response, (client_list,))
+            processes_pool.apply_async(manejarRespuesta, args=(clientes))
 
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                 server_socket.bind((GATEWAYHOST, GATEWAYPORT))
@@ -42,9 +65,9 @@ def main() -> None:
                     try:
                         clientSocket, _ = server_socket.accept()
                         clientId = uuid.uuid4()
-                        clients[clientId] = clientSocket
+                        clientes[clientId] = clientSocket
 
-                        processes_pool.apply_async(handle_client_request, args=(clientId, clientSocket))
+                        processes_pool.apply_async(manejarPeticion, args=(clientId, clientSocket))
                     except socket.error:
                         if sigterm_received.value == 0:
                             return 1

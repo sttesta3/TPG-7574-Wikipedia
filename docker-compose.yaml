@@ -22,8 +22,30 @@ services:
       context: ./src/
       dockerfile: gateway/Dockerfile
     container_name: gateway
+    depends_on:
+    - rabbitmq
     environment:
       - GATEWAYHOST=gateway
       - GATEWAYPORT=8000
+      - MOMHOST=rabbitmq
+      - COLADATOS=EntradaDatos
+      - COLARESPUESTAS=Respuestas
       - LOTE=1
       - PYTHONUNBUFFERED=1
+
+  rabbitmq:
+      build:
+        context: ./src/middleware
+        dockerfile: Dockerfile
+      container_name: rabbitmq
+      environment:
+      - RABBITMQ_LOG_LEVELS=error
+      healthcheck:
+        interval: 5s
+        retries: 10
+        start_period: 50s
+        test: rabbitmq-diagnostics check_port_connectivity
+        timeout: 3s
+      ports:
+      - 5672:5672
+      - 15672:15672

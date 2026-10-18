@@ -5,7 +5,8 @@ WORKDIR /home/app
 COPY clasificador/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY protocolo/mensajesGateway.py ./mensajesGateway.py
+COPY protocolo/*.py .
+COPY socket/safeSocket.py .
 COPY middleware/middleware.py .
 COPY clasificador .
 

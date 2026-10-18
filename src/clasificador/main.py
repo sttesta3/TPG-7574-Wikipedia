@@ -15,7 +15,7 @@ class Clasificador:
 
 
     def _procesarData(self, loteMensaje: LoteDataMensajeSistema) -> None:
-        for mensaje in loteMensaje:
+        for mensaje in loteMensaje.lote:
             # Query 1:
             if mensaje.lenguaje == LENGUAJEINGLES and mensaje.fecha <= 2020:
                 self.colaRespuestas.send(Respuesta1Mensaje(mensaje.url, mensaje.fecha).aBytes())

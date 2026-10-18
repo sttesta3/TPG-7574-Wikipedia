@@ -16,9 +16,9 @@ GATEWAYPORT = int(os.environ["GATEWAYPORT"])
 LOTE = int(os.environ["LOTE"])
 
 def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
-    colaDatos = MessageMiddlewareQueue(MOMHOST, COLADATOS)
-
     try:
+        colaDatos = MessageMiddlewareQueue(MOMHOST, COLADATOS)
+
         eof = False
         while not eof:
             mensaje = recvMensaje(clientSocket)
@@ -57,7 +57,7 @@ def main() -> None:
         clientes = manager.dict()
         sigterm_received = manager.Value("c_short", 0)
         with multiprocessing.Pool(processes=os.process_cpu_count()) as processes_pool:
-            processes_pool.apply_async(manejarRespuesta, args=(clientes))
+            processes_pool.apply_async(manejarRespuesta, args=clientes)
 
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                 server_socket.bind((GATEWAYHOST, GATEWAYPORT))

@@ -5,7 +5,8 @@ services:
       dockerfile: gateway/Dockerfile
     container_name: gateway
     depends_on:
-    - rabbitmq
+      rabbitmq:
+        condition: service_healthy
     environment:
       - GATEWAYHOST=gateway
       - GATEWAYPORT=8000
@@ -56,8 +57,10 @@ services:
       dockerfile: clasificador/Dockerfile
     container_name: clasificador_1
     depends_on:
-      - gateway
-      - rabbitmq
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
     environment:
       - PYTHONBUFFFERED=1
       - MOMHOST=rabbitmq

@@ -4,7 +4,7 @@ import socket
 import multiprocessing
 from mensajesCliente import recvMensaje
 from mensajesGateway import sendRespuesta, recvMensajeSistema
-from mensajesSistema import FinMensajeSistema, LoteMensajeSistema
+from mensajesSistema import FinMensajeSistema, LoteDataMensajeSistema
 from middleware import MessageMiddlewareQueue
 
 MOMHOST = os.environ["MOMHOST"]
@@ -26,8 +26,7 @@ def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
                 eof = True
                 colaDatos.send(FinMensajeSistema(clienteId).aBytes())
             else:
-                colaDatos.send(LoteMensajeSistema(clienteId, mensaje).aBytes())
-                pass
+                colaDatos.send(LoteDataMensajeSistema(clienteId, mensaje).aBytes())
     except socket.error:
         print("The connection with the server was lost")
     except Exception as e:
@@ -43,9 +42,10 @@ def manejarRespuesta(clientes: dict) -> None:
         clienteId, respuesta = recvMensajeSistema(message)
         clienteSocket = clientes[clienteId]
         if respuesta is None:
-            sendRespuesta(clienteSocket, EOF)
+            #sendRespuesta(clienteSocket, EOF)
             clientes[clienteId] = None
         else:
+            print(f"RESPUESTA: {respuesta.fecha}")
             sendRespuesta(clienteSocket, respuesta)
         ack()
         

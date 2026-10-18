@@ -1,22 +1,4 @@
 services:
-  cliente_1:
-    build:
-      context: ./src/
-      dockerfile: cliente/Dockerfile
-    container_name: cliente_1
-    depends_on:
-    - gateway
-    environment:
-    - DATASETPATHEN=/datasets/enwiki_namespace_0_
-    - DATASETPATHFR=/datasets/frwiki_namespace_0_
-    - TOTALDATASETS=1
-    - GATEWAYHOST=gateway
-    - GATEWAYPORT=8000
-    - LOTE=1
-    - PYTHONUNBUFFERED=1
-    volumes:
-    - ./datasets:/datasets
-
   gateway:
     build:
       context: ./src/
@@ -49,3 +31,36 @@ services:
       ports:
       - 5672:5672
       - 15672:15672
+
+  cliente_1:
+    build:
+      context: ./src/
+      dockerfile: cliente/Dockerfile
+    container_name: cliente_1
+    depends_on:
+    - gateway
+    environment:
+    - DATASETPATHEN=/datasets/enwiki_namespace_0_
+    - DATASETPATHFR=/datasets/frwiki_namespace_0_
+    - TOTALDATASETS=1
+    - GATEWAYHOST=gateway
+    - GATEWAYPORT=8000
+    - LOTE=1
+    - PYTHONUNBUFFERED=1
+    volumes:
+    - ./datasets:/datasets
+
+  clasificador_1:
+    build:
+      context: ./src/
+      dockerfile: clasificador/Dockerfile
+    container_name: clasificador_1
+    depends_on:
+      - gateway
+      - rabbitmq
+    environment:
+      - PYTHONBUFFFERED=1
+      - MOMHOST=rabbitmq
+      - COLADATOS=EntradaDatos
+      - COLARESPUESTAS=Respuestas
+  

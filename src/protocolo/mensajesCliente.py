@@ -3,6 +3,10 @@ import socket
 from safeSocket import safeSend, safeRecv
 from collections import namedtuple
 
+LENGUAJEINGLES = 1
+LENGUAJEFRANCES = 1
+
+
 FIN_MENSAJE =  b'\x00'
 DATA_MENSAJE =  b'\x01'
 LOTE_MENSAJE = b'\x02'
@@ -28,7 +32,7 @@ class DataMensaje():
         self.resumen = str(fila.abstract)
         self.fecha = fila.date_modified.year
         self.imgUrl = "" if fila.image == None else fila.image["content_url"]
-        self.lenguaje = 1 if fila.in_language["identifier"] == "en" else 0
+        self.lenguaje = LENGUAJEINGLES if fila.in_language["identifier"] == "en" else LENGUAJEFRANCES
         self.seccion = _seccionATexto(fila.sections)
         self.nombre = fila.name
     

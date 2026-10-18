@@ -1,10 +1,20 @@
 import uuid
+from abc import ABC, abstractmethod
 from mensajesCliente import DataMensaje 
 
 FIN_MENSAJE =  b'\x00'
 LOTE_MENSAJE = b'\x01'
 
-class FinMensajeSistema():
+class MensajeSistema(ABC):
+    @abstractmethod
+    def aBytes(self) -> bytes:
+        pass
+
+    @abstractmethod
+    def deBytes(self, bytes: bytes) -> None:
+        pass
+
+class FinMensajeSistema(MensajeSistema):
     def __init__(self, clienteId: uuid = None) -> None:
         self.clienteId = clienteId
     
@@ -19,10 +29,11 @@ class FinMensajeSistema():
         self.clienteId = uuid.UUID(bytes)
 
 
-class LoteMensajeSistema():
+class LoteDataMensajeSistema(MensajeSistema):
     def __init__(self, clienteId: uuid, lote: list[DataMensaje]) -> None:
         self.clienteId = clienteId
         self.lote = lote
+
 
     def aBytes(self) -> bytes:
         bytesMensaje = LOTE_MENSAJE
@@ -35,6 +46,7 @@ class LoteMensajeSistema():
         
         bytesMensaje += len(dataMensajeBytes).to_bytes(4, byteorder="big")
         bytesMensaje += dataMensajeBytes
+
 
     def deBytes(self, bytes: bytes) -> None:
         totalLeido = 0
@@ -50,3 +62,22 @@ class LoteMensajeSistema():
             totalLeido += tamañoMensaje + 5
 
         return self
+
+
+def recvMensajeSistema(mensaje: bytes) -> MensajeSistema:
+    ype = mensaje[1]
+
+    rta = None
+
+    if type == FIN_MENSAJE:
+        rta = FinMensajeSistema()
+    elif type == LOTE_MENSAJE:
+        rta = LoteDataMensajeSistema()
+    else:
+        rta = None
+    
+    if rta is None:
+        return None
+    else:
+        rta.deBytes(mensaje[1:])
+        return rta

@@ -26,7 +26,7 @@ class FinMensajeSistema(MensajeSistema):
     
 
     def deBytes(self, bytes) -> None:
-        self.clienteId = uuid.UUID(bytes)
+        self.clienteId = uuid.UUID(bytes = bytes)
 
 
 class LoteDataMensajeSistema(MensajeSistema):
@@ -38,9 +38,7 @@ class LoteDataMensajeSistema(MensajeSistema):
     def aBytes(self) -> bytes:
         bytesMensaje = LOTE_MENSAJE
         bytesMensaje += len(self.lote).to_bytes(2, byteorder="big")
-        bytesMensaje += str(self.clienteId).encode("UTF-8") # TODO: esto deberian ser bytes directo pero me rompia
-
-        print(self.clienteId)
+        bytesMensaje += self.clienteId.bytes
 
         dataMensajeBytes = b''
         for mensaje in self.lote:
@@ -54,10 +52,8 @@ class LoteDataMensajeSistema(MensajeSistema):
     def deBytes(self, bytes: bytes) -> None:
         totalLeido = 0
         loteLen = int.from_bytes(bytes[0:2], byteorder="big")
-        self.clienteId = uuid.UUID((bytes[2:38]).decode())
-
-        print(self.clienteId)
-        totalLeido += 38
+        self.clienteId = uuid.UUID(bytes=(bytes[2:18]))
+        totalLeido += 18
 
         self.lote = []
         for _ in range(loteLen):

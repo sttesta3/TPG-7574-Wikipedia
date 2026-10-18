@@ -62,7 +62,7 @@ services:
         gateway:
           condition: service_started
     environment:
-      - PYTHONBUFFFERED=1
+      - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLADATOS=EntradaDatos
       - COLARESPUESTAS=Respuestas

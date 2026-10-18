@@ -68,16 +68,13 @@ class DataMensaje():
         bytesMensaje += len(nombreBytes).to_bytes(4, byteorder="big")
         bytesMensaje += nombreBytes
 
-        print(tamañoMensaje)
-
         return bytesMensaje
 
 
     def deBytes(self, bytes: bytes) -> None:
         totalLeido = 0
         urlLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
-        print(urlLen)
-
+        
         self.url = bytes[totalLeido+4:totalLeido+urlLen].decode()
         totalLeido += (urlLen + 4)
 

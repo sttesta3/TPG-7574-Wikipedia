@@ -19,7 +19,7 @@ class Respuesta(ABC):
     def deBytes(self, bytes: bytes) -> None:
         pass
 
-
+# FALTA INDICAR EL UUID EN TODAS
 class Respuesta1Mensaje(Respuesta):
     def __init__(self, url: str = None, fecha: int = None) -> None:
         if url is None and fecha is None:

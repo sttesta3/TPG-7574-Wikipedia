@@ -41,7 +41,8 @@ def manejarRespuesta(clientes: dict) -> None:
     def _consumirRespuesta(message: bytes, ack, nack):
         clienteId, respuesta = recvMensajeSistema(message)
         clienteSocket = clientes[clienteId]
-        if respuesta is None:
+        if isinstance(respuesta, FinMensajeSistema):
+            # TODO: manejar EOF
             #sendRespuesta(clienteSocket, EOF)
             clientes[clienteId] = None
         else:

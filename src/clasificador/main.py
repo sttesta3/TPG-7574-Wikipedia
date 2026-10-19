@@ -1,6 +1,5 @@
 import os
-from mensajesGateway import Respuesta1Mensaje
-from mensajesSistema import recvMensajeSistema, FinMensajeSistema, LoteDataMensajeSistema, ImgMensajeSistema 
+from mensajesSistema import recvMensajeSistema, FinMensajeSistema, LoteDataMensajeSistema, ImgMensajeSistema, Respuesta1MensajeSistema
 from middleware import MessageMiddlewareQueue
 
 MOMHOST = os.environ["MOMHOST"]
@@ -22,7 +21,7 @@ class Clasificador:
     def _procesarData(self, loteMensaje: LoteDataMensajeSistema) -> None:
         for mensaje in loteMensaje.lote:
             if mensaje.lenguaje == LENGUAJEINGLES and mensaje.fecha <= 2020:
-                self.colaRespuestas.send(Respuesta1Mensaje(mensaje.url, mensaje.fecha).aBytes())
+                self.colaRespuestas.send(Respuesta1MensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.fecha).aBytes())
             if mensaje.fecha <= 2020 and (("biography" in mensaje.seccion.lower()) or ("biographie" in mensaje.seccion)):
                 self.colaImgDowloader.send(ImgMensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.nombre))
             #self.colaTransformador.send()
@@ -31,7 +30,6 @@ class Clasificador:
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
         self.colaImgDowloader.send(mensaje.aBytes())
         self.colaTransformador.send(mensaje.aBytes())
-        self.colaRespuestas.send(mensaje.aBytes())
 
 
     def procesarMensaje(self, bytes, ack, nack):

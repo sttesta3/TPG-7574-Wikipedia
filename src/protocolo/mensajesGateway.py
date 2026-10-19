@@ -1,8 +1,7 @@
 import socket
-import uuid
 from abc import ABC, abstractmethod
 from safeSocket import safeRecv, safeSend
-from mensajesSistema import FIN_MENSAJE
+from mensajesCliente import FIN_MENSAJE
 
 RESPUESTA1_MENSAJE = b'\x01'
 RESPUESTA2_MENSAJE = b'\x02'
@@ -19,7 +18,7 @@ class Respuesta(ABC):
     def deBytes(self, bytes: bytes) -> None:
         pass
 
-# FALTA INDICAR EL UUID EN TODAS
+
 class Respuesta1Mensaje(Respuesta):
     def __init__(self, url: str = None, fecha: int = None) -> None:
         if url is None and fecha is None:
@@ -42,7 +41,6 @@ class Respuesta1Mensaje(Respuesta):
     
     def deBytes(self, bytes: bytes) -> None:
         totalLeido = 0
-        
         urlLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
         self.url = bytes[totalLeido+4:totalLeido+urlLen+4].decode()
         totalLeido += (urlLen + 4)
@@ -151,27 +149,3 @@ def recvMensaje(socket: socket.socket) -> Respuesta:
         return obtenerRespuesta(socket, Respuesta2Mensaje())
     else:
         return None
-    
-def recvMensajeSistema(mensaje: bytes) -> tuple[uuid.UUID, Respuesta]:
-    type = mensaje[1]
-
-    rta = None
-
-    if type == RESPUESTA1_MENSAJE:
-        rta = Respuesta1Mensaje()
-    elif type == RESPUESTA2_MENSAJE:
-        rta = Respuesta2Mensaje()
-    elif type == RESPUESTA3_MENSAJE:
-        rta = Respuesta3Mensaje()
-    elif type == RESPUESTA4_MENSAJE:
-        rta = Respuesta4Mensaje()
-    elif rta == RESPUESTA5_MENSAJE:
-        rta = Respuesta5Mensaje()
-    elif rta == FIN_MENSAJE:
-        rta = None
-    
-    if rta is None:
-        return None
-    else:
-        rta.deBytes(mensaje[1:])
-        return rta

@@ -6,7 +6,6 @@ from collections import namedtuple
 LENGUAJEINGLES = 1
 LENGUAJEFRANCES = 1
 
-
 FIN_MENSAJE =  b'\x00'
 DATA_MENSAJE =  b'\x01'
 LOTE_MENSAJE = b'\x02'

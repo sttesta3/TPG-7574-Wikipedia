@@ -1,10 +1,16 @@
 import uuid
 from abc import ABC, abstractmethod
-from mensajesCliente import DataMensaje 
+from mensajesCliente import DataMensaje, FIN_MENSAJE
+from mensajesGateway import Respuesta1Mensaje
 
-FIN_MENSAJE =  b'\x00'
-LOTE_DATA_MENSAJE = b'\x01'
-IMG_MENSAJE = b'x02'
+RESPUESTA1_MENSAJE = b'\x01'
+RESPUESTA2_MENSAJE = b'\x02'
+RESPUESTA3_MENSAJE = b'\x03'
+RESPUESTA4_MENSAJE = b'\x04'
+RESPUESTA5_MENSAJE = b'\x05'
+
+LOTE_DATA_MENSAJE = b'\x06'
+IMG_MENSAJE = b'x07'
 
 class MensajeSistema(ABC):
     @abstractmethod
@@ -27,7 +33,7 @@ class FinMensajeSistema(MensajeSistema):
         return mensajeBytes
     
 
-    def deBytes(self, bytes) -> None:
+    def deBytes(self, bytes):
         self.clienteId = uuid.UUID(bytes = bytes)
 
 
@@ -64,8 +70,6 @@ class LoteDataMensajeSistema(MensajeSistema):
             self.lote.append(msg)
             totalLeido += tamañoMensaje + 5
 
-        return self
-
 
 class ImgMensajeSistema(MensajeSistema):
     def __init__(self, clienteId: uuid.UUID = None, url: str = None, nombre: str = None) -> None:
@@ -101,6 +105,34 @@ class ImgMensajeSistema(MensajeSistema):
         self.nombre = bytes[totalLeido+4:totalLeido+nombreLen+4] 
 
 
+class Respuesta1MensajeSistema(MensajeSistema):
+    def __init__(self, clienteId: uuid.UUID = None , url: str = None, fecha: int = None):
+        self.url = url
+        self.fecha = fecha
+        self.clienteId = clienteId
+
+
+    def aBytes(self) -> bytes:
+        bytesMensaje = RESPUESTA1_MENSAJE
+        bytesMensaje += (Respuesta1Mensaje(self.url, self.fecha).aBytes())[1:]
+        bytesMensaje += self.clienteId.bytes
+
+        return bytesMensaje
+
+
+    def deBytes(self, bytes) -> None:
+        rtaMsg = Respuesta1Mensaje()
+        print(bytes)
+        rtaMsg.deBytes(bytes[4:len(bytes)-16])
+        self.fecha = rtaMsg.fecha
+        self.url = rtaMsg.url
+        self.clienteId = uuid.UUID(bytes=bytes[len(bytes)-16:])
+
+
+    def aRespuestaGateway(self) -> Respuesta1Mensaje:
+        return Respuesta1Mensaje(self.url, self.fecha)
+
+
 def recvMensajeSistema(mensaje: bytes) -> MensajeSistema:
     type = mensaje[:1]
     rta = None
@@ -109,6 +141,8 @@ def recvMensajeSistema(mensaje: bytes) -> MensajeSistema:
         rta = FinMensajeSistema()
     elif type == LOTE_DATA_MENSAJE:
         rta = LoteDataMensajeSistema()
+    elif type == RESPUESTA1_MENSAJE:
+        rta = Respuesta1MensajeSistema()
     else:
         rta = None
     

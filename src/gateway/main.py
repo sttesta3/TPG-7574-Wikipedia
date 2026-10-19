@@ -3,8 +3,8 @@ import uuid
 import socket
 import multiprocessing
 from mensajesCliente import recvMensaje
-from mensajesGateway import sendRespuesta, recvMensajeSistema
-from mensajesSistema import FinMensajeSistema, LoteDataMensajeSistema
+from mensajesGateway import sendRespuesta, Respuesta1Mensaje
+from mensajesSistema import FinMensajeSistema, LoteDataMensajeSistema, recvMensajeSistema
 from middleware import MessageMiddlewareQueue
 
 MOMHOST = os.environ["MOMHOST"]
@@ -39,26 +39,30 @@ def manejarRespuesta(clientes: dict) -> None:
     colaRespuestas = MessageMiddlewareQueue(MOMHOST, COLARESPUESTAS)
 
     def _consumirRespuesta(message: bytes, ack, nack):
-        clienteId, respuesta = recvMensajeSistema(message)
-        clienteSocket = clientes[clienteId]
-        if isinstance(respuesta, FinMensajeSistema):
-            # TODO: manejar EOF
-            #sendRespuesta(clienteSocket, EOF)
-            clientes[clienteId] = None
-        else:
-            print(f"RESPUESTA: {respuesta.fecha}")
-            sendRespuesta(clienteSocket, respuesta)
+        try:
+            respuesta = recvMensajeSistema(message)
+            clienteId = respuesta.clienteId
+            clienteSocket = clientes[clienteId]
+            if isinstance(respuesta, FinMensajeSistema):
+                # TODO: manejar EOF
+                #sendRespuesta(clienteSocket, EOF)
+                clientes[clienteId] = None
+            else:
+                print(f"Respuesta a: {respuesta.clienteId}")
+                sendRespuesta(clienteSocket, respuesta.aRespuestaGateway())
+        except Exception as e:
+            print(e)
         ack()
         
     colaRespuestas.start_consuming(_consumirRespuesta)
-    colaRespuestas.close()
+
 
 def main() -> None:
     with multiprocessing.Manager() as manager:
         clientes = manager.dict()
         sigterm_received = manager.Value("c_short", 0)
         with multiprocessing.Pool(processes=os.process_cpu_count()) as processes_pool:
-            processes_pool.apply_async(manejarRespuesta, args=clientes)
+            processes_pool.apply_async(manejarRespuesta, args=(clientes,))
 
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
                 server_socket.bind((GATEWAYHOST, GATEWAYPORT))

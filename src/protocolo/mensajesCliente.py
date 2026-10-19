@@ -3,6 +3,9 @@ import socket
 from safeSocket import safeSend, safeRecv
 from collections import namedtuple
 
+LENGUAJEINGLES = 1
+LENGUAJEFRANCES = 1
+
 FIN_MENSAJE =  b'\x00'
 DATA_MENSAJE =  b'\x01'
 LOTE_MENSAJE = b'\x02'
@@ -19,8 +22,8 @@ def _seccionATexto(documento: str) -> str:
 
     return textoSeccion
 
-class DataMensaje:
-        
+
+class DataMensaje():
     def __init__(self, fila: namedtuple = None) -> None:
         if fila is None:
             return
@@ -28,7 +31,7 @@ class DataMensaje:
         self.resumen = str(fila.abstract)
         self.fecha = fila.date_modified.year
         self.imgUrl = "" if fila.image == None else fila.image["content_url"]
-        self.lenguaje = 1 if fila.in_language["identifier"] == "en" else 0
+        self.lenguaje = LENGUAJEINGLES if fila.in_language["identifier"] == "en" else LENGUAJEFRANCES
         self.seccion = _seccionATexto(fila.sections)
         self.nombre = fila.name
     
@@ -70,7 +73,7 @@ class DataMensaje:
     def deBytes(self, bytes: bytes) -> None:
         totalLeido = 0
         urlLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
-
+        
         self.url = bytes[totalLeido+4:totalLeido+urlLen].decode()
         totalLeido += (urlLen + 4)
 
@@ -100,7 +103,7 @@ class DataMensaje:
         dataInfo = safeRecv(socket, 4)
         dataSize = int.from_bytes(dataInfo[0:4], byteorder="big")
 
-        bytes = safeRecv(self.socket, dataSize)
+        bytes = safeRecv(socket, dataSize)
 
         self.deBytes(bytes)
 
@@ -117,10 +120,11 @@ class FinMensaje():
         
     
     def send(self) -> None:
-        safeSend(socket, FIN_MENSAJE)
+        safeSend(self.socket, FIN_MENSAJE)
+
 
 class LoteMensaje():
-    def __init__(self, socket: socket, tamañoLote: int = None) -> None:
+    def __init__(self, socket: socket = None, tamañoLote: int = None) -> None:
         self.tamañoLote = tamañoLote
         self.lote = []
         self.socket = socket
@@ -169,6 +173,7 @@ class LoteMensaje():
 
         return self.lote
     
+
     def send(self) -> None:
         if len(self.lote) == 0:
             return

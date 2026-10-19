@@ -1,4 +1,38 @@
 services:
+  gateway:
+    build:
+      context: ./src/
+      dockerfile: gateway/Dockerfile
+    container_name: gateway
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - GATEWAYHOST=gateway
+      - GATEWAYPORT=8000
+      - MOMHOST=rabbitmq
+      - COLADATOS=EntradaDatos
+      - COLARESPUESTAS=Respuestas
+      - LOTE=1
+      - PYTHONUNBUFFERED=1
+
+  rabbitmq:
+      build:
+        context: ./src/middleware
+        dockerfile: Dockerfile
+      container_name: rabbitmq
+      environment:
+      - RABBITMQ_LOG_LEVELS=error
+      healthcheck:
+        interval: 5s
+        retries: 10
+        start_period: 50s
+        test: rabbitmq-diagnostics check_port_connectivity
+        timeout: 3s
+      ports:
+      - 5672:5672
+      - 15672:15672
+
   cliente_1:
     build:
       context: ./src/
@@ -7,7 +41,9 @@ services:
     depends_on:
     - gateway
     environment:
-    - FILE=/datasets/enwiki_namespace_0_00000.parquet
+    - DATASETPATHEN=/datasets/enwiki_namespace_0_
+    - DATASETPATHFR=/datasets/frwiki_namespace_0_
+    - TOTALDATASETS=1
     - GATEWAYHOST=gateway
     - GATEWAYPORT=8000
     - LOTE=1
@@ -15,13 +51,37 @@ services:
     volumes:
     - ./datasets:/datasets
 
-  gateway:
+  clasificador_1:
     build:
       context: ./src/
-      dockerfile: gateway/Dockerfile
-    container_name: gateway
+      dockerfile: clasificador/Dockerfile
+    container_name: clasificador_1
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
     environment:
-      - GATEWAYHOST=gateway
-      - GATEWAYPORT=8000
-      - LOTE=1
       - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLADATOS=EntradaDatos
+      - COLARESPUESTAS=Respuestas
+      - COLAIMGDOWLOADER=ImgDowloader
+      - COLATRANSFORMADOR=ColaTransformador
+
+  transformador_1:
+    build:
+      context: ./src/
+      dockerfile: transformador/Dockerfile
+    container_name: transformador_1
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        clasificador_1:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLATRANSFORMADOR=ColaTransformador

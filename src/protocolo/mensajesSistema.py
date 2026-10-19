@@ -11,6 +11,7 @@ RESPUESTA5_MENSAJE = b'\x05'
 
 LOTE_DATA_MENSAJE = b'\x06'
 IMG_MENSAJE = b'x07'
+TRANFORMADOR_MENSAJE = b'0x08'
 
 class MensajeSistema(ABC):
     @abstractmethod
@@ -70,7 +71,7 @@ class LoteDataMensajeSistema(MensajeSistema):
             self.lote.append(msg)
             totalLeido += tamañoMensaje + 5
 
-
+# TODO: implementarlo en lotes (si es considerado necesario)
 class ImgMensajeSistema(MensajeSistema):
     def __init__(self, clienteId: uuid.UUID = None, url: str = None, nombre: str = None) -> None:
         self.clienteId = clienteId
@@ -103,6 +104,55 @@ class ImgMensajeSistema(MensajeSistema):
 
         nombreLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
         self.nombre = bytes[totalLeido+4:totalLeido+nombreLen+4] 
+
+# TODO: implementarlo en lotes (si es considerado necesario)
+class TransformadorMensajeSistema(MensajeSistema):
+    def __init__(self, clienteId: uuid.UUID = None, url: str = None, fecha: int = None, resumen: str = None, lenguaje: int = None ):
+        self.clienteId = clienteId
+        self.url = url
+        self.fecha = fecha
+        self.resumen = resumen
+        self.lenguaje = lenguaje
+
+
+    def aBytes(self) -> bytes:
+        bytesMensaje = TRANFORMADOR_MENSAJE
+
+        urlBytes = self.url.encode("UTF-8")
+        bytesMensaje += len(urlBytes).to_bytes(4, byteorder="big")
+        bytesMensaje += urlBytes
+
+        bytesMensaje += self.fecha.to_bytes(2, byteorder="big")
+
+        resumenBytes = self.resumen.encode("UTF-8")
+        bytesMensaje += len(resumenBytes).to_bytes(4, byteorder="big")
+        bytesMensaje += resumenBytes
+
+        bytesMensaje += self.lenguaje.to_bytes(2, byteorder="big")
+
+        bytesMensaje += self.clienteId.bytes
+        
+        return bytesMensaje
+
+
+    def deBytes(self, bytes) -> None:
+        totalLeido = 0
+
+        urlLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
+        self.url = bytes[totalLeido+4:totalLeido+urlLen+4].decode()
+        totalLeido += (urlLen+4)
+
+        self.fecha = bytes[totalLeido:totalLeido+2]
+        totalLeido += 2
+
+        resumenLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
+        self.resumen = bytes[totalLeido+4:totalLeido+resumenLen+4]
+        totalLeido += (resumenLen+4)
+
+        self.lenguaje = bytes[totalLeido:totalLeido+2]
+        totalLeido += 2
+
+        self.clienteId = bytes[totalLeido:totalLeido+16]
 
 
 class Respuesta1MensajeSistema(MensajeSistema):

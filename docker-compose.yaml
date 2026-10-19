@@ -68,4 +68,20 @@ services:
       - COLARESPUESTAS=Respuestas
       - COLAIMGDOWLOADER=ImgDowloader
       - COLATRANSFORMADOR=ColaTransformador
-  
+
+  transformador_1:
+    build:
+      context: ./src/
+      dockerfile: transformador/Dockerfile
+    container_name: transformador_1
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        clasificador_1:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLATRANSFORMADOR=ColaTransformador

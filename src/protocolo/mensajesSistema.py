@@ -10,8 +10,10 @@ RESPUESTA4_MENSAJE = b'\x04'
 RESPUESTA5_MENSAJE = b'\x05'
 
 LOTE_DATA_MENSAJE = b'\x06'
-IMG_MENSAJE = b'x07'
-TRANFORMADOR_MENSAJE = b'0x08'
+IMG_MENSAJE = b'\x07'
+TRANFORMADOR_MENSAJE = b'\x08'
+PALABRAS_MENSAJE = b'\x09'
+CANTIDAD_PALABRAS_MENSAJE = b'\x0A'
 
 class MensajeSistema(ABC):
     @abstractmethod
@@ -142,17 +144,97 @@ class TransformadorMensajeSistema(MensajeSistema):
         self.url = bytes[totalLeido+4:totalLeido+urlLen+4].decode()
         totalLeido += (urlLen+4)
 
-        self.fecha = bytes[totalLeido:totalLeido+2]
+        self.fecha = int.from_bytes(bytes[totalLeido:totalLeido+2], byteorder="big")
         totalLeido += 2
 
         resumenLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
-        self.resumen = bytes[totalLeido+4:totalLeido+resumenLen+4]
+        self.resumen = bytes[totalLeido+4:totalLeido+resumenLen+4].decode()
         totalLeido += (resumenLen+4)
 
-        self.lenguaje = bytes[totalLeido:totalLeido+2]
+        self.lenguaje = int.from_bytes(bytes[totalLeido:totalLeido+2], byteorder="big")
         totalLeido += 2
 
-        self.clienteId = bytes[totalLeido:totalLeido+16]
+        self.clienteId = uuid.UUID(bytes=(bytes[totalLeido:totalLeido+16]))
+
+
+class PalabrasMensajeSistema(MensajeSistema):
+    def __init__(self, clienteId: uuid.UUID = None, url: str = None, lenguaje: int = None, palabras: dict[str] = None) -> None:
+        self.clienteId = clienteId
+        self.url = url
+        self.lenguaje = lenguaje
+        self.palabras = palabras
+
+    
+    def aBytes(self) -> bytes:
+        mensajeBytes = PALABRAS_MENSAJE
+
+        urlBytes = self.url.encode("UTF-8")
+        mensajeBytes += len(urlBytes).to_bytes(4, byteorder="big")
+        mensajeBytes += urlBytes
+
+        mensajeBytes += self.lenguaje.to_bytes(2, byteorder="big")
+
+        palabrasBytes = ",".join(self.palabras.keys()).encode("UTF-8")
+        mensajeBytes += len(palabrasBytes).to_bytes(4, byteorder="big")
+        mensajeBytes += palabrasBytes
+
+        mensajeBytes += self.clienteId.bytes
+
+        return mensajeBytes
+    
+
+    def deBytes(self, bytes: bytes) -> None:
+        totalLeido = 0
+
+        urlLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
+        self.url = bytes[totalLeido+4:totalLeido+urlLen+4].decode()
+        totalLeido += (urlLen + 4)
+
+        self.lenguaje = int.from_bytes(bytes[totalLeido:totalLeido+2], byteorder="big")
+        totalLeido += 2
+
+        palabrasLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
+        palabras = bytes[totalLeido+4:totalLeido+palabrasLen+4].decode()
+        self.palabras = {}
+        for palabra in palabras.split(","):
+            self.palabras[palabra] = 1
+        totalLeido += (palabrasLen + 4)
+        
+        self.clienteId = uuid.UUID(bytes=(bytes[totalLeido:totalLeido+16]))
+
+
+class CantidadPalabraMensajeSistema(MensajeSistema):
+    def __init__(self, clienteId: uuid.UUID = None, url: str = None, cantidad : int = None) -> None:
+        self.clienteId = clienteId
+        self.url = url
+        self.cantidad = cantidad
+
+    
+    def aBytes(self) -> bytes:
+        mensajeBytes = CANTIDAD_PALABRAS_MENSAJE
+
+        urlBytes = self.url.encode("UTF-8")
+        mensajeBytes += len(urlBytes).to_bytes(4, byteorder="big")
+        mensajeBytes += urlBytes
+
+        mensajeBytes += self.cantidad.to_bytes(4, byteorder="big")
+
+        mensajeBytes += self.clienteId.bytes
+
+        return mensajeBytes
+    
+
+    def deBytes(self, bytes: bytes) -> None:
+        totalLeido = 0
+
+        urlLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
+        self.url = bytes[totalLeido+4:totalLeido+urlLen+4]
+        totalLeido += (urlLen + 4)
+
+        self.cantidad = bytes[totalLeido:totalLeido+4]
+        totalLeido += 4
+
+        self.clienteId = uuid.UUID(bytes=(bytes[totalLeido:totalLeido+16]))
 
 
 class Respuesta1MensajeSistema(MensajeSistema):
@@ -191,8 +273,14 @@ def recvMensajeSistema(mensaje: bytes) -> MensajeSistema:
         rta = FinMensajeSistema()
     elif type == LOTE_DATA_MENSAJE:
         rta = LoteDataMensajeSistema()
+    elif type == TRANFORMADOR_MENSAJE:
+        rta = TransformadorMensajeSistema()
+    elif type == PALABRAS_MENSAJE:
+        rta = PalabrasMensajeSistema()
+    elif type == CANTIDAD_PALABRAS_MENSAJE:
+        rta = CantidadPalabraMensajeSistema()
     elif type == RESPUESTA1_MENSAJE:
-        rta = Respuesta1MensajeSistema()
+        rta = Respuesta1MensajeSistema() 
     else:
         rta = None
     

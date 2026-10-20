@@ -22,7 +22,6 @@ def enviarParquet(socket: socket) -> None:
 
         for fila in dataset.itertuples():
             loteMensaje.agregarMensaje(fila)
-            break
         
     loteMensaje.send()
     FinMensaje(socket).send()

@@ -85,3 +85,7 @@ services:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLATRANSFORMADOR=ColaTransformador
+      - COLASUMTOP=ColaSumTop
+      - COLAPROMMENOR=ColaPromMenor
+      - EXCHANGEPROMMAYOR=ExchangePromMayor
+      - TOTALPROMMAYOR=1

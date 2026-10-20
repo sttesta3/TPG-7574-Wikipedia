@@ -23,8 +23,8 @@ class Clasificador:
             if mensaje.lenguaje == LENGUAJEINGLES and mensaje.fecha <= 2020:
                 self.colaRespuestas.send(Respuesta1MensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.fecha).aBytes())
             if mensaje.fecha <= 2020 and (("biography" in mensaje.seccion.lower()) or ("biographie" in mensaje.seccion)):
-                self.colaImgDowloader.send(ImgMensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.nombre))
-            self.colaTransformador.send(TransformadorMensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.fecha, mensaje.resumen, mensaje.lenguaje))
+                self.colaImgDowloader.send(ImgMensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.nombre).aBytes())
+            self.colaTransformador.send(TransformadorMensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.fecha, mensaje.resumen, mensaje.lenguaje).aBytes())
             
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:

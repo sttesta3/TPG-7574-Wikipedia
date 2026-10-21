@@ -11,7 +11,7 @@ GATEWAYHOST = os.environ["GATEWAYHOST"]
 GATEWAYPORT = int(os.environ["GATEWAYPORT"])
 LOTE = int(os.environ["LOTE"])
 
-
+# TODO: tener un hilo enviando y otro recibiendo
 def enviarParquet(socket: socket) -> None:
     loteMensaje = LoteMensaje(socket, LOTE)
     for i in range(TOTALDATASETS):
@@ -25,13 +25,14 @@ def enviarParquet(socket: socket) -> None:
         
     loteMensaje.send()
     FinMensaje(socket).send()
+    print("Envio EOF")
 
 
 def recibirRta(socket: socket) -> None:
     while True:
         a = recvMensaje(socket)
 
-        print(a.url)
+        #print(a.url)
 
 
 def main():

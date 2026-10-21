@@ -133,13 +133,13 @@ class Respuesta5Mensaje(Respuesta):
         bytesMensaje += urlBytes
 
         bytesMensaje += self.cantidad.to_bytes(4, byteorder="big")
-
+        return bytesMensaje
 
     def deBytes(self, bytes: bytes) -> None:        
         totalLeido = 0
         
         urlLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
-        self.url = bytes[totalLeido+4:totalLeido+urlLen+4]
+        self.url = bytes[totalLeido+4:totalLeido+urlLen+4].decode()
         totalLeido += (urlLen + 4)
 
         self.cantidad = int.from_bytes(bytes[totalLeido:totalLeido+4])

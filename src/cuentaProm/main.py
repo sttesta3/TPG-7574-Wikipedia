@@ -9,24 +9,29 @@ ID = os.environ["ID"]
 
 class CuentaProm:
     def __init__(self):
+        self.clientes = {}
         self.colaRespuestas = MessageMiddlewareQueue(MOMHOST, COLARESPUESTAS)
         self.exchangeProm = MessageMiddlewareExchange(MOMHOST, EXCHANGECUENTAPROM, [EXCHANGECUENTAPROM + "_" + ID])
 
 
     def _procesarData(self, mensaje: CantidadPalabraMensajeSistema) -> None:
-        with open(str(mensaje.clienteId), "a", encoding="utf-8") as f:
-            f.write(f"{mensaje.url},{mensaje.cantidad}")
-            print(f"Guardo: {mensaje.url},{mensaje.cantidad}")
+        clientId = str(mensaje.clienteId)
+        self.clientes[clientId] = True
+        with open(clientId, "a", encoding="utf-8") as f:
+            f.write(f"{mensaje.url};{mensaje.cantidad}\n")
 
 
     def _procesarEOF(self, mensaje: FinPromMensajeSistema) -> None:
-
+        print(f"Me llego EOF {mensaje.clienteId}")
         with open(str(mensaje.clienteId), "r", encoding="utf-8") as f:
             for linea in f.readlines():
-                cantidad, url = linea.strip().split(",", 1)
+                url, cantidad = linea.strip().split(";", 1)
                 if int(cantidad) > mensaje.promedio:
-                    self.colaRespuestas.send(Respuesta5MensajeSistema(url, cantidad).aBytes())
-
+                    self.colaRespuestas.send(Respuesta5MensajeSistema(mensaje.clienteId,  url, int(cantidad)).aBytes())
+        print("termino Query 5")
+        os.remove(str(mensaje.clienteId))
+        del self.clientes[str(mensaje.clienteId)]
+        
 
     def procesarMensaje(self, bytes, ack, nack):
         mensaje = recvMensajeSistema(bytes)

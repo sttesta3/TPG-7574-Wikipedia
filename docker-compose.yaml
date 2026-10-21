@@ -86,9 +86,10 @@ services:
       - MOMHOST=rabbitmq
       - COLATRANSFORMADOR=ColaTransformador
       - COLASUMTOP=ColaSumTop
-      - COLASUMPROM=ColaSumProm
+      - EXCHANGEPROMEDIO=ExchangePromedio
       - EXCHANGECUENTAPROM=ExchangeCuentaProm
       - TOTALCUENTAPROM=1
+      - TOTALPROMEDIO=1
 
   cuenta_prom_0:
     build:
@@ -109,4 +110,26 @@ services:
       - MOMHOST=rabbitmq
       - EXCHANGECUENTAPROM=ExchangeCuentaProm
       - COLARESPUESTAS=Respuestas
+      - ID=0
+
+  promedio_0:
+    build:
+      context: ./src/
+      dockerfile: promedio/Dockerfile
+    container_name: promedio_0
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        clasificador_0:
+          condition: service_started
+        transformador_0:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - EXCHANGEPROMEDIO=ExchangePromedio
+      - TOTALCUENTAPROM=1
       - ID=0

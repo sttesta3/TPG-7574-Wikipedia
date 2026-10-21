@@ -29,6 +29,7 @@ class Clasificador:
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
         self.colaImgDowloader.send(mensaje.aBytes())
+        print(f"Envio eof de {mensaje.clienteId}")
         self.colaTransformador.send(mensaje.aBytes())
 
 

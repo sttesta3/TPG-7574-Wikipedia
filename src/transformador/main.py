@@ -8,8 +8,9 @@ from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
 MOMHOST = os.environ["MOMHOST"]
 COLATRANSFORMADOR = os.environ["COLATRANSFORMADOR"]
 COLASUMTOP = os.environ["COLASUMTOP"]
-COLASUMPROM = os.environ["COLASUMPROM"]
+EXCHANGEPROMEDIO = os.environ["EXCHANGEPROMEDIO"]
 EXCHANGECUENTAPROM = os.environ["EXCHANGECUENTAPROM"]
+TOTALPROMEDIO = int(os.environ["TOTALPROMEDIO"])
 TOTALCUENTAPROM = int(os.environ["TOTALCUENTAPROM"])
 
 WORD_REGEX = r'\b\w+\b'
@@ -20,11 +21,14 @@ class Transformador:
         self.stopWords = set(stopwords.words('english')) | set(stopwords.words('french'))
         self.colaTransformador = MessageMiddlewareQueue(MOMHOST, COLATRANSFORMADOR)
         self.colaSumTop = MessageMiddlewareQueue(MOMHOST, COLASUMTOP)
-        self.colaSumProm = MessageMiddlewareQueue(MOMHOST, COLASUMPROM)
-        self.exchangeProm = []
+        self.exchangePromedio = []
+        self.exchangeCuentaProm = []
+
+        for i in range(TOTALPROMEDIO):
+            self.exchangePromedio.append(MessageMiddlewareExchange(MOMHOST, EXCHANGEPROMEDIO, [EXCHANGEPROMEDIO + "_" + str(i)]))
 
         for i in range(TOTALCUENTAPROM):
-            self.exchangeProm.append(MessageMiddlewareExchange(MOMHOST, EXCHANGECUENTAPROM, [EXCHANGECUENTAPROM + "_" + str(i)]))
+            self.exchangeCuentaProm.append(MessageMiddlewareExchange(MOMHOST, EXCHANGECUENTAPROM, [EXCHANGECUENTAPROM + "_" + str(i)]))
 
     def _resumenAPalabras(self, resumen: str) -> dict[str]:
         palabrasSinStop = {}
@@ -40,16 +44,20 @@ class Transformador:
         palabras = self._resumenAPalabras(mensaje.resumen)
         self.colaSumTop.send(PalabrasMensajeSistema(mensaje.clienteId, mensaje.url, mensaje.lenguaje, palabras).aBytes())
         if mensaje.fecha <= 2020:
-            self.colaSumProm.send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
+            nodo = mensaje.clienteId.int % TOTALPROMEDIO
+            self.exchangePromedio[nodo].send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
         else:
             nodo = mensaje.clienteId.int % TOTALCUENTAPROM
-            self.exchangeProm[nodo].send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
+            self.exchangeCuentaProm[nodo].send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
 
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
         self.colaSumTop.send(mensaje.aBytes())
-        #Enviar eof a los nodos de promedio
-
+        print(f"Envio EOF {mensaje.clienteId}")
+        
+        nodo = mensaje.clienteId.int % TOTALPROMEDIO
+        self.exchangePromedio[nodo].send(mensaje.aBytes())
+        
 
     def procesarMensaje(self, bytes, ack, nack):
         mensaje = recvMensajeSistema(bytes)

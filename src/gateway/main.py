@@ -1,6 +1,7 @@
 import os
 import uuid
 import socket
+import signal
 import multiprocessing
 from mensajesCliente import recvMensaje
 from mensajesGateway import sendRespuesta, Respuesta1Mensaje
@@ -50,32 +51,42 @@ def manejarRespuesta(clientes: dict) -> None:
                 clientes[clienteId] = None
             else:
                 sendRespuesta(clienteSocket, respuesta.aRespuestaGateway())
+            ack()
         except Exception as e:
             print(e)
-        ack()
+            nack()
+            colaRespuestas.start_consuming()
         
     colaRespuestas.start_consuming(_consumirRespuesta)
+
+
+def manejarSigterm(clientes: dict, serverSocket: socket.socket, sigtermRecivida) -> None:
+    sigtermRecivida.value = 1
+    serverSocket.shutdown(socket.SHUT_RDWR)
+    for cliente in clientes.values():
+        cliente.shutdown(socket.SHUT_RDWR)
 
 
 def main() -> None:
     with multiprocessing.Manager() as manager:
         clientes = manager.dict()
-        sigterm_received = manager.Value("c_short", 0)
+        sigtermRecivida = manager.Value("c_short", 0)
         with multiprocessing.Pool(processes=os.process_cpu_count()) as processes_pool:
             processes_pool.apply_async(manejarRespuesta, args=(clientes,))
 
-            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as server_socket:
-                server_socket.bind((GATEWAYHOST, GATEWAYPORT))
-                server_socket.listen()
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as serverSocket:
+                serverSocket.bind((GATEWAYHOST, GATEWAYPORT))
+                serverSocket.listen()
+                signal.signal(signal.SIGTERM, lambda signum, frame: manejarSigterm(clientes, serverSocket, sigtermRecivida))
                 while True:
                     try:
-                        clientSocket, _ = server_socket.accept()
+                        clientSocket, _ = serverSocket.accept()
                         clientId = uuid.uuid4()
                         clientes[clientId] = clientSocket
 
                         processes_pool.apply_async(manejarPeticion, args=(clientId, clientSocket))
                     except socket.error:
-                        if sigterm_received.value == 0:
+                        if sigtermRecivida.value == 0:
                             return 1
                         else:
                             return 0

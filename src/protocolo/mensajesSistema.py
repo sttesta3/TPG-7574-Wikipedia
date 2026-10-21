@@ -1,7 +1,7 @@
 import uuid
 from abc import ABC, abstractmethod
 from mensajesCliente import DataMensaje, FIN_MENSAJE
-from mensajesGateway import Respuesta1Mensaje
+from mensajesGateway import Respuesta1Mensaje, Respuesta5Mensaje
 
 RESPUESTA1_MENSAJE = b'\x01'
 RESPUESTA2_MENSAJE = b'\x02'
@@ -254,7 +254,6 @@ class Respuesta1MensajeSistema(MensajeSistema):
 
     def deBytes(self, bytes) -> None:
         rtaMsg = Respuesta1Mensaje()
-        print(bytes)
         rtaMsg.deBytes(bytes[4:len(bytes)-16])
         self.fecha = rtaMsg.fecha
         self.url = rtaMsg.url
@@ -263,6 +262,33 @@ class Respuesta1MensajeSistema(MensajeSistema):
 
     def aRespuestaGateway(self) -> Respuesta1Mensaje:
         return Respuesta1Mensaje(self.url, self.fecha)
+
+
+class Respuesta5MensajeSistema(MensajeSistema):
+    def __init__(self, clienteId: uuid.UUID = None, url: str = None, cantidad: int = None):
+        self.clienteId  = clienteId
+        self.url = url
+        self.cantidad = cantidad
+
+    
+    def aBytes(self) -> bytes:
+        bytesMensaje = RESPUESTA5_MENSAJE
+        bytesMensaje += (Respuesta5Mensaje(self.url, self.cantidad).aBytes())[1:]
+        bytesMensaje += self.clienteId.bytes
+
+        return bytesMensaje
+    
+
+    def deBytes(self, bytes) -> None:
+        rtamsg = Respuesta5Mensaje()
+        rtamsg.deBytes(bytes[4:len(bytes)-16])
+        self.url = rtamsg.url
+        self.cantidad = rtamsg.cantidad
+        self.clienteId = uuid.UUID(bytes=bytes[len(bytes)-16:])
+
+
+    def aRespuestaGateway(self) -> Respuesta5Mensaje:
+        return Respuesta5Mensaje(self.url, self.cantidad)
 
 
 def recvMensajeSistema(mensaje: bytes) -> MensajeSistema:

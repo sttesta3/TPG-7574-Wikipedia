@@ -33,11 +33,11 @@ services:
       - 5672:5672
       - 15672:15672
 
-  cliente_1:
+  cliente_0:
     build:
       context: ./src/
       dockerfile: cliente/Dockerfile
-    container_name: cliente_1
+    container_name: cliente_0
     depends_on:
     - gateway
     environment:
@@ -51,11 +51,11 @@ services:
     volumes:
     - ./datasets:/datasets
 
-  clasificador_1:
+  clasificador_0:
     build:
       context: ./src/
       dockerfile: clasificador/Dockerfile
-    container_name: clasificador_1
+    container_name: clasificador_0
     depends_on:
         rabbitmq:
           condition: service_healthy
@@ -69,23 +69,44 @@ services:
       - COLAIMGDOWLOADER=ImgDowloader
       - COLATRANSFORMADOR=ColaTransformador
 
-  transformador_1:
+  transformador_0:
     build:
       context: ./src/
       dockerfile: transformador/Dockerfile
-    container_name: transformador_1
+    container_name: transformador_0
     depends_on:
         rabbitmq:
           condition: service_healthy
         gateway:
           condition: service_started
-        clasificador_1:
+        clasificador_0:
           condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLATRANSFORMADOR=ColaTransformador
       - COLASUMTOP=ColaSumTop
-      - COLAPROMMENOR=ColaPromMenor
-      - EXCHANGEPROMMAYOR=ExchangePromMayor
-      - TOTALPROMMAYOR=1
+      - COLASUMPROM=ColaSumProm
+      - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - TOTALCUENTAPROM=1
+
+  cuenta_prom_0:
+    build:
+      context: ./src/
+      dockerfile: cuentaProm/Dockerfile
+    container_name: cuenta_prom_0
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        clasificador_0:
+          condition: service_started
+        transformador_0:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - COLARESPUESTAS=Respuestas
+      - ID=0

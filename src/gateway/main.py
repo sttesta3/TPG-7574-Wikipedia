@@ -48,7 +48,6 @@ def manejarRespuesta(clientes: dict) -> None:
                 #sendRespuesta(clienteSocket, EOF)
                 clientes[clienteId] = None
             else:
-                print(f"Respuesta a: {respuesta.clienteId}")
                 sendRespuesta(clienteSocket, respuesta.aRespuestaGateway())
         except Exception as e:
             print(e)

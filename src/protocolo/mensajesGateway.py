@@ -116,14 +116,33 @@ class Respuesta4Mensaje(Respuesta):
 
 
 class Respuesta5Mensaje(Respuesta):
-    def __init__(self) -> None:
-        pass
+    def __init__(self, url: str = None, cantidad: int = None) -> None:
+        self.url = url
+        self.cantidad = cantidad
+
 
     def aBytes(self) -> bytes:
-        pass
+        bytesMensaje = RESPUESTA5_MENSAJE
+
+        urlBytes = self.url.encode("UTF-8")
+        
+        tamañoMensaje = (len(urlBytes) + 8)
+        bytesMensaje += tamañoMensaje.to_bytes(4, byteorder="big")
+
+        bytesMensaje += len(urlBytes).to_bytes(4, byteorder="big")
+        bytesMensaje += urlBytes
+
+        bytesMensaje += self.cantidad.to_bytes(4, byteorder="big")
+
 
     def deBytes(self, bytes: bytes) -> None:        
-        pass
+        totalLeido = 0
+        
+        urlLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
+        self.url = bytes[totalLeido+4:totalLeido+urlLen+4]
+        totalLeido += (urlLen + 4)
+
+        self.cantidad = int.from_bytes(bytes[totalLeido:totalLeido+4])
 
 
 def sendRespuesta(socket: socket.socket, respuesta: Respuesta) -> None:    

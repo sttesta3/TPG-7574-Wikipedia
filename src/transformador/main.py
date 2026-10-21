@@ -8,9 +8,9 @@ from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
 MOMHOST = os.environ["MOMHOST"]
 COLATRANSFORMADOR = os.environ["COLATRANSFORMADOR"]
 COLASUMTOP = os.environ["COLASUMTOP"]
-COLAPROMMENOR = os.environ["COLAPROMMENOR"]
-EXCHANGEPROMMAYOR = os.environ["EXCHANGEPROMMAYOR"]
-TOTALPROMMAYOR = int(os.environ["TOTALPROMMAYOR"])
+COLASUMPROM = os.environ["COLASUMPROM"]
+EXCHANGECUENTAPROM = os.environ["EXCHANGECUENTAPROM"]
+TOTALCUENTAPROM = int(os.environ["TOTALCUENTAPROM"])
 
 WORD_REGEX = r'\b\w+\b'
 NUMBER_REGEX = r'[+-]?((\d+\.?\d*)|(\.\d+))'
@@ -20,11 +20,11 @@ class Transformador:
         self.stopWords = set(stopwords.words('english')) | set(stopwords.words('french'))
         self.colaTransformador = MessageMiddlewareQueue(MOMHOST, COLATRANSFORMADOR)
         self.colaSumTop = MessageMiddlewareQueue(MOMHOST, COLASUMTOP)
-        self.colaPromMenor = MessageMiddlewareQueue(MOMHOST, COLAPROMMENOR)
+        self.colaSumProm = MessageMiddlewareQueue(MOMHOST, COLASUMPROM)
         self.exchangeProm = []
 
-        for i in range(TOTALPROMMAYOR):
-            self.exchangeProm.append(MessageMiddlewareExchange(MOMHOST, EXCHANGEPROMMAYOR, [EXCHANGEPROMMAYOR + "_" + str(i)]))
+        for i in range(TOTALCUENTAPROM):
+            self.exchangeProm.append(MessageMiddlewareExchange(MOMHOST, EXCHANGECUENTAPROM, [EXCHANGECUENTAPROM + "_" + str(i)]))
 
     def _resumenAPalabras(self, resumen: str) -> dict[str]:
         palabrasSinStop = {}
@@ -32,7 +32,6 @@ class Transformador:
         for palabra in palabras:
             if palabra not in self.stopWords and not re.fullmatch(NUMBER_REGEX, palabra):
                 palabrasSinStop[palabra] = 1
-        print(palabrasSinStop.keys())
         return palabrasSinStop
 
 
@@ -41,9 +40,9 @@ class Transformador:
         palabras = self._resumenAPalabras(mensaje.resumen)
         self.colaSumTop.send(PalabrasMensajeSistema(mensaje.clienteId, mensaje.url, mensaje.lenguaje, palabras).aBytes())
         if mensaje.fecha <= 2020:
-            self.colaPromMenor.send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
+            self.colaSumProm.send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
         else:
-            nodo = mensaje.clienteId.int % TOTALPROMMAYOR
+            nodo = mensaje.clienteId.int % TOTALCUENTAPROM
             self.exchangeProm[nodo].send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
 
 

@@ -1,4 +1,6 @@
 import os
+import sys
+import signal
 from mensajesSistema import recvMensajeSistema, FinMensajeSistema, CantidadPalabraMensajeSistema, FinPromMensajeSistema
 from middleware import MessageMiddlewareExchange
 
@@ -39,18 +41,32 @@ class Promedio:
         
 
     def procesarMensaje(self, bytes, ack, nack):
-        mensaje = recvMensajeSistema(bytes)
-        if isinstance(mensaje, FinMensajeSistema): # TODO: esta bien esto?
-            self._procesarEOF(mensaje)
-        else:
-            self._procesarData(mensaje)
-        ack()
+        try:
+            mensaje = recvMensajeSistema(bytes)
+            if isinstance(mensaje, FinMensajeSistema): # TODO: esta bien esto?
+                self._procesarEOF(mensaje)
+            else:
+                self._procesarData(mensaje)
+            ack()
+        except Exception as e:
+            print(e)
+            nack()
+
 
     def iniciar(self):
         self.exchangePromedio.start_consuming(self.procesarMensaje)
 
+    
+    def manejarSigterm(self) -> None:
+        self.exchangePromedio.close()
+        for i in range(TOTALCUENTAPROM):
+            self.exchangeCuentaProm[i].close()
+        sys.exit()
+
+
 def main() -> int:
     promedio = Promedio()
+    signal.signal(signal.SIGTERM, lambda signum, frame: promedio.manejarSigterm())
     promedio.iniciar()
     return 0
 

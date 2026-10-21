@@ -1,4 +1,6 @@
 import os
+import sys
+import signal
 from mensajesSistema import recvMensajeSistema, FinMensajeSistema, LoteDataMensajeSistema, ImgMensajeSistema, Respuesta1MensajeSistema, TransformadorMensajeSistema
 from middleware import MessageMiddlewareQueue
 
@@ -29,23 +31,37 @@ class Clasificador:
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
         self.colaImgDowloader.send(mensaje.aBytes())
-        print(f"Envio eof de {mensaje.clienteId}")
         self.colaTransformador.send(mensaje.aBytes())
 
 
     def procesarMensaje(self, bytes, ack, nack):
-        mensaje = recvMensajeSistema(bytes)
-        if isinstance(mensaje, FinMensajeSistema): # TODO: esta bien esto?
-            self._procesarEOF(mensaje)
-        else:
-            self._procesarData(mensaje)
-        ack()
+        try:
+            mensaje = recvMensajeSistema(bytes)
+            if isinstance(mensaje, FinMensajeSistema): # TODO: esta bien esto?
+                self._procesarEOF(mensaje)
+            else:
+                self._procesarData(mensaje)
+            ack()
+        except Exception as e:
+            print(e)
+            nack()
+
 
     def iniciar(self):
         self.colaDatos.start_consuming(self.procesarMensaje)
 
+
+    def manejarSigterm(self) -> None:
+        self.colaDatos.close()
+        self.colaRespuestas.close()
+        self.colaImgDowloader.close()
+        self.colaTransformador.close()
+        sys.exit(0)
+
+
 def main() -> int:
     clasificador = Clasificador()
+    signal.signal(signal.SIGTERM, lambda signum, frame: clasificador.manejarSigterm())
     clasificador.iniciar()
     return 0
 

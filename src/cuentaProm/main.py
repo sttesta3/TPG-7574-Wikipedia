@@ -1,4 +1,6 @@
 import os
+import sys
+import signal
 from mensajesSistema import recvMensajeSistema, FinPromMensajeSistema, CantidadPalabraMensajeSistema, Respuesta5MensajeSistema
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
 
@@ -22,30 +24,42 @@ class CuentaProm:
 
 
     def _procesarEOF(self, mensaje: FinPromMensajeSistema) -> None:
-        print(f"Me llego EOF {mensaje.clienteId}")
         with open(str(mensaje.clienteId), "r", encoding="utf-8") as f:
             for linea in f.readlines():
                 url, cantidad = linea.strip().split(";", 1)
                 if int(cantidad) > mensaje.promedio:
+                    print("ENVIO RESPUESTA")
                     self.colaRespuestas.send(Respuesta5MensajeSistema(mensaje.clienteId,  url, int(cantidad)).aBytes())
-        print("termino Query 5")
         os.remove(str(mensaje.clienteId))
         del self.clientes[str(mensaje.clienteId)]
         
 
     def procesarMensaje(self, bytes, ack, nack):
-        mensaje = recvMensajeSistema(bytes)
-        if isinstance(mensaje, FinPromMensajeSistema): # TODO: esta bien esto?
-            self._procesarEOF(mensaje)
-        else:
-            self._procesarData(mensaje)
-        ack()
+        try:
+            mensaje = recvMensajeSistema(bytes)
+            if isinstance(mensaje, FinPromMensajeSistema): # TODO: esta bien esto?
+                self._procesarEOF(mensaje)
+            else:
+                self._procesarData(mensaje)
+            ack()
+        except Exception as e:
+            print(e)
+            nack()
+
 
     def iniciar(self):
         self.exchangeProm.start_consuming(self.procesarMensaje)
 
+
+    def manejarSigterm(self) -> None:
+        self.exchangeProm.close()
+        self.colaRespuestas.close()
+        sys.exit(0)
+
+
 def main() -> int:
     cuentaProm = CuentaProm()
+    signal.signal(signal.SIGTERM, lambda signum, frame: cuentaProm.manejarSigterm())
     cuentaProm.iniciar()
     return 0
 

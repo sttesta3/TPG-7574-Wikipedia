@@ -1,8 +1,11 @@
 import os
+import sys
 import socket
+import signal
+import threading
 import pandas as pd
 from mensajesCliente import LoteMensaje, FinMensaje
-from mensajesGateway import recvMensaje
+from mensajesGateway import recvMensaje, Respuesta1Mensaje, Respuesta5Mensaje
 
 DATASETPATHEN = os.environ["DATASETPATHEN"]
 DATASETPATHFR = os.environ["DATASETPATHFR"]
@@ -11,7 +14,6 @@ GATEWAYHOST = os.environ["GATEWAYHOST"]
 GATEWAYPORT = int(os.environ["GATEWAYPORT"])
 LOTE = int(os.environ["LOTE"])
 
-# TODO: tener un hilo enviando y otro recibiendo
 def enviarParquet(socket: socket) -> None:
     loteMensaje = LoteMensaje(socket, LOTE)
     for i in range(TOTALDATASETS):
@@ -25,21 +27,50 @@ def enviarParquet(socket: socket) -> None:
         
     loteMensaje.send()
     FinMensaje(socket).send()
-    print("Envio EOF")
 
 
-def recibirRta(socket: socket) -> None:
-    while True:
-        a = recvMensaje(socket)
+def recibirRespuestas(socket: socket) -> None:
+    eof = False
+    while not eof:
+        respuesta = recvMensaje(socket)
 
-        #print(a.url)
+        if isinstance(respuesta, FinMensaje):
+            print("EOF")
+            eof = True
+        elif isinstance(respuesta, Respuesta1Mensaje):
+            print("Respuesta mensaje 1")
+        elif isinstance(respuesta, Respuesta5Mensaje):
+            print("Respuesta mensaje 5")
 
 
+def manejarSigterm(coneccion: socket.socket, ) -> None:
+    coneccion.shutdown(socket.SHUT_RDWR)
+    sys.exit(0)
+
+# TODO: quedan los hilos huerfanos si hay sigterm
 def main():
     coneccion = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     coneccion.connect((GATEWAYHOST, GATEWAYPORT))
-    enviarParquet(coneccion)
-    recibirRta(coneccion)
+    signal.signal(signal.SIGTERM, lambda signum, frame: manejarSigterm(coneccion))
+
+    emisor = threading.Thread(
+        target=enviarParquet,
+        args=(coneccion,),
+        daemon=True
+    )
+
+    receptor = threading.Thread(
+        target=recibirRespuestas,
+        args=(coneccion,),
+        daemon=True
+    )
+
+    emisor.start()
+    receptor.start()
+
+    emisor.join()
+    receptor.join()
+
 
 if __name__ == "__main__":
     main()

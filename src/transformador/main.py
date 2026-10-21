@@ -1,6 +1,8 @@
 import os
 import re
+import sys
 import nltk
+import signal
 from nltk.corpus import stopwords
 from mensajesSistema import recvMensajeSistema, FinMensajeSistema, TransformadorMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
@@ -60,19 +62,36 @@ class Transformador:
         
 
     def procesarMensaje(self, bytes, ack, nack):
-        mensaje = recvMensajeSistema(bytes)
-        if isinstance(mensaje, FinMensajeSistema): # TODO: esta bien esto?
-            self._procesarEOF(mensaje)
-        else:
-            self._procesarData(mensaje)
-        ack()
+        try:
+            mensaje = recvMensajeSistema(bytes)
+            if isinstance(mensaje, FinMensajeSistema): # TODO: esta bien esto?
+                self._procesarEOF(mensaje)
+            else:
+                self._procesarData(mensaje)
+            ack()
+        except Exception as e:
+            print(e)
+            nack()
+
 
     def iniciar(self):
         self.colaTransformador.start_consuming(self.procesarMensaje)
 
+
+    def manejarSigterm(self) -> None:
+        self.colaTransformador.close()
+        self.colaSumTop.close()
+        for i in range(TOTALCUENTAPROM):
+            self.exchangeCuentaProm[i].close()
+        for i in range(TOTALPROMEDIO):
+            self.exchangePromedio[i].close()
+        sys.exit(0)
+
+
 def main() -> int:
     nltk.download('stopwords')
     transformador = Transformador()
+    signal.signal(signal.SIGTERM, lambda signum, frame: transformador.manejarSigterm())
     transformador.iniciar()
     return 0
 

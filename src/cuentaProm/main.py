@@ -28,6 +28,7 @@ class CuentaProm:
             for linea in f.readlines():
                 url, cantidad = linea.strip().split(";", 1)
                 if int(cantidad) > mensaje.promedio:
+                    print("ENVIO RESPUESTA")
                     self.colaRespuestas.send(Respuesta5MensajeSistema(mensaje.clienteId,  url, int(cantidad)).aBytes())
         os.remove(str(mensaje.clienteId))
         del self.clientes[str(mensaje.clienteId)]

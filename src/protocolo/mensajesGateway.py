@@ -166,5 +166,11 @@ def recvMensaje(socket: socket.socket) -> Respuesta:
         return obtenerRespuesta(socket, Respuesta1Mensaje())
     if type == RESPUESTA2_MENSAJE:
         return obtenerRespuesta(socket, Respuesta2Mensaje())
+    if type == RESPUESTA3_MENSAJE:
+        return obtenerRespuesta(socket, Respuesta3Mensaje())
+    if type == RESPUESTA4_MENSAJE:
+        return obtenerRespuesta(socket, Respuesta4Mensaje())
+    if type == RESPUESTA5_MENSAJE:
+        return obtenerRespuesta(socket, Respuesta5Mensaje())
     else:
         return None

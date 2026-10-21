@@ -55,7 +55,6 @@ class Transformador:
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
         self.colaSumTop.send(mensaje.aBytes())
-        print(f"Envio EOF {mensaje.clienteId}")
         
         nodo = mensaje.clienteId.int % TOTALPROMEDIO
         self.exchangePromedio[nodo].send(mensaje.aBytes())

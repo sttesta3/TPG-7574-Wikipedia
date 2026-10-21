@@ -29,8 +29,6 @@ class Promedio:
             self.clientes[clienteId][1] += 1
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
-        print(f"Llego EOF {mensaje.clienteId}")
-        
         promedio = self.clientes[str(mensaje.clienteId)][0] // self.clientes[str(mensaje.clienteId)][1] 
         
         nodo = mensaje.clienteId.int % TOTALCUENTAPROM

@@ -1,4 +1,5 @@
-FROM python:3-alpine
+#FROM python:3-alpine (depende la pc me anda este o el otro xd)
+FROM python:3.13-slim-bookworm
 
 WORKDIR /home/app
 

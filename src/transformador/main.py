@@ -8,9 +8,10 @@ from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
 MOMHOST = os.environ["MOMHOST"]
 COLATRANSFORMADOR = os.environ["COLATRANSFORMADOR"]
 COLASUMTOP = os.environ["COLASUMTOP"]
-COLAPROMMENOR = os.environ["COLAPROMMENOR"]
-EXCHANGEPROMMAYOR = os.environ["EXCHANGEPROMMAYOR"]
-TOTALPROMMAYOR = int(os.environ["TOTALPROMMAYOR"])
+EXCHANGEPROMEDIO = os.environ["EXCHANGEPROMEDIO"]
+EXCHANGECUENTAPROM = os.environ["EXCHANGECUENTAPROM"]
+TOTALPROMEDIO = int(os.environ["TOTALPROMEDIO"])
+TOTALCUENTAPROM = int(os.environ["TOTALCUENTAPROM"])
 
 WORD_REGEX = r'\b\w+\b'
 NUMBER_REGEX = r'[+-]?((\d+\.?\d*)|(\.\d+))'
@@ -20,11 +21,14 @@ class Transformador:
         self.stopWords = set(stopwords.words('english')) | set(stopwords.words('french'))
         self.colaTransformador = MessageMiddlewareQueue(MOMHOST, COLATRANSFORMADOR)
         self.colaSumTop = MessageMiddlewareQueue(MOMHOST, COLASUMTOP)
-        self.colaPromMenor = MessageMiddlewareQueue(MOMHOST, COLAPROMMENOR)
-        self.exchangeProm = []
+        self.exchangePromedio = []
+        self.exchangeCuentaProm = []
 
-        for i in range(TOTALPROMMAYOR):
-            self.exchangeProm.append(MessageMiddlewareExchange(MOMHOST, EXCHANGEPROMMAYOR, [EXCHANGEPROMMAYOR + "_" + str(i)]))
+        for i in range(TOTALPROMEDIO):
+            self.exchangePromedio.append(MessageMiddlewareExchange(MOMHOST, EXCHANGEPROMEDIO, [EXCHANGEPROMEDIO + "_" + str(i)]))
+
+        for i in range(TOTALCUENTAPROM):
+            self.exchangeCuentaProm.append(MessageMiddlewareExchange(MOMHOST, EXCHANGECUENTAPROM, [EXCHANGECUENTAPROM + "_" + str(i)]))
 
     def _resumenAPalabras(self, resumen: str) -> dict[str]:
         palabrasSinStop = {}
@@ -32,7 +36,6 @@ class Transformador:
         for palabra in palabras:
             if palabra not in self.stopWords and not re.fullmatch(NUMBER_REGEX, palabra):
                 palabrasSinStop[palabra] = 1
-        print(palabrasSinStop.keys())
         return palabrasSinStop
 
 
@@ -41,16 +44,20 @@ class Transformador:
         palabras = self._resumenAPalabras(mensaje.resumen)
         self.colaSumTop.send(PalabrasMensajeSistema(mensaje.clienteId, mensaje.url, mensaje.lenguaje, palabras).aBytes())
         if mensaje.fecha <= 2020:
-            self.colaPromMenor.send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
+            nodo = mensaje.clienteId.int % TOTALPROMEDIO
+            self.exchangePromedio[nodo].send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
         else:
-            nodo = mensaje.clienteId.int % TOTALPROMMAYOR
-            self.exchangeProm[nodo].send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
+            nodo = mensaje.clienteId.int % TOTALCUENTAPROM
+            self.exchangeCuentaProm[nodo].send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
 
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
         self.colaSumTop.send(mensaje.aBytes())
-        #Enviar eof a los nodos de promedio
-
+        print(f"Envio EOF {mensaje.clienteId}")
+        
+        nodo = mensaje.clienteId.int % TOTALPROMEDIO
+        self.exchangePromedio[nodo].send(mensaje.aBytes())
+        
 
     def procesarMensaje(self, bytes, ack, nack):
         mensaje = recvMensajeSistema(bytes)

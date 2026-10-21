@@ -24,6 +24,7 @@ def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
             mensaje = recvMensaje(clientSocket)
             if mensaje is None:
                 eof = True
+                print(f"Envio EOF de {clienteId}")
                 colaDatos.send(FinMensajeSistema(clienteId).aBytes())
             else:
                 colaDatos.send(LoteDataMensajeSistema(clienteId, mensaje).aBytes())
@@ -48,7 +49,6 @@ def manejarRespuesta(clientes: dict) -> None:
                 #sendRespuesta(clienteSocket, EOF)
                 clientes[clienteId] = None
             else:
-                print(f"Respuesta a: {respuesta.clienteId}")
                 sendRespuesta(clienteSocket, respuesta.aRespuestaGateway())
         except Exception as e:
             print(e)

@@ -34,7 +34,7 @@ class DataMensaje():
         self.lenguaje = LENGUAJEINGLES if fila.in_language["identifier"] == "en" else LENGUAJEFRANCES
         self.seccion = _seccionATexto(fila.sections)
         self.nombre = fila.name
-    
+        
 
     def aBytes(self) -> bytes:
         urlBytes = self.url.encode("UTF-8")

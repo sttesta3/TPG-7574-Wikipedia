@@ -1,7 +1,7 @@
 import uuid
 from abc import ABC, abstractmethod
 from mensajesCliente import DataMensaje, FIN_MENSAJE
-from mensajesGateway import Respuesta1Mensaje
+from mensajesGateway import Respuesta1Mensaje, Respuesta5Mensaje
 
 RESPUESTA1_MENSAJE = b'\x01'
 RESPUESTA2_MENSAJE = b'\x02'
@@ -14,6 +14,8 @@ IMG_MENSAJE = b'\x07'
 TRANFORMADOR_MENSAJE = b'\x08'
 PALABRAS_MENSAJE = b'\x09'
 CANTIDAD_PALABRAS_MENSAJE = b'\x0A'
+FIN_PROM_MENSAJE = b'\x0B'
+
 
 class MensajeSistema(ABC):
     @abstractmethod
@@ -228,15 +230,40 @@ class CantidadPalabraMensajeSistema(MensajeSistema):
         totalLeido = 0
 
         urlLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
-        self.url = bytes[totalLeido+4:totalLeido+urlLen+4]
+        self.url = bytes[totalLeido+4:totalLeido+urlLen+4].decode()
         totalLeido += (urlLen + 4)
 
-        self.cantidad = bytes[totalLeido:totalLeido+4]
+        self.cantidad = int.from_bytes( bytes[totalLeido:totalLeido+4], byteorder="big")
         totalLeido += 4
 
         self.clienteId = uuid.UUID(bytes=(bytes[totalLeido:totalLeido+16]))
 
 
+class FinPromMensajeSistema(MensajeSistema):
+    def __init__(self, clienteId: uuid.UUID = None, promedio: int = None ):
+        self.clienteId= clienteId
+        self.promedio = promedio
+
+    
+    def aBytes(self) -> bytes:
+        bytesMensaje = FIN_PROM_MENSAJE
+
+        bytesMensaje += self.promedio.to_bytes(4, byteorder="big")
+
+        bytesMensaje += self.clienteId.bytes
+
+        return bytesMensaje
+    
+
+    def deBytes(self, bytes: bytes) -> None:
+        
+        self.promedio = int.from_bytes(bytes[0:4], byteorder="big")
+        totalLeido = 4
+
+        self.clienteId = uuid.UUID(bytes=bytes[totalLeido:totalLeido+16])
+
+
+# TODO: implementarlo en lotes (si es considerado necesario)
 class Respuesta1MensajeSistema(MensajeSistema):
     def __init__(self, clienteId: uuid.UUID = None , url: str = None, fecha: int = None):
         self.url = url
@@ -254,7 +281,6 @@ class Respuesta1MensajeSistema(MensajeSistema):
 
     def deBytes(self, bytes) -> None:
         rtaMsg = Respuesta1Mensaje()
-        print(bytes)
         rtaMsg.deBytes(bytes[4:len(bytes)-16])
         self.fecha = rtaMsg.fecha
         self.url = rtaMsg.url
@@ -263,6 +289,33 @@ class Respuesta1MensajeSistema(MensajeSistema):
 
     def aRespuestaGateway(self) -> Respuesta1Mensaje:
         return Respuesta1Mensaje(self.url, self.fecha)
+
+# TODO: implementarlo en lotes (si es considerado necesario)
+class Respuesta5MensajeSistema(MensajeSistema):
+    def __init__(self, clienteId: uuid.UUID = None, url: str = None, cantidad: int = None):
+        self.clienteId  = clienteId
+        self.url = url
+        self.cantidad = cantidad
+
+    
+    def aBytes(self) -> bytes:
+        bytesMensaje = RESPUESTA5_MENSAJE
+        bytesMensaje += (Respuesta5Mensaje(self.url, self.cantidad).aBytes())[1:]
+        bytesMensaje += self.clienteId.bytes
+
+        return bytesMensaje
+    
+
+    def deBytes(self, bytes) -> None:
+        rtamsg = Respuesta5Mensaje()
+        rtamsg.deBytes(bytes[4:len(bytes)-16])
+        self.url = rtamsg.url
+        self.cantidad = rtamsg.cantidad
+        self.clienteId = uuid.UUID(bytes=bytes[len(bytes)-16:])
+
+
+    def aRespuestaGateway(self) -> Respuesta5Mensaje:
+        return Respuesta5Mensaje(self.url, self.cantidad)
 
 
 def recvMensajeSistema(mensaje: bytes) -> MensajeSistema:
@@ -279,8 +332,12 @@ def recvMensajeSistema(mensaje: bytes) -> MensajeSistema:
         rta = PalabrasMensajeSistema()
     elif type == CANTIDAD_PALABRAS_MENSAJE:
         rta = CantidadPalabraMensajeSistema()
+    elif type == FIN_PROM_MENSAJE:
+        rta = FinPromMensajeSistema()
     elif type == RESPUESTA1_MENSAJE:
         rta = Respuesta1MensajeSistema() 
+    elif type == RESPUESTA5_MENSAJE:
+        rta = Respuesta5MensajeSistema()
     else:
         rta = None
     

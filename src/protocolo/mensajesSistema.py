@@ -362,7 +362,7 @@ class Respuesta5MensajeSistema(MensajeSistema):
 def recvMensajeSistema(mensaje: bytes) -> MensajeSistema:
     type = mensaje[:1]
     rta = None
-
+    
     if type == FIN_MENSAJE:
         rta = FinMensajeSistema()
     elif type == LOTE_DATA_MENSAJE:

@@ -4,6 +4,8 @@ import signal
 from mensajesSistema import recvMensajeSistema, FinMensajeSistema, CantidadPalabraMensajeSistema, FinPromMensajeSistema
 from middleware import MessageMiddlewareExchange
 
+import traceback
+
 MOMHOST = os.environ["MOMHOST"]
 EXCHANGEPROMEDIO = os.environ["EXCHANGEPROMEDIO"]
 EXCHANGECUENTAPROM = os.environ["EXCHANGECUENTAPROM"]
@@ -28,6 +30,7 @@ class Promedio:
             self.clientes[clienteId][0] += mensaje.cantidad
             self.clientes[clienteId][1] += 1
 
+
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
         promedio = self.clientes[str(mensaje.clienteId)][0] // self.clientes[str(mensaje.clienteId)][1] 
         
@@ -37,7 +40,7 @@ class Promedio:
 
         del self.clientes[str(mensaje.clienteId)]
         
-
+    
     def procesarMensaje(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
@@ -48,6 +51,7 @@ class Promedio:
             ack()
         except Exception as e:
             print(e)
+            print(traceback.format_exc())
             nack()
 
 

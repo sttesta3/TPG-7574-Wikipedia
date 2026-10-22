@@ -1,7 +1,7 @@
 import os
 import sys
 import signal
-from mensajesSistema import recvMensajeSistema, FinPromMensajeSistema, CantidadPalabraMensajeSistema, Respuesta5MensajeSistema
+from mensajesSistema import recvMensajeSistema, FinPromMensajeSistema, CantidadPalabraMensajeSistema, Respuesta5MensajeSistema, FinMensajeSistema
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
 
 MOMHOST = os.environ["MOMHOST"]
@@ -20,15 +20,16 @@ class CuentaProm:
         clientId = str(mensaje.clienteId)
         self.clientes[clientId] = True
         with open(clientId, "a", encoding="utf-8") as f:
-            f.write(f"{mensaje.url};{mensaje.cantidad}\n")
+            f.write(f"{mensaje.url};;;;;{mensaje.cantidad}\n")
 
 
     def _procesarEOF(self, mensaje: FinPromMensajeSistema) -> None:
         with open(str(mensaje.clienteId), "r", encoding="utf-8") as f:
             for linea in f.readlines():
-                url, cantidad = linea.strip().split(";", 1)
+                url, cantidad = linea.strip().split(";;;;;", 1)
                 if int(cantidad) > mensaje.promedio:
                     self.colaRespuestas.send(Respuesta5MensajeSistema(mensaje.clienteId,  url, int(cantidad)).aBytes())
+        self.colaRespuestas.send(FinMensajeSistema(mensaje.clienteId).aBytes())
         os.remove(str(mensaje.clienteId))
         del self.clientes[str(mensaje.clienteId)]
         

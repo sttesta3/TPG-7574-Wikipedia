@@ -5,7 +5,7 @@ import signal
 import multiprocessing
 from mensajesCliente import recvMensaje
 from mensajesGateway import sendRespuesta, Respuesta1Mensaje
-from mensajesSistema import FinMensajeSistema, LoteDataMensajeSistema, recvMensajeSistema
+from mensajesSistema import FinMensajeSistema, Respuesta5MensajeSistema, LoteDataMensajeSistema, recvMensajeSistema
 from middleware import MessageMiddlewareQueue
 
 MOMHOST = os.environ["MOMHOST"]
@@ -55,7 +55,6 @@ def manejarRespuesta(clientes: dict) -> None:
         except Exception as e:
             print(e)
             nack()
-            colaRespuestas.start_consuming()
         
     colaRespuestas.start_consuming(_consumirRespuesta)
 

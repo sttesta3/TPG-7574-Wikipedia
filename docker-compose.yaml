@@ -25,7 +25,7 @@ services:
       - RABBITMQ_LOG_LEVELS=error
       healthcheck:
         interval: 5s
-        retries: 10
+        retries: 1
         start_period: 50s
         test: rabbitmq-diagnostics check_port_connectivity
         timeout: 3s
@@ -43,7 +43,7 @@ services:
     environment:
     - DATASETPATHEN=/datasets/enwiki_namespace_0_
     - DATASETPATHFR=/datasets/frwiki_namespace_0_
-    - TOTALDATASETS=2
+    - TOTALDATASETS=5
     - GATEWAYHOST=gateway
     - GATEWAYPORT=8000
     - LOTE=10

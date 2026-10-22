@@ -4,6 +4,7 @@ import signal
 import threading
 import aiohttp
 import asyncio
+import traceback
 from mensajesSistema import recvMensajeSistema, FinMensajeSistema, ImgMensajeSistema, Respuesta2MensajeSistema
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
 
@@ -42,7 +43,6 @@ class ClienteLock():
         return rta
             
 
-
 class ImgDescargador:
     def __init__(self):
         self.eventLoop = asyncio.new_event_loop()
@@ -51,25 +51,27 @@ class ImgDescargador:
         self.colaImgDescarga = MessageMiddlewareQueue(MOMHOST, COLAIMGDESCARGA)
         self.colaRespuestas = MessageMiddlewareQueue(MOMHOST, COLARESPUESTAS)
         self.exchangeImgEof = MessageMiddlewareExchange(MOMHOST, EXCHANGEIMGEOF, [EXCHANGEIMGEOF])
+        self.exchangeImgEofSend = MessageMiddlewareExchange(MOMHOST, EXCHANGEIMGEOF, [EXCHANGEIMGEOF])
 
 
     async def _procesarData(self, mensaje: ImgMensajeSistema) -> None:
-        imgBytes = b''
-        if mensaje.url != "":
-            async with aiohttp.ClientSession() as session:
-                async with session.get(mensaje.url) as resp:
-                    #print(await resp.read())
-                    imgBytes = await resp.read()
-        
-        self.colaRespuestas.send(Respuesta2MensajeSistema(mensaje.clienteId, mensaje.url, mensaje.nombre, imgBytes).aBytes())
+        if mensaje.nombre is not None:
+            imgBytes = b''
+            if mensaje.url != "":
+                async with aiohttp.ClientSession() as session:
+                    async with session.get(mensaje.url) as resp:
+                        #print(await resp.read())
+                        imgBytes = await resp.read()
+
+            self.colaRespuestas.send(Respuesta2MensajeSistema(mensaje.clienteId, mensaje.url, mensaje.nombre, imgBytes).aBytes())
 
         if self.clientes[mensaje.clienteId].nuevaRespuesta():
             self.colaRespuestas.send(FinMensajeSistema(mensaje.clienteId).aBytes())
+            del self.clientes[mensaje.clienteId]
 
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
-        print(f"Llego EOF {mensaje.clienteId}")
-        self.exchangeImgEof.send(mensaje.aBytes())
+        self.exchangeImgEofSend.send(mensaje.aBytes())
         
 
     def procesarMensaje(self, bytes, ack, nack):
@@ -82,22 +84,31 @@ class ImgDescargador:
                     self.clientes[mensaje.clienteId] = ClienteLock()
                 
                 self.clientes[mensaje.clienteId].nuevoMensaje()
-
                 asyncio.run_coroutine_threadsafe(self._procesarData(mensaje), self.eventLoop)
             ack()
         except Exception as e:
             print(e)
-            nack()
+            ack()
 
 
     def _controlarEof(self):
+        
+        def manejarEof(bytes, ack, nack):
+            try:
+                mensaje = recvMensajeSistema(bytes)
 
-        def procesarEof(bytes, ack, nack):
-            mensaje = recvMensajeSistema(bytes)
-            self.clientes[mensaje.clienteId].llegadaEof()
-            ack()
+                if mensaje.clienteId not in self.clientes:
+                    self.clientes[mensaje.clienteId] = ClienteLock()
 
-        self.exchangeImgEof.start_consuming(procesarEof)
+                if self.clientes[mensaje.clienteId].llegadaEof():
+                    asyncio.run_coroutine_threadsafe(self._procesarData(ImgMensajeSistema(mensaje.clienteId)), self.eventLoop)
+                ack()
+            except Exception as e:
+                print(e)
+                print(traceback.format_exc())
+                nack()
+
+        self.exchangeImgEof.start_consuming(manejarEof)
 
 
     def _iniciarEventLoop(self):

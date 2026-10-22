@@ -19,7 +19,7 @@ class MessageMiddlewareDeleteError(Exception):
 class MessageMiddlewareQueue():
 
     def __init__(self, host, queue_name):
-        self.connection = pika.BlockingConnection(pika.ConnectionParameters(host))
+        self.connection = pika.BlockingConnection(pika.ConnectionParameters(host, heartbeat=0))
         self.queue_name = queue_name
         self.channel = self.connection.channel()
         self.channel.queue_declare(queue=queue_name, durable=True)
@@ -69,7 +69,7 @@ class MessageMiddlewareQueue():
 class MessageMiddlewareExchange():
     
     def __init__(self, host, exchange_name, routing_keys):
-        connection = pika.BlockingConnection(pika.ConnectionParameters(host))
+        connection = pika.BlockingConnection(pika.ConnectionParameters(host, heartbeat=0))
         channel = connection.channel()
         channel.exchange_declare(exchange=exchange_name, exchange_type='direct')
 

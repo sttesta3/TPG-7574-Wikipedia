@@ -23,7 +23,6 @@ class Clasificador:
     def _procesarData(self, loteMensaje: LoteDataMensajeSistema) -> None:
         for mensaje in loteMensaje.lote:
             if mensaje.lenguaje == LENGUAJEINGLES and mensaje.fecha <= 2020:
-                self.colaImgDescarga.send(ImgMensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.nombre, mensaje.imgUrl).aBytes())
                 self.colaRespuestas.send(Respuesta1MensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.fecha).aBytes())
             if mensaje.fecha <= 2020 and (("biography" in mensaje.seccion.lower()) or ("biographie" in mensaje.seccion.lower())):
                 self.colaImgDescarga.send(ImgMensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.nombre, mensaje.imgUrl).aBytes())

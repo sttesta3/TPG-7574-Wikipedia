@@ -43,7 +43,7 @@ services:
     environment:
     - DATASETPATHEN=/datasets/enwiki_namespace_0_
     - DATASETPATHFR=/datasets/frwiki_namespace_0_
-    - TOTALDATASETS=1
+    - TOTALDATASETS=2
     - GATEWAYHOST=gateway
     - GATEWAYPORT=8000
     - LOTE=10
@@ -79,11 +79,33 @@ services:
           condition: service_healthy
         gateway:
           condition: service_started
+        clasificador_0:
+          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLARESPUESTAS=Respuestas
       - COLAIMGDESCARGA=ImgDescarga
+      - EXCHANGEIMGEOF=ExchangeImgEof
+
+  img_descargador_1:
+    build:
+      context: ./src/
+      dockerfile: imgDescargador/Dockerfile
+    container_name: imgDescargador_1
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        clasificador_0:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLARESPUESTAS=Respuestas
+      - COLAIMGDESCARGA=ImgDescarga
+      - EXCHANGEIMGEOF=ExchangeImgEof
 
   transformador_0:
     build:

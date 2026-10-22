@@ -35,7 +35,7 @@ def recibirRespuestas(socket: socket) -> None:
         respuesta = recvMensaje(socket)
 
         if isinstance(respuesta, Respuesta2Mensaje):
-            print("Respuesta mensaje 2")
+            print(f"{respuesta.nombre}")
 
 
 def manejarSigterm(coneccion: socket.socket, ) -> None:

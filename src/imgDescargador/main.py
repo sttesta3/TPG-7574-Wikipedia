@@ -16,6 +16,7 @@ EXCHANGEIMGEOF = os.environ["EXCHANGEIMGEOF"]
 class ClienteLock():
     def __init__(self) -> None:
         self.lock = threading.Lock()
+        self.cond = threading.Condition()
         self.eof = False
         self.respuestas = 0
 
@@ -56,6 +57,11 @@ class ImgDescargador:
 
     async def _procesarData(self, mensaje: ImgMensajeSistema, eof: bool = False ) -> None:
         if eof:
+            # tiene que hacerse algo asi con condvar para que no haya problema con las task asincronicas
+            with self.clientes[mensaje.clienteId].cond as cond:
+                while self.clientes[mensaje.clienteId].respuestas > 0:
+                    cond.wait()
+
             print("ENVIO EOF")
             self.colaRespuestas.send(FinMensajeSistema(mensaje.clienteId).aBytes())
             del self.clientes[mensaje.clienteId]
@@ -75,6 +81,8 @@ class ImgDescargador:
             print("ENVIO EOF")
             self.colaRespuestas.send(FinMensajeSistema(mensaje.clienteId).aBytes())
             del self.clientes[mensaje.clienteId]
+        else:
+            self.clientes[mensaje.clienteId].cond.notify()
 
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:

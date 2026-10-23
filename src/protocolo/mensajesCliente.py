@@ -10,17 +10,20 @@ FIN_MENSAJE =  b'\x00'
 DATA_MENSAJE =  b'\x01'
 LOTE_MENSAJE = b'\x02'
 
-def _seccionATexto(documento: str) -> str:
+def _seccionATexto(documento: str) -> tuple[str, bool]:
+    bio = False
     textoSeccion = ""
     try:
         for seccion in ast.literal_eval(documento):
             for parrafo in seccion["has_parts"]:
                 if parrafo["type"] == "paragraph":
                     textoSeccion += parrafo["value"] 
+            if seccion["name"].lower() == "biography" or seccion["name"].lower() == "biographie": 
+                bio = True
     except Exception:
         pass
 
-    return textoSeccion
+    return (textoSeccion, bio)
 
 
 class DataMensaje():
@@ -32,9 +35,11 @@ class DataMensaje():
         self.fecha = fila.date_modified.year
         self.imgUrl = "" if fila.image == None else fila.image["content_url"]
         self.lenguaje = LENGUAJEINGLES if fila.in_language["identifier"] == "en" else LENGUAJEFRANCES
-        self.seccion = _seccionATexto(fila.sections)
+        texto, bio = _seccionATexto(fila.sections)
+        self.seccion = texto
         self.nombre = fila.name
-        
+        self.biografia = 1 if bio else 0 ## AGREGAR ESTO
+
 
     def aBytes(self) -> bytes:
         urlBytes = self.url.encode("UTF-8")

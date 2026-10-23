@@ -24,6 +24,7 @@ class CuentaProm:
 
 
     def _procesarEOF(self, mensaje: FinPromMensajeSistema) -> None:
+        print("ENVIO EOF")
         with open(str(mensaje.clienteId), "r", encoding="utf-8") as f:
             for linea in f.readlines():
                 url, cantidad = linea.strip().split(";;;;;", 1)

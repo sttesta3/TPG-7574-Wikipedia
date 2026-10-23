@@ -24,7 +24,7 @@ class Clasificador:
         for mensaje in loteMensaje.lote:
             if mensaje.lenguaje == LENGUAJEINGLES and mensaje.fecha <= 2020:
                 self.colaRespuestas.send(Respuesta1MensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.fecha).aBytes())
-            if mensaje.fecha <= 2020 and (("biography" in mensaje.seccion.lower()) or ("biographie" in mensaje.seccion.lower())):
+            if mensaje.fecha <= 2020 and mensaje.biografia == 1:
                 self.colaImgDescarga.send(ImgMensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.nombre, mensaje.imgUrl).aBytes())
             self.colaTransformador.send(TransformadorMensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.fecha, mensaje.resumen, mensaje.lenguaje).aBytes())
             

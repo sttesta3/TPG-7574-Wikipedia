@@ -39,7 +39,8 @@ services:
       dockerfile: cliente/Dockerfile
     container_name: cliente_0
     depends_on:
-    - gateway
+      gateway:
+        condition: service_started
     environment:
     - DATASETPATHEN=/datasets/enwiki_namespace_0_
     - DATASETPATHFR=/datasets/frwiki_namespace_0_

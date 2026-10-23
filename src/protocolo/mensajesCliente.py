@@ -38,7 +38,7 @@ class DataMensaje():
         texto, bio = _seccionATexto(fila.sections)
         self.seccion = texto
         self.nombre = fila.name
-        self.biografia = 1 if bio else 0 ## AGREGAR ESTO
+        self.biografia = 1 if bio else 0
 
 
     def aBytes(self) -> bytes:
@@ -51,7 +51,7 @@ class DataMensaje():
         bytesMensaje = DATA_MENSAJE
 
         tamañoMensaje = len(resumenBytes) + len(imgUrlBytes) + len(seccionBytes) + len(nombreBytes) + len(urlBytes)
-        bytesMensaje += (tamañoMensaje  + 20 + 3).to_bytes(4, byteorder="big")
+        bytesMensaje += (tamañoMensaje  + 20 + 4).to_bytes(4, byteorder="big")
         
         bytesMensaje += len(urlBytes).to_bytes(4, byteorder="big")
         bytesMensaje += urlBytes
@@ -71,6 +71,8 @@ class DataMensaje():
 
         bytesMensaje += len(nombreBytes).to_bytes(4, byteorder="big")
         bytesMensaje += nombreBytes
+
+        bytesMensaje += self.biografia.to_bytes(1, byteorder="big")
 
         return bytesMensaje
 
@@ -102,6 +104,9 @@ class DataMensaje():
 
         nombreLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
         self.nombre = bytes[totalLeido+4:totalLeido+nombreLen+4].decode()
+        totalLeido += (nombreLen + 4)
+
+        self.biografia = int.from_bytes(bytes[totalLeido:totalLeido+1], byteorder="big")
 
 
     def obtenerData(self, socket: socket.socket):

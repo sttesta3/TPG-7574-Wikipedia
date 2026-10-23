@@ -7,7 +7,7 @@ from middleware import MessageMiddlewareQueue
 MOMHOST = os.environ["MOMHOST"]
 COLADATOS = os.environ["COLADATOS"]
 COLARESPUESTAS = os.environ["COLARESPUESTAS"]
-COLAIMGDOWLOADER = os.environ["COLAIMGDOWLOADER"]
+COLAIMGDESCARGA = os.environ["COLAIMGDESCARGA"]
 COLATRANSFORMADOR = os.environ["COLATRANSFORMADOR"]
 
 LENGUAJEINGLES = 1
@@ -16,7 +16,7 @@ class Clasificador:
     def __init__(self):
         self.colaDatos = MessageMiddlewareQueue(MOMHOST, COLADATOS)
         self.colaRespuestas = MessageMiddlewareQueue(MOMHOST, COLARESPUESTAS)
-        self.colaImgDowloader = MessageMiddlewareQueue(MOMHOST, COLAIMGDOWLOADER)
+        self.colaImgDescarga = MessageMiddlewareQueue(MOMHOST, COLAIMGDESCARGA)
         self.colaTransformador = MessageMiddlewareQueue(MOMHOST, COLATRANSFORMADOR)
 
 
@@ -24,13 +24,13 @@ class Clasificador:
         for mensaje in loteMensaje.lote:
             if mensaje.lenguaje == LENGUAJEINGLES and mensaje.fecha <= 2020:
                 self.colaRespuestas.send(Respuesta1MensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.fecha).aBytes())
-            if mensaje.fecha <= 2020 and (("biography" in mensaje.seccion.lower()) or ("biographie" in mensaje.seccion)):
-                self.colaImgDowloader.send(ImgMensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.nombre).aBytes())
+            if mensaje.fecha <= 2020 and mensaje.biografia == 1:
+                self.colaImgDescarga.send(ImgMensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.nombre, mensaje.imgUrl).aBytes())
             self.colaTransformador.send(TransformadorMensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.fecha, mensaje.resumen, mensaje.lenguaje).aBytes())
             
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
-        self.colaImgDowloader.send(mensaje.aBytes())
+        self.colaImgDescarga.send(mensaje.aBytes())
         self.colaTransformador.send(mensaje.aBytes())
 
 
@@ -54,7 +54,7 @@ class Clasificador:
     def manejarSigterm(self) -> None:
         self.colaDatos.close()
         self.colaRespuestas.close()
-        self.colaImgDowloader.close()
+        self.colaImgDescarga.close()
         self.colaTransformador.close()
         sys.exit(0)
 

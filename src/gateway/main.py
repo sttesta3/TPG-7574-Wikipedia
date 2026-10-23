@@ -5,7 +5,7 @@ import signal
 import multiprocessing
 from mensajesCliente import recvMensaje
 from mensajesGateway import sendRespuesta, Respuesta1Mensaje
-from mensajesSistema import FinMensajeSistema, LoteDataMensajeSistema, recvMensajeSistema
+from mensajesSistema import FinMensajeSistema, Respuesta5MensajeSistema, LoteDataMensajeSistema, recvMensajeSistema
 from middleware import MessageMiddlewareQueue
 
 MOMHOST = os.environ["MOMHOST"]
@@ -25,7 +25,6 @@ def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
             mensaje = recvMensaje(clientSocket)
             if mensaje is None:
                 eof = True
-                print(f"Envio EOF de {clienteId}")
                 colaDatos.send(FinMensajeSistema(clienteId).aBytes())
             else:
                 colaDatos.send(LoteDataMensajeSistema(clienteId, mensaje).aBytes())
@@ -46,6 +45,7 @@ def manejarRespuesta(clientes: dict) -> None:
             clienteId = respuesta.clienteId
             clienteSocket = clientes[clienteId]
             if isinstance(respuesta, FinMensajeSistema):
+                print(f"LLego EOF {respuesta.clienteId}")
                 # TODO: manejar EOF
                 #sendRespuesta(clienteSocket, EOF)
                 clientes[clienteId] = None
@@ -55,7 +55,6 @@ def manejarRespuesta(clientes: dict) -> None:
         except Exception as e:
             print(e)
             nack()
-            colaRespuestas.start_consuming()
         
     colaRespuestas.start_consuming(_consumirRespuesta)
 

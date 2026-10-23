@@ -5,7 +5,7 @@ import signal
 import threading
 import pandas as pd
 from mensajesCliente import LoteMensaje, FinMensaje
-from mensajesGateway import recvMensaje, Respuesta1Mensaje, Respuesta5Mensaje
+from mensajesGateway import recvMensaje, Respuesta1Mensaje, Respuesta2Mensaje, Respuesta5Mensaje
 
 DATASETPATHEN = os.environ["DATASETPATHEN"]
 DATASETPATHFR = os.environ["DATASETPATHFR"]
@@ -34,13 +34,8 @@ def recibirRespuestas(socket: socket) -> None:
     while not eof:
         respuesta = recvMensaje(socket)
 
-        if isinstance(respuesta, FinMensaje):
-            print("EOF")
-            eof = True
-        elif isinstance(respuesta, Respuesta1Mensaje):
-            print("Respuesta mensaje 1")
-        elif isinstance(respuesta, Respuesta5Mensaje):
-            print("Respuesta mensaje 5")
+        if isinstance(respuesta, Respuesta2Mensaje):
+            print(f"{respuesta.nombre}")
 
 
 def manejarSigterm(coneccion: socket.socket, ) -> None:

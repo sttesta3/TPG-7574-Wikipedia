@@ -10,17 +10,20 @@ FIN_MENSAJE =  b'\x00'
 DATA_MENSAJE =  b'\x01'
 LOTE_MENSAJE = b'\x02'
 
-def _seccionATexto(documento: str) -> str:
+def _seccionATexto(documento: str) -> tuple[str, bool]:
+    bio = False
     textoSeccion = ""
     try:
         for seccion in ast.literal_eval(documento):
             for parrafo in seccion["has_parts"]:
                 if parrafo["type"] == "paragraph":
                     textoSeccion += parrafo["value"] 
+            if seccion["name"].lower() == "biography" or seccion["name"].lower() == "biographie": 
+                bio = True
     except Exception:
         pass
 
-    return textoSeccion
+    return (textoSeccion, bio)
 
 
 class DataMensaje():
@@ -32,9 +35,11 @@ class DataMensaje():
         self.fecha = fila.date_modified.year
         self.imgUrl = "" if fila.image == None else fila.image["content_url"]
         self.lenguaje = LENGUAJEINGLES if fila.in_language["identifier"] == "en" else LENGUAJEFRANCES
-        self.seccion = _seccionATexto(fila.sections)
+        texto, bio = _seccionATexto(fila.sections)
+        self.seccion = texto
         self.nombre = fila.name
-        
+        self.biografia = 1 if bio else 0
+
 
     def aBytes(self) -> bytes:
         urlBytes = self.url.encode("UTF-8")
@@ -46,7 +51,7 @@ class DataMensaje():
         bytesMensaje = DATA_MENSAJE
 
         tamañoMensaje = len(resumenBytes) + len(imgUrlBytes) + len(seccionBytes) + len(nombreBytes) + len(urlBytes)
-        bytesMensaje += (tamañoMensaje  + 20 + 3).to_bytes(4, byteorder="big")
+        bytesMensaje += (tamañoMensaje  + 20 + 4).to_bytes(4, byteorder="big")
         
         bytesMensaje += len(urlBytes).to_bytes(4, byteorder="big")
         bytesMensaje += urlBytes
@@ -66,6 +71,8 @@ class DataMensaje():
 
         bytesMensaje += len(nombreBytes).to_bytes(4, byteorder="big")
         bytesMensaje += nombreBytes
+
+        bytesMensaje += self.biografia.to_bytes(1, byteorder="big")
 
         return bytesMensaje
 
@@ -97,6 +104,9 @@ class DataMensaje():
 
         nombreLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
         self.nombre = bytes[totalLeido+4:totalLeido+nombreLen+4].decode()
+        totalLeido += (nombreLen + 4)
+
+        self.biografia = int.from_bytes(bytes[totalLeido:totalLeido+1], byteorder="big")
 
 
     def obtenerData(self, socket: socket.socket):

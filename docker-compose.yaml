@@ -13,7 +13,7 @@ services:
       - MOMHOST=rabbitmq
       - COLADATOS=EntradaDatos
       - COLARESPUESTAS=Respuestas
-      - LOTE=1
+      - LOTE=10
       - PYTHONUNBUFFERED=1
 
   rabbitmq:
@@ -25,7 +25,7 @@ services:
       - RABBITMQ_LOG_LEVELS=error
       healthcheck:
         interval: 5s
-        retries: 10
+        retries: 1
         start_period: 50s
         test: rabbitmq-diagnostics check_port_connectivity
         timeout: 3s
@@ -39,14 +39,15 @@ services:
       dockerfile: cliente/Dockerfile
     container_name: cliente_0
     depends_on:
-    - gateway
+      gateway:
+        condition: service_started
     environment:
     - DATASETPATHEN=/datasets/enwiki_namespace_0_
     - DATASETPATHFR=/datasets/frwiki_namespace_0_
-    - TOTALDATASETS=1
+    - TOTALDATASETS=5
     - GATEWAYHOST=gateway
     - GATEWAYPORT=8000
-    - LOTE=1
+    - LOTE=10
     - PYTHONUNBUFFERED=1
     volumes:
     - ./datasets:/datasets
@@ -66,8 +67,46 @@ services:
       - MOMHOST=rabbitmq
       - COLADATOS=EntradaDatos
       - COLARESPUESTAS=Respuestas
-      - COLAIMGDOWLOADER=ImgDowloader
+      - COLAIMGDESCARGA=ImgDescarga
       - COLATRANSFORMADOR=ColaTransformador
+
+  img_descargador_0:
+    build:
+      context: ./src/
+      dockerfile: imgDescargador/Dockerfile
+    container_name: imgDescargador_0
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        clasificador_0:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLARESPUESTAS=Respuestas
+      - COLAIMGDESCARGA=ImgDescarga
+      - EXCHANGEIMGEOF=ExchangeImgEof
+
+  img_descargador_1:
+    build:
+      context: ./src/
+      dockerfile: imgDescargador/Dockerfile
+    container_name: imgDescargador_1
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        clasificador_0:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLARESPUESTAS=Respuestas
+      - COLAIMGDESCARGA=ImgDescarga
+      - EXCHANGEIMGEOF=ExchangeImgEof
 
   transformador_0:
     build:
@@ -95,7 +134,7 @@ services:
     build:
       context: ./src/
       dockerfile: cuentaProm/Dockerfile
-    container_name: cuenta_prom_0
+    container_name: cuentaProm_0
     depends_on:
         rabbitmq:
           condition: service_healthy

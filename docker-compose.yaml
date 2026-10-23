@@ -15,6 +15,12 @@ services:
       - COLARESPUESTAS=Respuestas
       - LOTE=10
       - PYTHONUNBUFFERED=1
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import socket; s=socket.create_connection(('127.0.0.1', 8000), timeout=2); s.close()"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+      start_period: 5s
 
   rabbitmq:
       build:
@@ -40,7 +46,7 @@ services:
     container_name: cliente_0
     depends_on:
       gateway:
-        condition: service_started
+        condition: service_healthy
     environment:
     - DATASETPATHEN=/datasets/enwiki_namespace_0_
     - DATASETPATHFR=/datasets/frwiki_namespace_0_

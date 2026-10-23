@@ -74,7 +74,7 @@ def main() -> None:
             processes_pool.apply_async(manejarRespuesta, args=(clientes,))
 
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as serverSocket:
-                serverSocket.bind((GATEWAYHOST, GATEWAYPORT))
+                serverSocket.bind(("0.0.0.0", GATEWAYPORT))
                 serverSocket.listen()
                 signal.signal(signal.SIGTERM, lambda signum, frame: manejarSigterm(clientes, serverSocket, sigtermRecivida))
                 while True:

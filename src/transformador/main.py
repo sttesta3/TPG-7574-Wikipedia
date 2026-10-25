@@ -24,7 +24,7 @@ class Transformador:
     def __init__(self):
         self.stopWords = set(stopwords.words('english')) | set(stopwords.words('french'))
         self.colaTransformador = MessageMiddlewareQueue(MOMHOST, COLATRANSFORMADOR)
-        #self.colaSumTop = MessageMiddlewareQueue(MOMHOST, COLASUMTOP)
+        self.colaSumTop = MessageMiddlewareQueue(MOMHOST, COLASUMTOP)
         self.exchangePromedio = []
         self.exchangeCuentaProm = []
 
@@ -45,7 +45,7 @@ class Transformador:
 
     def _procesarData(self, mensaje: TransformadorMensajeSistema) -> None:
         palabras = self._resumenAPalabras(mensaje.resumen)
-        #self.colaSumTop.send(PalabrasMensajeSistema(mensaje.clienteId, mensaje.url, mensaje.lenguaje, palabras).aBytes())
+        self.colaSumTop.send(PalabrasMensajeSistema(mensaje.clienteId, mensaje.url, mensaje.lenguaje, palabras).aBytes())
         if mensaje.fecha <= 2020:
             nodo = mensaje.clienteId.int % TOTALPROMEDIO
             self.exchangePromedio[nodo].send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
@@ -55,7 +55,7 @@ class Transformador:
 
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
-        #self.colaSumTop.send(mensaje.aBytes())
+        self.colaSumTop.send(mensaje.aBytes())
         
         nodo = mensaje.clienteId.int % TOTALPROMEDIO
         self.exchangePromedio[nodo].send(mensaje.aBytes())

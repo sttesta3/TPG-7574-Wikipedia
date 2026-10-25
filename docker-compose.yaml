@@ -76,6 +76,24 @@ services:
       - COLAIMGDESCARGA=ImgDescarga
       - COLATRANSFORMADOR=ColaTransformador
 
+  clasificador_1:
+    build:
+      context: ./src/
+      dockerfile: clasificador/Dockerfile
+    container_name: clasificador_1
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLADATOS=EntradaDatos
+      - COLARESPUESTAS=Respuestas
+      - COLAIMGDESCARGA=ImgDescarga
+      - COLATRANSFORMADOR=ColaTransformador
+
   img_descargador_0:
     build:
       context: ./src/
@@ -244,3 +262,22 @@ services:
       - TOTALCUENTAPROM=2
       - ID=1
 
+  sum_top_0:
+    build:
+      context: ./src/
+      dockerfile: sumTop/Dockerfile
+    container_name: sum_top_0
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        clasificador_0:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLASUMTOP=ColaSumTop
+      - EXCHANGESUMTOPEOF=ExchangeSumTopEof
+      - EXCHANGETOPPARCIAL=ExchangeTopParcial
+      - TOTALTOPPARCIAL=1

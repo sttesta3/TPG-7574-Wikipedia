@@ -1,0 +1,562 @@
+Attaching to clasificador_0, clasificador_1, cliente_0, cuentaProm_0, cuentaProm_1, gateway, imgDescargador_0, imgDescargador_1, promedio_0, promedio_1, rabbitmq, sum_top_0, transformador_0, transformador_1
+rabbitmq  | 2026-10-25 18:17:31.662537+00:00 [info] <0.228.0> Feature flags: list of feature flags found:
+rabbitmq  | 2026-10-25 18:17:31.673960+00:00 [info] <0.228.0> Feature flags:   [ ] implicit_default_bindings
+rabbitmq  | 2026-10-25 18:17:31.673994+00:00 [info] <0.228.0> Feature flags:   [ ] maintenance_mode_status
+rabbitmq  | 2026-10-25 18:17:31.674012+00:00 [info] <0.228.0> Feature flags:   [ ] quorum_queue
+rabbitmq  | 2026-10-25 18:17:31.674032+00:00 [info] <0.228.0> Feature flags:   [ ] stream_queue
+rabbitmq  | 2026-10-25 18:17:31.674086+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits
+rabbitmq  | 2026-10-25 18:17:31.674104+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata
+rabbitmq  | 2026-10-25 18:17:31.674118+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes
+rabbitmq  | 2026-10-25 18:17:32.021503+00:00 [noti] <0.44.0> Application syslog exited with reason: stopped
+rabbitmq  | 2026-10-25 18:17:32.021653+00:00 [noti] <0.228.0> Logging: switching to configured handler(s); following messages may not be visible in this log output
+rabbitmq  | [38;5;87m2026-10-25 18:17:32.043523+00:00 [notice] <0.228.0> Logging: configured log handlers are now ACTIVE[0m
+rabbitmq  | 2026-10-25 18:17:32.210005+00:00 [info] <0.228.0> ra: starting system quorum_queues[0m
+rabbitmq  | 2026-10-25 18:17:32.210077+00:00 [info] <0.228.0> starting Ra system: quorum_queues in directory: /var/lib/rabbitmq/mnesia/rabbit@88af965bf19d/quorum/rabbit@88af965bf19d[0m
+rabbitmq  | 2026-10-25 18:17:32.263046+00:00 [info] <0.264.0> ra system 'quorum_queues' running pre init for 0 registered servers[0m
+rabbitmq  | 2026-10-25 18:17:32.270821+00:00 [info] <0.265.0> ra: meta data store initialised for system quorum_queues. 0 record(s) recovered[0m
+rabbitmq  | [38;5;87m2026-10-25 18:17:32.282009+00:00 [notice] <0.270.0> WAL: ra_log_wal init, open tbls: ra_log_open_mem_tables, closed tbls: ra_log_closed_mem_tables[0m
+rabbitmq  | 2026-10-25 18:17:32.290773+00:00 [info] <0.228.0> ra: starting system coordination[0m
+rabbitmq  | 2026-10-25 18:17:32.290824+00:00 [info] <0.228.0> starting Ra system: coordination in directory: /var/lib/rabbitmq/mnesia/rabbit@88af965bf19d/coordination/rabbit@88af965bf19d[0m
+rabbitmq  | 2026-10-25 18:17:32.291591+00:00 [info] <0.277.0> ra system 'coordination' running pre init for 0 registered servers[0m
+rabbitmq  | 2026-10-25 18:17:32.291992+00:00 [info] <0.278.0> ra: meta data store initialised for system coordination. 0 record(s) recovered[0m
+rabbitmq  | [38;5;87m2026-10-25 18:17:32.292209+00:00 [notice] <0.283.0> WAL: ra_coordination_log_wal init, open tbls: ra_coordination_log_open_mem_tables, closed tbls: ra_coordination_log_closed_mem_tables[0m
+rabbitmq  | 2026-10-25 18:17:32.294114+00:00 [info] <0.228.0> [0m
+rabbitmq  | 2026-10-25 18:17:32.294114+00:00 [info] <0.228.0>  Starting RabbitMQ 3.9.16 on Erlang 24.3.4 [jit][0m
+rabbitmq  | 2026-10-25 18:17:32.294114+00:00 [info] <0.228.0>  Copyright (c) 2007-2022 VMware, Inc. or its affiliates.[0m
+rabbitmq  | 2026-10-25 18:17:32.294114+00:00 [info] <0.228.0>  Licensed under the MPL 2.0. Website: https://rabbitmq.com[0m
+rabbitmq  | 
+rabbitmq  |   ##  ##      RabbitMQ 3.9.16
+rabbitmq  |   ##  ##
+rabbitmq  |   ##########  Copyright (c) 2007-2022 VMware, Inc. or its affiliates.
+rabbitmq  |   ######  ##
+rabbitmq  |   ##########  Licensed under the MPL 2.0. Website: https://rabbitmq.com
+rabbitmq  | 
+rabbitmq  |   Erlang:      24.3.4 [jit]
+rabbitmq  |   TLS Library: OpenSSL - OpenSSL 1.1.1o  3 May 2022
+rabbitmq  | 
+rabbitmq  |   Doc guides:  https://rabbitmq.com/documentation.html
+rabbitmq  |   Support:     https://rabbitmq.com/contact.html
+rabbitmq  |   Tutorials:   https://rabbitmq.com/getstarted.html
+rabbitmq  |   Monitoring:  https://rabbitmq.com/monitoring.html
+rabbitmq  | 
+rabbitmq  |   Logs: /var/log/rabbitmq/rabbit@88af965bf19d_upgrade.log
+rabbitmq  |         <stdout>
+rabbitmq  | 
+rabbitmq  |   Config file(s): /etc/rabbitmq/conf.d/10-defaults.conf
+rabbitmq  | 
+rabbitmq  |   Starting broker...2026-10-25 18:17:32.294930+00:00 [info] <0.228.0> [0m
+rabbitmq  | 2026-10-25 18:17:32.294930+00:00 [info] <0.228.0>  node           : rabbit@88af965bf19d[0m
+rabbitmq  | 2026-10-25 18:17:32.294930+00:00 [info] <0.228.0>  home dir       : /var/lib/rabbitmq[0m
+rabbitmq  | 2026-10-25 18:17:32.294930+00:00 [info] <0.228.0>  config file(s) : /etc/rabbitmq/conf.d/10-defaults.conf[0m
+rabbitmq  | 2026-10-25 18:17:32.294930+00:00 [info] <0.228.0>  cookie hash    : bAQpDKZK2ZiI2tA60v094w==[0m
+rabbitmq  | 2026-10-25 18:17:32.294930+00:00 [info] <0.228.0>  log(s)         : /var/log/rabbitmq/rabbit@88af965bf19d_upgrade.log[0m
+rabbitmq  | 2026-10-25 18:17:32.294930+00:00 [info] <0.228.0>                 : <stdout>[0m
+rabbitmq  | 2026-10-25 18:17:32.294930+00:00 [info] <0.228.0>  database dir   : /var/lib/rabbitmq/mnesia/rabbit@88af965bf19d[0m
+rabbitmq  | 2026-10-25 18:17:32.497459+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq  | 2026-10-25 18:17:32.497510+00:00 [info] <0.228.0> Feature flags:   [ ] drop_unroutable_metric[0m
+rabbitmq  | 2026-10-25 18:17:32.497532+00:00 [info] <0.228.0> Feature flags:   [ ] empty_basic_get_metric[0m
+rabbitmq  | 2026-10-25 18:17:32.497583+00:00 [info] <0.228.0> Feature flags:   [ ] implicit_default_bindings[0m
+rabbitmq  | 2026-10-25 18:17:32.497604+00:00 [info] <0.228.0> Feature flags:   [ ] maintenance_mode_status[0m
+rabbitmq  | 2026-10-25 18:17:32.497622+00:00 [info] <0.228.0> Feature flags:   [ ] quorum_queue[0m
+rabbitmq  | 2026-10-25 18:17:32.497638+00:00 [info] <0.228.0> Feature flags:   [ ] stream_queue[0m
+rabbitmq  | 2026-10-25 18:17:32.497689+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq  | 2026-10-25 18:17:32.497708+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq  | 2026-10-25 18:17:32.497724+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq  | 2026-10-25 18:17:34.581667+00:00 [info] <0.228.0> Running boot step pre_boot defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.581760+00:00 [info] <0.228.0> Running boot step rabbit_global_counters defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.581978+00:00 [info] <0.228.0> Running boot step rabbit_osiris_metrics defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.582122+00:00 [info] <0.228.0> Running boot step rabbit_core_metrics defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.583005+00:00 [info] <0.228.0> Running boot step rabbit_alarm defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.587434+00:00 [info] <0.295.0> Memory high watermark set to 6374 MiB (6684557312 bytes) of 15937 MiB (16711393280 bytes) total[0m
+rabbitmq  | 2026-10-25 18:17:34.591065+00:00 [info] <0.297.0> Enabling free disk space monitoring[0m
+rabbitmq  | 2026-10-25 18:17:34.591108+00:00 [info] <0.297.0> Disk free limit set to 50MB[0m
+rabbitmq  | 2026-10-25 18:17:34.594253+00:00 [info] <0.228.0> Running boot step code_server_cache defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.594354+00:00 [info] <0.228.0> Running boot step file_handle_cache defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.594557+00:00 [info] <0.302.0> Limiting to approx 1048479 file handles (943629 sockets)[0m
+rabbitmq  | 2026-10-25 18:17:34.594660+00:00 [info] <0.303.0> FHC read buffering: OFF[0m
+rabbitmq  | 2026-10-25 18:17:34.594707+00:00 [info] <0.303.0> FHC write buffering: ON[0m
+rabbitmq  | 2026-10-25 18:17:34.595069+00:00 [info] <0.228.0> Running boot step worker_pool defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.595138+00:00 [info] <0.285.0> Will use 12 processes for default worker pool[0m
+rabbitmq  | 2026-10-25 18:17:34.595177+00:00 [info] <0.285.0> Starting worker pool 'worker_pool' with 12 processes in it[0m
+rabbitmq  | 2026-10-25 18:17:34.595884+00:00 [info] <0.228.0> Running boot step database defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.596193+00:00 [info] <0.228.0> Node database directory at /var/lib/rabbitmq/mnesia/rabbit@88af965bf19d is empty. Assuming we need to join an existing cluster or initialise from scratch...[0m
+rabbitmq  | 2026-10-25 18:17:34.596246+00:00 [info] <0.228.0> Configured peer discovery backend: rabbit_peer_discovery_classic_config[0m
+rabbitmq  | 2026-10-25 18:17:34.596277+00:00 [info] <0.228.0> Will try to lock with peer discovery backend rabbit_peer_discovery_classic_config[0m
+rabbitmq  | 2026-10-25 18:17:34.596332+00:00 [info] <0.228.0> All discovered existing cluster peers:[0m
+rabbitmq  | 2026-10-25 18:17:34.596358+00:00 [info] <0.228.0> Discovered no peer nodes to cluster with. Some discovery backends can filter nodes out based on a readiness criteria. Enabling debug logging might help troubleshoot.[0m
+rabbitmq  | [38;5;87m2026-10-25 18:17:34.598540+00:00 [notice] <0.44.0> Application mnesia exited with reason: stopped[0m
+rabbitmq  | 2026-10-25 18:17:34.708382+00:00 [info] <0.228.0> Waiting for Mnesia tables for 30000 ms, 9 retries left[0m
+rabbitmq  | 2026-10-25 18:17:34.708511+00:00 [info] <0.228.0> Successfully synced tables from a peer[0m
+rabbitmq  | 2026-10-25 18:17:34.720103+00:00 [info] <0.228.0> Waiting for Mnesia tables for 30000 ms, 9 retries left[0m
+rabbitmq  | 2026-10-25 18:17:34.720224+00:00 [info] <0.228.0> Successfully synced tables from a peer[0m
+rabbitmq  | 2026-10-25 18:17:34.720269+00:00 [info] <0.228.0> Feature flag `drop_unroutable_metric`: supported, attempt to enable...[0m
+rabbitmq  | 2026-10-25 18:17:34.720362+00:00 [info] <0.228.0> Feature flag `drop_unroutable_metric`: mark as enabled=state_changing[0m
+rabbitmq  | 2026-10-25 18:17:34.721382+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq  | 2026-10-25 18:17:34.721416+00:00 [info] <0.228.0> Feature flags:   [~] drop_unroutable_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.721470+00:00 [info] <0.228.0> Feature flags:   [ ] empty_basic_get_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.721498+00:00 [info] <0.228.0> Feature flags:   [ ] implicit_default_bindings[0m
+rabbitmq  | 2026-10-25 18:17:34.721515+00:00 [info] <0.228.0> Feature flags:   [ ] maintenance_mode_status[0m
+rabbitmq  | 2026-10-25 18:17:34.721536+00:00 [info] <0.228.0> Feature flags:   [ ] quorum_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.721605+00:00 [info] <0.228.0> Feature flags:   [ ] stream_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.721621+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq  | 2026-10-25 18:17:34.721661+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq  | 2026-10-25 18:17:34.721715+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq  | 2026-10-25 18:17:34.729031+00:00 [info] <0.228.0> Feature flag `drop_unroutable_metric`: mark as enabled=true[0m
+rabbitmq  | 2026-10-25 18:17:34.730178+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq  | 2026-10-25 18:17:34.730214+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.730243+00:00 [info] <0.228.0> Feature flags:   [ ] empty_basic_get_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.730289+00:00 [info] <0.228.0> Feature flags:   [ ] implicit_default_bindings[0m
+rabbitmq  | 2026-10-25 18:17:34.730318+00:00 [info] <0.228.0> Feature flags:   [ ] maintenance_mode_status[0m
+rabbitmq  | 2026-10-25 18:17:34.730336+00:00 [info] <0.228.0> Feature flags:   [ ] quorum_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.730352+00:00 [info] <0.228.0> Feature flags:   [ ] stream_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.730399+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq  | 2026-10-25 18:17:34.730425+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq  | 2026-10-25 18:17:34.730443+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq  | 2026-10-25 18:17:34.738459+00:00 [info] <0.228.0> Feature flag `empty_basic_get_metric`: supported, attempt to enable...[0m
+rabbitmq  | 2026-10-25 18:17:34.738525+00:00 [info] <0.228.0> Feature flag `empty_basic_get_metric`: mark as enabled=state_changing[0m
+rabbitmq  | 2026-10-25 18:17:34.739399+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq  | 2026-10-25 18:17:34.739432+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.739460+00:00 [info] <0.228.0> Feature flags:   [~] empty_basic_get_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.739478+00:00 [info] <0.228.0> Feature flags:   [ ] implicit_default_bindings[0m
+rabbitmq  | 2026-10-25 18:17:34.739501+00:00 [info] <0.228.0> Feature flags:   [ ] maintenance_mode_status[0m
+rabbitmq  | 2026-10-25 18:17:34.739525+00:00 [info] <0.228.0> Feature flags:   [ ] quorum_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.739541+00:00 [info] <0.228.0> Feature flags:   [ ] stream_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.739561+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq  | 2026-10-25 18:17:34.739577+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq  | 2026-10-25 18:17:34.739594+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq  | 2026-10-25 18:17:34.746973+00:00 [info] <0.228.0> Feature flag `empty_basic_get_metric`: mark as enabled=true[0m
+rabbitmq  | 2026-10-25 18:17:34.748461+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq  | 2026-10-25 18:17:34.748496+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.748525+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.748547+00:00 [info] <0.228.0> Feature flags:   [ ] implicit_default_bindings[0m
+rabbitmq  | 2026-10-25 18:17:34.748571+00:00 [info] <0.228.0> Feature flags:   [ ] maintenance_mode_status[0m
+rabbitmq  | 2026-10-25 18:17:34.748589+00:00 [info] <0.228.0> Feature flags:   [ ] quorum_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.748609+00:00 [info] <0.228.0> Feature flags:   [ ] stream_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.748637+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq  | 2026-10-25 18:17:34.748654+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq  | 2026-10-25 18:17:34.748670+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq  | 2026-10-25 18:17:34.755944+00:00 [info] <0.228.0> Feature flag `implicit_default_bindings`: supported, attempt to enable...[0m
+rabbitmq  | 2026-10-25 18:17:34.756020+00:00 [info] <0.228.0> Feature flag `implicit_default_bindings`: mark as enabled=state_changing[0m
+rabbitmq  | 2026-10-25 18:17:34.756996+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq  | 2026-10-25 18:17:34.757028+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.757071+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.757094+00:00 [info] <0.228.0> Feature flags:   [~] implicit_default_bindings[0m
+rabbitmq  | 2026-10-25 18:17:34.757144+00:00 [info] <0.228.0> Feature flags:   [ ] maintenance_mode_status[0m
+rabbitmq  | 2026-10-25 18:17:34.757174+00:00 [info] <0.228.0> Feature flags:   [ ] quorum_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.757191+00:00 [info] <0.228.0> Feature flags:   [ ] stream_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.757213+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq  | 2026-10-25 18:17:34.757238+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq  | 2026-10-25 18:17:34.757260+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq  | 2026-10-25 18:17:34.764849+00:00 [info] <0.228.0> Waiting for Mnesia tables for 30000 ms, 0 retries left[0m
+rabbitmq  | 2026-10-25 18:17:34.764944+00:00 [info] <0.228.0> Successfully synced tables from a peer[0m
+rabbitmq  | 2026-10-25 18:17:34.765008+00:00 [info] <0.228.0> Feature flag `implicit_default_bindings`: mark as enabled=true[0m
+rabbitmq  | 2026-10-25 18:17:34.767050+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq  | 2026-10-25 18:17:34.767106+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.767150+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.767208+00:00 [info] <0.228.0> Feature flags:   [x] implicit_default_bindings[0m
+rabbitmq  | 2026-10-25 18:17:34.767240+00:00 [info] <0.228.0> Feature flags:   [ ] maintenance_mode_status[0m
+rabbitmq  | 2026-10-25 18:17:34.767257+00:00 [info] <0.228.0> Feature flags:   [ ] quorum_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.767273+00:00 [info] <0.228.0> Feature flags:   [ ] stream_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.767310+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq  | 2026-10-25 18:17:34.767326+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq  | 2026-10-25 18:17:34.767342+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq  | 2026-10-25 18:17:34.775420+00:00 [info] <0.228.0> Feature flag `maintenance_mode_status`: supported, attempt to enable...[0m
+rabbitmq  | 2026-10-25 18:17:34.775487+00:00 [info] <0.228.0> Feature flag `maintenance_mode_status`: mark as enabled=state_changing[0m
+rabbitmq  | 2026-10-25 18:17:34.776428+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq  | 2026-10-25 18:17:34.776461+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.776492+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.776562+00:00 [info] <0.228.0> Feature flags:   [x] implicit_default_bindings[0m
+rabbitmq  | 2026-10-25 18:17:34.776593+00:00 [info] <0.228.0> Feature flags:   [~] maintenance_mode_status[0m
+rabbitmq  | 2026-10-25 18:17:34.776638+00:00 [info] <0.228.0> Feature flags:   [ ] quorum_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.776667+00:00 [info] <0.228.0> Feature flags:   [ ] stream_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.776690+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq  | 2026-10-25 18:17:34.776719+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq  | 2026-10-25 18:17:34.776752+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq  | 2026-10-25 18:17:34.785879+00:00 [info] <0.228.0> Creating table rabbit_node_maintenance_states for feature flag `maintenance_mode_status`[0m
+rabbitmq  | 2026-10-25 18:17:34.789112+00:00 [info] <0.228.0> Feature flag `maintenance_mode_status`: mark as enabled=true[0m
+rabbitmq  | 2026-10-25 18:17:34.791077+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq  | 2026-10-25 18:17:34.791125+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.791157+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.791198+00:00 [info] <0.228.0> Feature flags:   [x] implicit_default_bindings[0m
+rabbitmq  | 2026-10-25 18:17:34.791274+00:00 [info] <0.228.0> Feature flags:   [x] maintenance_mode_status[0m
+rabbitmq  | 2026-10-25 18:17:34.791315+00:00 [info] <0.228.0> Feature flags:   [ ] quorum_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.791343+00:00 [info] <0.228.0> Feature flags:   [ ] stream_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.791412+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq  | 2026-10-25 18:17:34.791449+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq  | 2026-10-25 18:17:34.791474+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq  | 2026-10-25 18:17:34.802210+00:00 [info] <0.228.0> Feature flag `quorum_queue`: supported, attempt to enable...[0m
+rabbitmq  | 2026-10-25 18:17:34.802289+00:00 [info] <0.228.0> Feature flag `quorum_queue`: mark as enabled=state_changing[0m
+rabbitmq  | 2026-10-25 18:17:34.803216+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq  | 2026-10-25 18:17:34.803248+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.803291+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.803312+00:00 [info] <0.228.0> Feature flags:   [x] implicit_default_bindings[0m
+rabbitmq  | 2026-10-25 18:17:34.803340+00:00 [info] <0.228.0> Feature flags:   [x] maintenance_mode_status[0m
+rabbitmq  | 2026-10-25 18:17:34.803359+00:00 [info] <0.228.0> Feature flags:   [~] quorum_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.803401+00:00 [info] <0.228.0> Feature flags:   [ ] stream_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.803448+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq  | 2026-10-25 18:17:34.803490+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq  | 2026-10-25 18:17:34.803522+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq  | 2026-10-25 18:17:34.811278+00:00 [info] <0.228.0> Waiting for Mnesia tables for 30000 ms, 9 retries left[0m
+rabbitmq  | 2026-10-25 18:17:34.811405+00:00 [info] <0.228.0> Successfully synced tables from a peer[0m
+rabbitmq  | 2026-10-25 18:17:34.811464+00:00 [info] <0.228.0> Feature flag `quorum_queue`:   migrating Mnesia table rabbit_queue...[0m
+rabbitmq  | 2026-10-25 18:17:34.819288+00:00 [info] <0.228.0> Feature flag `quorum_queue`:   migrating Mnesia table rabbit_durable_queue...[0m
+rabbitmq  | 2026-10-25 18:17:34.835839+00:00 [info] <0.228.0> Feature flag `quorum_queue`:   Mnesia tables migration done[0m
+rabbitmq  | 2026-10-25 18:17:34.835906+00:00 [info] <0.228.0> Feature flag `quorum_queue`: mark as enabled=true[0m
+rabbitmq  | 2026-10-25 18:17:34.837621+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq  | 2026-10-25 18:17:34.837668+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.837699+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.837766+00:00 [info] <0.228.0> Feature flags:   [x] implicit_default_bindings[0m
+rabbitmq  | 2026-10-25 18:17:34.837793+00:00 [info] <0.228.0> Feature flags:   [x] maintenance_mode_status[0m
+rabbitmq  | 2026-10-25 18:17:34.837829+00:00 [info] <0.228.0> Feature flags:   [x] quorum_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.837850+00:00 [info] <0.228.0> Feature flags:   [ ] stream_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.837904+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq  | 2026-10-25 18:17:34.837950+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq  | 2026-10-25 18:17:34.838006+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq  | 2026-10-25 18:17:34.846413+00:00 [info] <0.228.0> Feature flag `stream_queue`: supported, attempt to enable...[0m
+rabbitmq  | 2026-10-25 18:17:34.846493+00:00 [info] <0.228.0> Feature flag `stream_queue`: mark as enabled=state_changing[0m
+rabbitmq  | 2026-10-25 18:17:34.847412+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq  | 2026-10-25 18:17:34.847444+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.847488+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.847508+00:00 [info] <0.228.0> Feature flags:   [x] implicit_default_bindings[0m
+rabbitmq  | 2026-10-25 18:17:34.847540+00:00 [info] <0.228.0> Feature flags:   [x] maintenance_mode_status[0m
+rabbitmq  | 2026-10-25 18:17:34.847560+00:00 [info] <0.228.0> Feature flags:   [x] quorum_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.847581+00:00 [info] <0.228.0> Feature flags:   [~] stream_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.847606+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq  | 2026-10-25 18:17:34.847625+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq  | 2026-10-25 18:17:34.847651+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq  | 2026-10-25 18:17:34.855373+00:00 [info] <0.228.0> Feature flag `stream_queue`: mark as enabled=true[0m
+rabbitmq  | 2026-10-25 18:17:34.856968+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq  | 2026-10-25 18:17:34.857004+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.857025+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.857051+00:00 [info] <0.228.0> Feature flags:   [x] implicit_default_bindings[0m
+rabbitmq  | 2026-10-25 18:17:34.857101+00:00 [info] <0.228.0> Feature flags:   [x] maintenance_mode_status[0m
+rabbitmq  | 2026-10-25 18:17:34.857128+00:00 [info] <0.228.0> Feature flags:   [x] quorum_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.857145+00:00 [info] <0.228.0> Feature flags:   [x] stream_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.857169+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq  | 2026-10-25 18:17:34.857196+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq  | 2026-10-25 18:17:34.857213+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq  | 2026-10-25 18:17:34.864364+00:00 [info] <0.228.0> Feature flag `user_limits`: supported, attempt to enable...[0m
+rabbitmq  | 2026-10-25 18:17:34.864442+00:00 [info] <0.228.0> Feature flag `user_limits`: mark as enabled=state_changing[0m
+rabbitmq  | 2026-10-25 18:17:34.865507+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq  | 2026-10-25 18:17:34.865561+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.865590+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.865618+00:00 [info] <0.228.0> Feature flags:   [x] implicit_default_bindings[0m
+rabbitmq  | 2026-10-25 18:17:34.865636+00:00 [info] <0.228.0> Feature flags:   [x] maintenance_mode_status[0m
+rabbitmq  | 2026-10-25 18:17:34.865667+00:00 [info] <0.228.0> Feature flags:   [x] quorum_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.865698+00:00 [info] <0.228.0> Feature flags:   [x] stream_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.865719+00:00 [info] <0.228.0> Feature flags:   [~] user_limits[0m
+rabbitmq  | 2026-10-25 18:17:34.865747+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq  | 2026-10-25 18:17:34.865775+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq  | 2026-10-25 18:17:34.872962+00:00 [info] <0.228.0> Waiting for Mnesia tables for 30000 ms, 9 retries left[0m
+rabbitmq  | 2026-10-25 18:17:34.873099+00:00 [info] <0.228.0> Successfully synced tables from a peer[0m
+rabbitmq  | 2026-10-25 18:17:34.886281+00:00 [info] <0.228.0> Feature flag `user_limits`: mark as enabled=true[0m
+rabbitmq  | 2026-10-25 18:17:34.888672+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq  | 2026-10-25 18:17:34.888754+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.888802+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.888862+00:00 [info] <0.228.0> Feature flags:   [x] implicit_default_bindings[0m
+rabbitmq  | 2026-10-25 18:17:34.888910+00:00 [info] <0.228.0> Feature flags:   [x] maintenance_mode_status[0m
+rabbitmq  | 2026-10-25 18:17:34.889130+00:00 [info] <0.228.0> Feature flags:   [x] quorum_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.889212+00:00 [info] <0.228.0> Feature flags:   [x] stream_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.889295+00:00 [info] <0.228.0> Feature flags:   [x] user_limits[0m
+rabbitmq  | 2026-10-25 18:17:34.889377+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq  | 2026-10-25 18:17:34.889473+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq  | 2026-10-25 18:17:34.905798+00:00 [info] <0.228.0> Feature flag `virtual_host_metadata`: supported, attempt to enable...[0m
+rabbitmq  | 2026-10-25 18:17:34.905893+00:00 [info] <0.228.0> Feature flag `virtual_host_metadata`: mark as enabled=state_changing[0m
+rabbitmq  | 2026-10-25 18:17:34.907014+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq  | 2026-10-25 18:17:34.907062+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.907148+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.907193+00:00 [info] <0.228.0> Feature flags:   [x] implicit_default_bindings[0m
+rabbitmq  | 2026-10-25 18:17:34.907213+00:00 [info] <0.228.0> Feature flags:   [x] maintenance_mode_status[0m
+rabbitmq  | 2026-10-25 18:17:34.907236+00:00 [info] <0.228.0> Feature flags:   [x] quorum_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.907347+00:00 [info] <0.228.0> Feature flags:   [x] stream_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.907366+00:00 [info] <0.228.0> Feature flags:   [x] user_limits[0m
+rabbitmq  | 2026-10-25 18:17:34.907389+00:00 [info] <0.228.0> Feature flags:   [~] virtual_host_metadata[0m
+rabbitmq  | 2026-10-25 18:17:34.907517+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq  | 2026-10-25 18:17:34.915060+00:00 [info] <0.228.0> Waiting for Mnesia tables for 30000 ms, 9 retries left[0m
+rabbitmq  | 2026-10-25 18:17:34.915175+00:00 [info] <0.228.0> Successfully synced tables from a peer[0m
+rabbitmq  | 2026-10-25 18:17:34.928807+00:00 [info] <0.228.0> Feature flag `virtual_host_metadata`: mark as enabled=true[0m
+rabbitmq  | 2026-10-25 18:17:34.930474+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq  | 2026-10-25 18:17:34.930510+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.930538+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq  | 2026-10-25 18:17:34.930582+00:00 [info] <0.228.0> Feature flags:   [x] implicit_default_bindings[0m
+rabbitmq  | 2026-10-25 18:17:34.930601+00:00 [info] <0.228.0> Feature flags:   [x] maintenance_mode_status[0m
+rabbitmq  | 2026-10-25 18:17:34.930624+00:00 [info] <0.228.0> Feature flags:   [x] quorum_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.930640+00:00 [info] <0.228.0> Feature flags:   [x] stream_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.930676+00:00 [info] <0.228.0> Feature flags:   [x] user_limits[0m
+rabbitmq  | 2026-10-25 18:17:34.930698+00:00 [info] <0.228.0> Feature flags:   [x] virtual_host_metadata[0m
+rabbitmq  | 2026-10-25 18:17:34.930717+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq  | 2026-10-25 18:17:34.937846+00:00 [info] <0.228.0> Waiting for Mnesia tables for 30000 ms, 9 retries left[0m
+rabbitmq  | 2026-10-25 18:17:34.937974+00:00 [info] <0.228.0> Successfully synced tables from a peer[0m
+rabbitmq  | 2026-10-25 18:17:34.958228+00:00 [info] <0.228.0> Waiting for Mnesia tables for 30000 ms, 9 retries left[0m
+rabbitmq  | 2026-10-25 18:17:34.958405+00:00 [info] <0.228.0> Successfully synced tables from a peer[0m
+rabbitmq  | 2026-10-25 18:17:34.958465+00:00 [info] <0.228.0> Peer discovery backend rabbit_peer_discovery_classic_config does not support registration, skipping registration.[0m
+rabbitmq  | 2026-10-25 18:17:34.958543+00:00 [info] <0.228.0> Will try to unlock with peer discovery backend rabbit_peer_discovery_classic_config[0m
+rabbitmq  | 2026-10-25 18:17:34.958702+00:00 [info] <0.228.0> Running boot step database_sync defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.958834+00:00 [info] <0.228.0> Running boot step feature_flags defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.958975+00:00 [info] <0.228.0> Running boot step codec_correctness_check defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.959017+00:00 [info] <0.228.0> Running boot step external_infrastructure defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.959049+00:00 [info] <0.228.0> Running boot step rabbit_registry defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.959124+00:00 [info] <0.228.0> Running boot step rabbit_auth_mechanism_cr_demo defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.959214+00:00 [info] <0.228.0> Running boot step rabbit_queue_location_random defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.959272+00:00 [info] <0.228.0> Running boot step rabbit_event defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.959393+00:00 [info] <0.228.0> Running boot step rabbit_auth_mechanism_amqplain defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.959463+00:00 [info] <0.228.0> Running boot step rabbit_auth_mechanism_plain defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.959550+00:00 [info] <0.228.0> Running boot step rabbit_exchange_type_direct defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.959605+00:00 [info] <0.228.0> Running boot step rabbit_exchange_type_fanout defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.959658+00:00 [info] <0.228.0> Running boot step rabbit_exchange_type_headers defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.959712+00:00 [info] <0.228.0> Running boot step rabbit_exchange_type_topic defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.959763+00:00 [info] <0.228.0> Running boot step rabbit_mirror_queue_mode_all defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.959827+00:00 [info] <0.228.0> Running boot step rabbit_mirror_queue_mode_exactly defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.959879+00:00 [info] <0.228.0> Running boot step rabbit_mirror_queue_mode_nodes defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.959937+00:00 [info] <0.228.0> Running boot step rabbit_priority_queue defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.959970+00:00 [info] <0.228.0> Priority queues enabled, real BQ is rabbit_variable_queue[0m
+rabbitmq  | 2026-10-25 18:17:34.960028+00:00 [info] <0.228.0> Running boot step rabbit_queue_location_client_local defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.960094+00:00 [info] <0.228.0> Running boot step rabbit_queue_location_min_masters defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.960156+00:00 [info] <0.228.0> Running boot step kernel_ready defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.960185+00:00 [info] <0.228.0> Running boot step rabbit_sysmon_minder defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.960315+00:00 [info] <0.228.0> Running boot step rabbit_epmd_monitor defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.960858+00:00 [info] <0.572.0> epmd monitor knows us, inter-node communication (distribution) port: 25672[0m
+rabbitmq  | 2026-10-25 18:17:34.960943+00:00 [info] <0.228.0> Running boot step guid_generator defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.967194+00:00 [info] <0.228.0> Running boot step rabbit_node_monitor defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.967484+00:00 [info] <0.576.0> Starting rabbit_node_monitor[0m
+rabbitmq  | 2026-10-25 18:17:34.967654+00:00 [info] <0.228.0> Running boot step delegate_sup defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.968685+00:00 [info] <0.228.0> Running boot step rabbit_memory_monitor defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.969008+00:00 [info] <0.228.0> Running boot step core_initialized defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.969094+00:00 [info] <0.228.0> Running boot step upgrade_queues defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.983311+00:00 [info] <0.228.0> message_store upgrades: 1 to apply[0m
+rabbitmq  | 2026-10-25 18:17:34.983477+00:00 [info] <0.228.0> message_store upgrades: Applying rabbit_variable_queue:move_messages_to_vhost_store[0m
+rabbitmq  | 2026-10-25 18:17:34.983694+00:00 [info] <0.228.0> message_store upgrades: No durable queues found. Skipping message store migration[0m
+rabbitmq  | 2026-10-25 18:17:34.983760+00:00 [info] <0.228.0> message_store upgrades: Removing the old message store data[0m
+rabbitmq  | 2026-10-25 18:17:34.984101+00:00 [info] <0.228.0> message_store upgrades: All upgrades applied successfully[0m
+rabbitmq  | 2026-10-25 18:17:34.995437+00:00 [info] <0.228.0> Running boot step channel_tracking defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:34.997790+00:00 [info] <0.228.0> Setting up a table for channel tracking on this node: tracked_channel_on_node_rabbit@88af965bf19d[0m
+rabbitmq  | 2026-10-25 18:17:34.999949+00:00 [info] <0.228.0> Setting up a table for channel tracking on this node: tracked_channel_table_per_user_on_node_rabbit@88af965bf19d[0m
+rabbitmq  | 2026-10-25 18:17:35.000170+00:00 [info] <0.228.0> Running boot step rabbit_channel_tracking_handler defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:35.000252+00:00 [info] <0.228.0> Running boot step connection_tracking defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:35.002383+00:00 [info] <0.228.0> Setting up a table for connection tracking on this node: tracked_connection_on_node_rabbit@88af965bf19d[0m
+rabbitmq  | 2026-10-25 18:17:35.004826+00:00 [info] <0.228.0> Setting up a table for per-vhost connection counting on this node: tracked_connection_per_vhost_on_node_rabbit@88af965bf19d[0m
+rabbitmq  | 2026-10-25 18:17:35.011496+00:00 [info] <0.228.0> Setting up a table for per-user connection counting on this node: tracked_connection_table_per_user_on_node_rabbit@88af965bf19d[0m
+rabbitmq  | 2026-10-25 18:17:35.011798+00:00 [info] <0.228.0> Running boot step rabbit_connection_tracking_handler defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:35.011873+00:00 [info] <0.228.0> Running boot step rabbit_exchange_parameters defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:35.011976+00:00 [info] <0.228.0> Running boot step rabbit_mirror_queue_misc defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:35.012188+00:00 [info] <0.228.0> Running boot step rabbit_policies defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:35.012468+00:00 [info] <0.228.0> Running boot step rabbit_policy defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:35.012525+00:00 [info] <0.228.0> Running boot step rabbit_queue_location_validator defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:35.012576+00:00 [info] <0.228.0> Running boot step rabbit_quorum_memory_manager defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:35.012667+00:00 [info] <0.228.0> Running boot step rabbit_stream_coordinator defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:35.012913+00:00 [info] <0.228.0> Running boot step rabbit_vhost_limit defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:35.013023+00:00 [info] <0.228.0> Running boot step rabbit_mgmt_reset_handler defined by app rabbitmq_management[0m
+rabbitmq  | 2026-10-25 18:17:35.013076+00:00 [info] <0.228.0> Running boot step rabbit_mgmt_db_handler defined by app rabbitmq_management_agent[0m
+rabbitmq  | 2026-10-25 18:17:35.013143+00:00 [info] <0.228.0> Management plugin: using rates mode 'basic'[0m
+rabbitmq  | 2026-10-25 18:17:35.013615+00:00 [info] <0.228.0> Running boot step recovery defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:35.014942+00:00 [info] <0.228.0> Running boot step empty_db_check defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:35.014982+00:00 [info] <0.228.0> Will seed default virtual host and user...[0m
+rabbitmq  | 2026-10-25 18:17:35.015071+00:00 [info] <0.228.0> Adding vhost '/' (description: 'Default virtual host', tags: [])[0m
+rabbitmq  | 2026-10-25 18:17:35.040453+00:00 [info] <0.637.0> Making sure data directory '/var/lib/rabbitmq/mnesia/rabbit@88af965bf19d/msg_stores/vhosts/628WB79CIFDYO9LJI6DKMI09L' for vhost '/' exists[0m
+rabbitmq  | 2026-10-25 18:17:35.041147+00:00 [info] <0.637.0> Setting segment_entry_count for vhost '/' with 0 queues to '2048'[0m
+rabbitmq  | 2026-10-25 18:17:35.043655+00:00 [info] <0.637.0> Starting message stores for vhost '/'[0m
+rabbitmq  | 2026-10-25 18:17:35.043858+00:00 [info] <0.641.0> Message store "628WB79CIFDYO9LJI6DKMI09L/msg_store_transient": using rabbit_msg_store_ets_index to provide index[0m
+rabbitmq  | 2026-10-25 18:17:35.044896+00:00 [info] <0.637.0> Started message store of type transient for vhost '/'[0m
+rabbitmq  | 2026-10-25 18:17:35.045020+00:00 [info] <0.645.0> Message store "628WB79CIFDYO9LJI6DKMI09L/msg_store_persistent": using rabbit_msg_store_ets_index to provide index[0m
+rabbitmq  | [38;5;214m2026-10-25 18:17:35.045547+00:00 [warning] <0.645.0> Message store "628WB79CIFDYO9LJI6DKMI09L/msg_store_persistent": rebuilding indices from scratch[0m
+rabbitmq  | 2026-10-25 18:17:35.046194+00:00 [info] <0.637.0> Started message store of type persistent for vhost '/'[0m
+rabbitmq  | 2026-10-25 18:17:35.046317+00:00 [info] <0.637.0> Recovering 0 queues of type rabbit_classic_queue took 4ms[0m
+rabbitmq  | 2026-10-25 18:17:35.046348+00:00 [info] <0.637.0> Recovering 0 queues of type rabbit_quorum_queue took 0ms[0m
+rabbitmq  | 2026-10-25 18:17:35.046386+00:00 [info] <0.637.0> Recovering 0 queues of type rabbit_stream_queue took 0ms[0m
+rabbitmq  | 2026-10-25 18:17:35.052321+00:00 [info] <0.228.0> Created user 'guest'[0m
+rabbitmq  | 2026-10-25 18:17:35.054270+00:00 [info] <0.228.0> Successfully set user tags for user 'guest' to [administrator][0m
+rabbitmq  | 2026-10-25 18:17:35.059289+00:00 [info] <0.228.0> Successfully set permissions for 'guest' in virtual host '/' to '.*', '.*', '.*'[0m
+rabbitmq  | 2026-10-25 18:17:35.059388+00:00 [info] <0.228.0> Running boot step rabbit_looking_glass defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:35.059427+00:00 [info] <0.228.0> Running boot step rabbit_core_metrics_gc defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:35.059564+00:00 [info] <0.228.0> Running boot step background_gc defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:35.059707+00:00 [info] <0.228.0> Running boot step routing_ready defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:35.059754+00:00 [info] <0.228.0> Running boot step pre_flight defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:35.059781+00:00 [info] <0.228.0> Running boot step notify_cluster defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:35.059810+00:00 [info] <0.228.0> Running boot step networking defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:35.059838+00:00 [info] <0.228.0> Running boot step definition_import_worker_pool defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:35.059896+00:00 [info] <0.285.0> Starting worker pool 'definition_import_pool' with 12 processes in it[0m
+rabbitmq  | 2026-10-25 18:17:35.060616+00:00 [info] <0.228.0> Running boot step cluster_name defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:35.060739+00:00 [info] <0.228.0> Initialising internal cluster ID to 'rabbitmq-cluster-id-r_w1_shWv0zFE_84JQuq9w'[0m
+rabbitmq  | 2026-10-25 18:17:35.064755+00:00 [info] <0.228.0> Running boot step direct_client defined by app rabbit[0m
+rabbitmq  | 2026-10-25 18:17:35.064921+00:00 [info] <0.228.0> Running boot step rabbit_management_load_definitions defined by app rabbitmq_management[0m
+rabbitmq  | 2026-10-25 18:17:35.065129+00:00 [info] <0.686.0> Resetting node maintenance status[0m
+rabbitmq  | 2026-10-25 18:17:35.080263+00:00 [info] <0.745.0> Management plugin: HTTP (non-TLS) listener started on port 15672[0m
+rabbitmq  | 2026-10-25 18:17:35.080410+00:00 [info] <0.773.0> Statistics database started.[0m
+rabbitmq  | 2026-10-25 18:17:35.080499+00:00 [info] <0.772.0> Starting worker pool 'management_worker_pool' with 3 processes in it[0m
+rabbitmq  | 2026-10-25 18:17:35.092509+00:00 [info] <0.787.0> Prometheus metrics: HTTP (non-TLS) listener started on port 15692[0m
+rabbitmq  | 2026-10-25 18:17:35.092701+00:00 [info] <0.686.0> Ready to start client connection listeners[0m
+rabbitmq  | 2026-10-25 18:17:35.093913+00:00 [info] <0.831.0> started TCP listener on [::]:5672[0m
+rabbitmq  |  completed with 4 plugins.
+rabbitmq  | 2026-10-25 18:17:35.152481+00:00 [info] <0.686.0> Server startup complete; 4 plugins started.[0m
+rabbitmq  | 2026-10-25 18:17:35.152481+00:00 [info] <0.686.0>  * rabbitmq_prometheus[0m
+rabbitmq  | 2026-10-25 18:17:35.152481+00:00 [info] <0.686.0>  * rabbitmq_management[0m
+rabbitmq  | 2026-10-25 18:17:35.152481+00:00 [info] <0.686.0>  * rabbitmq_web_dispatch[0m
+rabbitmq  | 2026-10-25 18:17:35.152481+00:00 [info] <0.686.0>  * rabbitmq_management_agent[0m
+rabbitmq  | 2026-10-25 18:17:36.600348+00:00 [info] <0.851.0> accepting AMQP connection <0.851.0> (172.19.0.3:42824 -> 172.19.0.2:5672)[0m
+rabbitmq  | 2026-10-25 18:17:36.602705+00:00 [info] <0.851.0> connection <0.851.0> (172.19.0.3:42824 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq  | 2026-10-25 18:17:37.085074+00:00 [info] <0.868.0> accepting AMQP connection <0.868.0> (172.19.0.5:55810 -> 172.19.0.2:5672)[0m
+rabbitmq  | 2026-10-25 18:17:37.087322+00:00 [info] <0.868.0> connection <0.868.0> (172.19.0.5:55810 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq  | 2026-10-25 18:17:37.099774+00:00 [info] <0.884.0> accepting AMQP connection <0.884.0> (172.19.0.5:55820 -> 172.19.0.2:5672)[0m
+rabbitmq  | 2026-10-25 18:17:37.101279+00:00 [info] <0.884.0> connection <0.884.0> (172.19.0.5:55820 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq  | 2026-10-25 18:17:37.104091+00:00 [info] <0.895.0> accepting AMQP connection <0.895.0> (172.19.0.5:55830 -> 172.19.0.2:5672)[0m
+rabbitmq  | 2026-10-25 18:17:37.105597+00:00 [info] <0.895.0> connection <0.895.0> (172.19.0.5:55830 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq  | 2026-10-25 18:17:37.115339+00:00 [info] <0.911.0> accepting AMQP connection <0.911.0> (172.19.0.5:55844 -> 172.19.0.2:5672)[0m
+rabbitmq  | 2026-10-25 18:17:37.116968+00:00 [info] <0.911.0> connection <0.911.0> (172.19.0.5:55844 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq  | 2026-10-25 18:17:37.159086+00:00 [info] <0.927.0> accepting AMQP connection <0.927.0> (172.19.0.4:60250 -> 172.19.0.2:5672)[0m
+rabbitmq  | 2026-10-25 18:17:37.161215+00:00 [info] <0.927.0> connection <0.927.0> (172.19.0.4:60250 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq  | 2026-10-25 18:17:37.164358+00:00 [info] <0.938.0> accepting AMQP connection <0.938.0> (172.19.0.4:60264 -> 172.19.0.2:5672)[0m
+rabbitmq  | 2026-10-25 18:17:37.165811+00:00 [info] <0.938.0> connection <0.938.0> (172.19.0.4:60264 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq  | 2026-10-25 18:17:37.168566+00:00 [info] <0.949.0> accepting AMQP connection <0.949.0> (172.19.0.4:60272 -> 172.19.0.2:5672)[0m
+rabbitmq  | 2026-10-25 18:17:37.169894+00:00 [info] <0.949.0> connection <0.949.0> (172.19.0.4:60272 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq  | 2026-10-25 18:17:37.172556+00:00 [info] <0.960.0> accepting AMQP connection <0.960.0> (172.19.0.4:60278 -> 172.19.0.2:5672)[0m
+rabbitmq  | 2026-10-25 18:17:37.173911+00:00 [info] <0.960.0> connection <0.960.0> (172.19.0.4:60278 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq  | 2026-10-25 18:17:37.979837+00:00 [info] <0.971.0> accepting AMQP connection <0.971.0> (172.19.0.3:42834 -> 172.19.0.2:5672)[0m
+rabbitmq  | 2026-10-25 18:17:37.982069+00:00 [info] <0.971.0> connection <0.971.0> (172.19.0.3:42834 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:38.664199+00:00 [info] <0.982.0> accepting AMQP connection <0.982.0> (172.19.0.6:40380 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:38.678116+00:00 [info] <0.982.0> connection <0.982.0> (172.19.0.6:40380 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:38.686436+00:00 [info] <0.993.0> accepting AMQP connection <0.993.0> (172.19.0.6:40384 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:38.696441+00:00 [info] <0.993.0> connection <0.993.0> (172.19.0.6:40384 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:38.731062+00:00 [info] <0.1009.0> accepting AMQP connection <0.1009.0> (172.19.0.6:40394 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:38.733467+00:00 [info] <0.1009.0> connection <0.1009.0> (172.19.0.6:40394 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:38.739495+00:00 [info] <0.1021.0> accepting AMQP connection <0.1021.0> (172.19.0.6:40408 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:38.745175+00:00 [info] <0.1021.0> connection <0.1021.0> (172.19.0.6:40408 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:38.761740+00:00 [info] <0.1032.0> accepting AMQP connection <0.1032.0> (172.19.0.6:40420 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:38.768178+00:00 [info] <0.1032.0> connection <0.1032.0> (172.19.0.6:40420 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:38.771329+00:00 [info] <0.1044.0> accepting AMQP connection <0.1044.0> (172.19.0.6:40422 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:38.773250+00:00 [info] <0.1044.0> connection <0.1044.0> (172.19.0.6:40422 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:38.921337+00:00 [info] <0.1055.0> accepting AMQP connection <0.1055.0> (172.19.0.8:49718 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:38.923758+00:00 [info] <0.1055.0> connection <0.1055.0> (172.19.0.8:49718 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:38.927536+00:00 [info] <0.1066.0> accepting AMQP connection <0.1066.0> (172.19.0.8:49734 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:38.929730+00:00 [info] <0.1066.0> connection <0.1066.0> (172.19.0.8:49734 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:38.934444+00:00 [info] <0.1077.0> accepting AMQP connection <0.1077.0> (172.19.0.8:49750 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:38.936408+00:00 [info] <0.1077.0> connection <0.1077.0> (172.19.0.8:49750 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:38.940164+00:00 [info] <0.1089.0> accepting AMQP connection <0.1089.0> (172.19.0.8:49760 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:38.942142+00:00 [info] <0.1089.0> connection <0.1089.0> (172.19.0.8:49760 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:39.195902+00:00 [info] <0.1106.0> accepting AMQP connection <0.1106.0> (172.19.0.10:49212 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:39.197682+00:00 [info] <0.1106.0> connection <0.1106.0> (172.19.0.10:49212 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:39.200930+00:00 [info] <0.1117.0> accepting AMQP connection <0.1117.0> (172.19.0.10:49222 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:39.202433+00:00 [info] <0.1117.0> connection <0.1117.0> (172.19.0.10:49222 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:39.205090+00:00 [info] <0.1128.0> accepting AMQP connection <0.1128.0> (172.19.0.10:49234 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:39.206433+00:00 [info] <0.1128.0> connection <0.1128.0> (172.19.0.10:49234 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:39.208981+00:00 [info] <0.1139.0> accepting AMQP connection <0.1139.0> (172.19.0.10:49250 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:39.210409+00:00 [info] <0.1139.0> connection <0.1139.0> (172.19.0.10:49250 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:39.265313+00:00 [info] <0.1156.0> accepting AMQP connection <0.1156.0> (172.19.0.9:44908 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:39.268012+00:00 [info] <0.1156.0> connection <0.1156.0> (172.19.0.9:44908 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:39.272779+00:00 [info] <0.1167.0> accepting AMQP connection <0.1167.0> (172.19.0.9:44914 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:39.274470+00:00 [info] <0.1167.0> connection <0.1167.0> (172.19.0.9:44914 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:39.277647+00:00 [info] <0.1178.0> accepting AMQP connection <0.1178.0> (172.19.0.9:44918 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:39.279240+00:00 [info] <0.1178.0> connection <0.1178.0> (172.19.0.9:44918 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:39.281983+00:00 [info] <0.1189.0> accepting AMQP connection <0.1189.0> (172.19.0.9:44922 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:39.283390+00:00 [info] <0.1189.0> connection <0.1189.0> (172.19.0.9:44922 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:39.286060+00:00 [info] <0.1200.0> accepting AMQP connection <0.1200.0> (172.19.0.9:44932 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:39.287404+00:00 [info] <0.1200.0> connection <0.1200.0> (172.19.0.9:44932 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:39.322526+00:00 [info] <0.1211.0> accepting AMQP connection <0.1211.0> (172.19.0.9:44942 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:39.339575+00:00 [info] <0.1211.0> connection <0.1211.0> (172.19.0.9:44942 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:39.469677+00:00 [info] <0.1222.0> accepting AMQP connection <0.1222.0> (172.19.0.11:33182 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:39.471587+00:00 [info] <0.1222.0> connection <0.1222.0> (172.19.0.11:33182 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:39.474083+00:00 [info] <0.1233.0> accepting AMQP connection <0.1233.0> (172.19.0.11:33194 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:39.475343+00:00 [info] <0.1233.0> connection <0.1233.0> (172.19.0.11:33194 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:39.701233+00:00 [info] <0.1250.0> accepting AMQP connection <0.1250.0> (172.19.0.12:53342 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:39.703331+00:00 [info] <0.1250.0> connection <0.1250.0> (172.19.0.12:53342 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:39.706191+00:00 [info] <0.1261.0> accepting AMQP connection <0.1261.0> (172.19.0.12:53344 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:39.707856+00:00 [info] <0.1261.0> connection <0.1261.0> (172.19.0.12:53344 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:40.242323+00:00 [info] <0.1278.0> accepting AMQP connection <0.1278.0> (172.19.0.3:42842 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:40.245293+00:00 [info] <0.1278.0> connection <0.1278.0> (172.19.0.3:42842 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:40.487762+00:00 [info] <0.1289.0> accepting AMQP connection <0.1289.0> (172.19.0.13:33794 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:40.500176+00:00 [info] <0.1289.0> connection <0.1289.0> (172.19.0.13:33794 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:40.503089+00:00 [info] <0.1300.0> accepting AMQP connection <0.1300.0> (172.19.0.13:33802 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:40.504614+00:00 [info] <0.1300.0> connection <0.1300.0> (172.19.0.13:33802 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:40.709946+00:00 [info] <0.1317.0> accepting AMQP connection <0.1317.0> (172.19.0.14:47836 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:40.712069+00:00 [info] <0.1317.0> connection <0.1317.0> (172.19.0.14:47836 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:40.714782+00:00 [info] <0.1328.0> accepting AMQP connection <0.1328.0> (172.19.0.14:47840 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:40.716323+00:00 [info] <0.1328.0> connection <0.1328.0> (172.19.0.14:47840 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:40.719336+00:00 [info] <0.1339.0> accepting AMQP connection <0.1339.0> (172.19.0.14:47852 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:40.720866+00:00 [info] <0.1339.0> connection <0.1339.0> (172.19.0.14:47852 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+[Ksum_top_0 exited with code 1
+rabbitmq         | 2026-10-25 18:17:42.131491+00:00 [info] <0.1373.0> accepting AMQP connection <0.1373.0> (172.19.0.3:42850 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:42.133809+00:00 [info] <0.1373.0> connection <0.1373.0> (172.19.0.3:42850 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:43.353572+00:00 [info] <0.1384.0> accepting AMQP connection <0.1384.0> (172.19.0.3:42860 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:43.362365+00:00 [info] <0.1384.0> connection <0.1384.0> (172.19.0.3:42860 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:45.487668+00:00 [info] <0.1396.0> accepting AMQP connection <0.1396.0> (172.19.0.3:56152 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:45.489980+00:00 [info] <0.1396.0> connection <0.1396.0> (172.19.0.3:56152 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:47.612984+00:00 [info] <0.1424.0> accepting AMQP connection <0.1424.0> (172.19.0.3:56166 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:47.616932+00:00 [info] <0.1424.0> connection <0.1424.0> (172.19.0.3:56166 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:49.750549+00:00 [info] <0.1435.0> accepting AMQP connection <0.1435.0> (172.19.0.3:56174 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:49.755505+00:00 [info] <0.1435.0> connection <0.1435.0> (172.19.0.3:56174 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:51.977444+00:00 [info] <0.1447.0> accepting AMQP connection <0.1447.0> (172.19.0.3:56178 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:51.985294+00:00 [info] <0.1447.0> connection <0.1447.0> (172.19.0.3:56178 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:54.208886+00:00 [info] <0.1474.0> accepting AMQP connection <0.1474.0> (172.19.0.3:54338 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:54.215191+00:00 [info] <0.1474.0> connection <0.1474.0> (172.19.0.3:54338 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:56.550522+00:00 [info] <0.1487.0> accepting AMQP connection <0.1487.0> (172.19.0.3:54342 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:56.561976+00:00 [info] <0.1487.0> connection <0.1487.0> (172.19.0.3:54342 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-10-25 18:17:58.826590+00:00 [info] <0.1499.0> accepting AMQP connection <0.1499.0> (172.19.0.3:54352 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:17:58.840542+00:00 [info] <0.1499.0> connection <0.1499.0> (172.19.0.3:54352 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+gateway          | Albert Samuel Gatschet
+gateway          | Adam McGeorge
+gateway          | Alexandre Fiodorovitch Plechtcheïev
+gateway          | Attilio Perez
+gateway          | Andrés Duarte
+gateway          | Aaron Downes
+gateway          | Alison Kreviazuk
+gateway          | Abebaw Butako
+gateway          | Antoni Łyko
+gateway          | Alfred Fitch
+gateway          | Armand Filion
+gateway          | Artyom Denmukhametov
+gateway          | Aleksandr Grigoryev
+gateway          | Aurélie Abadie
+gateway          | Anatoli Kartaïev
+gateway          | André Sicard
+gateway          | Alain de Haïloury
+gateway          | Antoine Mulet
+gateway          | António Rodrigues (vers 1525-1590)
+gateway          | Angel Chelala
+gateway          | Angelo Gottarelli
+gateway          | Akosua Serwah
+gateway          | Arno van Zwam
+gateway          | Ami-Bernard Zillweger
+gateway          | Abdelmalek Bouguermouh
+gateway          | Adolph Bachmeier
+gateway          | Abdallah Hanna
+gateway          | Alain Le Roch
+gateway          | Charle Cournoyer
+gateway          | Amélie Rivat
+gateway          | Alex Martínez
+rabbitmq         | 2026-10-25 18:18:37.176092+00:00 [info] <0.1373.0> closing AMQP connection <0.1373.0> (172.19.0.3:42850 -> 172.19.0.2:5672, vhost: '/', user: 'guest')[0m
+cuentaProm_1     | ENVIO EOF
+rabbitmq         | 2026-10-25 18:18:37.198582+00:00 [info] <0.1624.0> accepting AMQP connection <0.1624.0> (172.19.0.3:41584 -> 172.19.0.2:5672)[0m
+rabbitmq         | 2026-10-25 18:18:37.209652+00:00 [info] <0.1624.0> connection <0.1624.0> (172.19.0.3:41584 -> 172.19.0.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+gateway          | Amleto Cataldi
+gateway          | LLego EOF f9189389-af15-4383-8dc6-22f7ba353491
+gateway          | Cathy Ubels-Veen
+gateway          | LLego EOF f9189389-af15-4383-8dc6-22f7ba353491
+gateway          | LLego EOF f9189389-af15-4383-8dc6-22f7ba353491
+Gracefully Stopping... press Ctrl+C again to force
+[K Container cliente_0  [32mStopping[0m
+[K Container promedio_1  [32mStopping[0m
+[K Container clasificador_1  [32mStopping[0m
+[K Container imgDescargador_0  [32mStopping[0m
+[K Container imgDescargador_1  [32mStopping[0m
+[K Container cuentaProm_1  [32mStopping[0m
+[K Container sum_top_0  [32mStopping[0m
+[K Container transformador_1  [32mStopping[0m
+[K Container promedio_0  [32mStopping[0m
+[K Container cuentaProm_0  [32mStopping[0m
+[K Container sum_top_0  [32mStopped[0m
+[K Container cuentaProm_0  [32mStopped[0m
+[K Container cuentaProm_1  [32mStopped[0m
+[K Container cliente_0  [32mStopped[0m
+[K Container clasificador_1  [32mStopped[0m
+[K Container promedio_0  [32mStopped[0m
+[K Container promedio_1  [32mStopped[0m
+[K Container transformador_0  [32mStopping[0m
+[K Container transformador_1  [32mStopped[0m
+[K Container transformador_0  [32mStopped[0m
+[K Container imgDescargador_1  [32mStopped[0m
+[K Container imgDescargador_0  [32mStopped[0m
+[K Container clasificador_0  [32mStopping[0m
+[K Container clasificador_0  [32mStopped[0m
+[K Container gateway  [32mStopping[0m
+[K Container gateway  [32mStopped[0m
+[K Container rabbitmq  [32mStopping[0m
+[K Container rabbitmq  [32mStopped[0m

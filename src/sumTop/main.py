@@ -11,7 +11,7 @@ MOMHOST = os.environ["MOMHOST"]
 COLASUMTOP = os.environ["COLASUMTOP"]
 EXCHANGESUMTOPEOF = os.environ["EXCHANGESUMTOPEOF"]
 EXCHANGETOPPARCIAL = os.environ["EXCHANGETOPPARCIAL"]
-TOTALTOPPARCIAL = os.environ["TOTALTOPPARCIAL"]
+TOTALTOPPARCIAL = int(os.environ["TOTALTOPPARCIAL"])
 
 
 class SumTop:
@@ -25,7 +25,6 @@ class SumTop:
 
         self.clientes = {}
         self.lock = threading.Lock()
-        self.i = 0
 
 
     def _procesarData(self, mensaje: PalabrasMensajeSistema) -> None:
@@ -34,12 +33,11 @@ class SumTop:
                 self.clientes[mensaje.clienteId] = {}
 
             for clave, valor in mensaje.palabras.items():
-                self.clientes[mensaje.clienteId][clave] = mensaje.palabras.get(clave, 0) + valor
-
-            print(f" {self.i}")
+                self.clientes[mensaje.clienteId][clave] = self.clientes[mensaje.clienteId].get(clave, 0) + valor
 
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
+        print(f"teetas {self.clientes[mensaje.clienteId]} ")
         self.exchangeSumTopEofSend.send(mensaje.aBytes())
 
 
@@ -47,9 +45,9 @@ class SumTop:
         try:
             mensaje = recvMensajeSistema(bytes)
             if isinstance(mensaje, FinMensajeSistema): # TODO: esta bien esto?
+                print(f"recivo EOF de {mensaje.clienteId}")
                 self._procesarEOF(mensaje)
             else:
-                self.i += 1
                 self._procesarData(mensaje)
             ack()
         except Exception as e:
@@ -76,8 +74,8 @@ class SumTop:
 
 
     def iniciar(self):
-        threading.Thread(target=self._controlarEof, daemon=True).sart()
-        self.colaTransformador.start_consuming(self.procesarMensaje)
+        threading.Thread(target=self._controlarEof, daemon=True).start()
+        self.colaSumTop.start_consuming(self.procesarMensaje)
 
 
     def manejarSigterm(self) -> None:

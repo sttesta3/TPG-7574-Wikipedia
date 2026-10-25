@@ -34,6 +34,7 @@ class Transformador:
         for i in range(TOTALCUENTAPROM):
             self.exchangeCuentaProm.append(MessageMiddlewareExchange(MOMHOST, EXCHANGECUENTAPROM, [EXCHANGECUENTAPROM + "_" + str(i)]))
 
+
     def _resumenAPalabras(self, resumen: str) -> dict[str]:
         palabrasSinStop = {}
         palabras = re.findall(WORD_REGEX, resumen.lower())

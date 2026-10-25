@@ -281,3 +281,46 @@ services:
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
       - TOTALTOPPARCIAL=1
+
+  sum_top_1:
+    build:
+      context: ./src/
+      dockerfile: sumTop/Dockerfile
+    container_name: sum_top_1
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        clasificador_0:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLASUMTOP=ColaSumTop
+      - EXCHANGESUMTOPEOF=ExchangeSumTopEof
+      - EXCHANGETOPPARCIAL=ExchangeTopParcial
+      - TOTALTOPPARCIAL=1
+
+  agregador_top_0:
+    build:
+      context: ./src/
+      dockerfile: sumTop/Dockerfile
+    container_name: agregador_top_0
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        clasificador_0:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLASUMTOP=ColaSumTop
+      - EXCHANGESUMTOPEOF=ExchangeSumTopEof
+      - EXCHANGETOPPARCIAL=ExchangeTopParcial
+      - EXCHANGETOPGLOBAL=ExchangeTopGlobal
+      - TOTALTOPGLOBAL=1
+      - TOTALSUMTOP=2
+      - ID=0

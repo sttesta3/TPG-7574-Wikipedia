@@ -31,13 +31,8 @@ def enviarParquet(socket: socket) -> None:
 
 def recibirRespuestas(socket: socket) -> None:
     eof = False
-    i = 0
     while not eof:
         respuesta = recvMensaje(socket)
-
-        if isinstance(respuesta, Respuesta2Mensaje):
-            i += 1
-            print(i)
 
 
 def manejarSigterm(coneccion: socket.socket, ) -> None:

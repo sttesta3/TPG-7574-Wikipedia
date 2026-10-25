@@ -4,8 +4,8 @@ import socket
 import signal
 import multiprocessing
 from mensajesCliente import recvMensaje
-from mensajesGateway import sendRespuesta, Respuesta1Mensaje
-from mensajesSistema import FinMensajeSistema, Respuesta5MensajeSistema, LoteDataMensajeSistema, recvMensajeSistema
+from mensajesGateway import sendRespuesta
+from mensajesSistema import FinMensajeSistema, Respuesta2MensajeSistema, LoteDataMensajeSistema, recvMensajeSistema
 from middleware import MessageMiddlewareQueue
 
 MOMHOST = os.environ["MOMHOST"]
@@ -38,7 +38,6 @@ def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
 
 def manejarRespuesta(clientes: dict) -> None:
     colaRespuestas = MessageMiddlewareQueue(MOMHOST, COLARESPUESTAS)
-
     def _consumirRespuesta(message: bytes, ack, nack):
         try:
             respuesta = recvMensajeSistema(message)

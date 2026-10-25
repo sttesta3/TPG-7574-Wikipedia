@@ -50,7 +50,7 @@ services:
     environment:
     - DATASETPATHEN=/datasets/enwiki_namespace_0_
     - DATASETPATHFR=/datasets/frwiki_namespace_0_
-    - TOTALDATASETS=5
+    - TOTALDATASETS=1
     - GATEWAYHOST=gateway
     - GATEWAYPORT=8000
     - LOTE=10
@@ -119,6 +119,28 @@ services:
       context: ./src/
       dockerfile: transformador/Dockerfile
     container_name: transformador_0
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        clasificador_0:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLATRANSFORMADOR=ColaTransformador
+      - COLASUMTOP=ColaSumTop
+      - EXCHANGEPROMEDIO=ExchangePromedio
+      - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - TOTALCUENTAPROM=2
+      - TOTALPROMEDIO=2
+
+  transformador_1:
+    build:
+      context: ./src/
+      dockerfile: transformador/Dockerfile
+    container_name: transformador_1
     depends_on:
         rabbitmq:
           condition: service_healthy

@@ -170,7 +170,7 @@ class TransformadorMensajeSistema(MensajeSistema):
 
 
 class PalabrasMensajeSistema(MensajeSistema):
-    def __init__(self, clienteId: uuid.UUID = None, url: str = None, lenguaje: int = None, palabras: dict[str] = None) -> None:
+    def __init__(self, clienteId: uuid.UUID = None, url: str = None, lenguaje: int = None, palabras: dict[str,int] = None) -> None:
         self.clienteId = clienteId
         self.url = url
         self.lenguaje = lenguaje
@@ -186,7 +186,12 @@ class PalabrasMensajeSistema(MensajeSistema):
 
         mensajeBytes += self.lenguaje.to_bytes(2, byteorder="big")
 
-        palabrasBytes = ",".join(self.palabras.keys()).encode("UTF-8")
+        palabraTotal = []
+        for clave, valor in self.palabras.items():
+            palabraTotal.append(clave)
+            palabraTotal.append(str(valor)) 
+
+        palabrasBytes = ",".join(palabraTotal).encode("UTF-8")
         mensajeBytes += len(palabrasBytes).to_bytes(4, byteorder="big")
         mensajeBytes += palabrasBytes
 
@@ -208,10 +213,14 @@ class PalabrasMensajeSistema(MensajeSistema):
         palabrasLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
         palabras = bytes[totalLeido+4:totalLeido+palabrasLen+4].decode()
         self.palabras = {}
-        for palabra in palabras.split(","):
-            self.palabras[palabra] = 1
-        totalLeido += (palabrasLen + 4)
+        palabras = palabras.split(",")
+        for i in range(0, len(palabras), 2):
+            clave = palabras[i]
+            valor = int(palabras[i + 1])
+            self.palabras[clave] = valor
         
+        totalLeido += (palabrasLen + 4)
+
         self.clienteId = uuid.UUID(bytes=(bytes[totalLeido:totalLeido+16]))
 
 

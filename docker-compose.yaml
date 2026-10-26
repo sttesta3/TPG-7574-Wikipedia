@@ -305,7 +305,7 @@ services:
   agregador_top_0:
     build:
       context: ./src/
-      dockerfile: sumTop/Dockerfile
+      dockerfile: agregadorTop/Dockerfile
     container_name: agregador_top_0
     depends_on:
         rabbitmq:
@@ -324,3 +324,24 @@ services:
       - TOTALTOPGLOBAL=1
       - TOTALSUMTOP=2
       - ID=0
+
+  join_top_0:
+    build:
+      context: ./src/
+      dockerfile: joinTop/Dockerfile
+    container_name: join_top_0
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        clasificador_0:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLARESPUESTAS=Respuestas
+      - EXCHANGETOPGLOBAL=ExchangeTopGlobal
+      - TOTALTOPPARCIAL=1
+      - ID=0
+    

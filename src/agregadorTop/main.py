@@ -33,12 +33,18 @@ class AgregadorTop:
             self.clientes[mensaje.clienteId][1][clave] = self.clientes[mensaje.clienteId][1].get(clave, 0) + valor
 
 
+    def _top20(self, palabras: dict[str, int]) -> dict[str, int]:
+        print(palabras)
+        top = sorted(palabras.items(), key=lambda item: item[1], reverse=True)
+        return dict(top[:20])
+
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
         self.clientes[mensaje.clienteId][0] += 1
-
         if self.clientes[mensaje.clienteId][0] == TOTALSUMTOP:
-            # envio toda la data + eof al top por clienteId
-            
+            print(self._top20(self.clientes[mensaje.clienteId][1]))
+            nodo = mensaje.clienteId.int % TOTALTOPGLOBAL
+            self.exchangeTopGlobal[nodo].send(PalabrasMensajeSistema(clienteId=mensaje.clienteId, palabras=self._top20(self.clientes[mensaje.clienteId][1]), url="", lenguaje=0).aBytes())    
+            self.exchangeTopGlobal[nodo].send(FinMensajeSistema(mensaje.clienteId).aBytes())
             del self.clientes[mensaje.clienteId]
 
 
@@ -46,7 +52,6 @@ class AgregadorTop:
         try:
             mensaje = recvMensajeSistema(bytes)
             if isinstance(mensaje, FinMensajeSistema): # TODO: esta bien esto?
-                print(f"recivo EOF de {mensaje.clienteId}")
                 self._procesarEOF(mensaje)
             else:
                 self._procesarData(mensaje)

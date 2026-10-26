@@ -37,7 +37,7 @@ class SumTop:
 
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
-        print(f"teetas {self.clientes[mensaje.clienteId]} ")
+        print("LLEGO EOF")
         self.exchangeSumTopEofSend.send(mensaje.aBytes())
 
 
@@ -45,7 +45,6 @@ class SumTop:
         try:
             mensaje = recvMensajeSistema(bytes)
             if isinstance(mensaje, FinMensajeSistema): # TODO: esta bien esto?
-                print(f"recivo EOF de {mensaje.clienteId}")
                 self._procesarEOF(mensaje)
             else:
                 self._procesarData(mensaje)
@@ -56,21 +55,30 @@ class SumTop:
             nack()
 
 
-    def _controlarEof(self):
+    def _manejarEof(self, bytes, ack, nack):
+        try:
+            mensaje = recvMensajeSistema(bytes)
+            with self.lock:
+                nodos = [{} for _ in range(TOTALTOPPARCIAL)]
+                for clave, valor in self.clientes[mensaje.clienteId].items():
+                    i = int.from_bytes(clave.encode("UTF-8")) % TOTALTOPPARCIAL
+                    nodos[i][clave] = valor
 
-        def manejareEof(bytes, ack, nack):
-            try:
-                mensaje = recvMensajeSistema(bytes)
+                for i in range(TOTALTOPPARCIAL):
+                    print(f"MANDO: {nodos[i]}")
+                    mensaje = PalabrasMensajeSistema(palabras=nodos[i], clienteId=mensaje.clienteId, url="", lenguaje=0)
+                    self.excahangeTopParciales[i].send(mensaje.aBytes())
+                    self.excahangeTopParciales[i].send(FinMensajeSistema(mensaje.clienteId).aBytes())
 
-                with self.lock:
-                    print(f" {self.clientes[mensaje.clienteId]} ")
                 
-                ack()
-            except Exception as e:
-                print(e)
-                nack()
-
-        self.exchangeSumTopEof.start_consuming(manejareEof)
+            ack()
+        except Exception as e:
+            print(e)
+            nack()
+    
+    
+    def _controlarEof(self):
+        self.exchangeSumTopEof.start_consuming(self._manejarEof)
 
 
     def iniciar(self):

@@ -46,9 +46,9 @@ def query2(fila: namedtuple) -> None:
 top = {}
 def query4(fila: namedtuple) -> None:
     global top
-
     texto, bio = _seccionATexto(fila.sections)
     palabras = _resumenAPalabras(texto)
+    print(palabras)
 
     for clave, valor in palabras.items():
         top[clave] = top.get(clave, 0) + valor

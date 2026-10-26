@@ -18,3 +18,24 @@
 ('écliptique', 8771)
 ('caractérisée', 8766)
 ('diamètre', 8675)
+
+{'principale': 20793, 
+'ceinture': 20774, 
+'astéroïde': 20679,
+'astéroïdes': 12475, 
+'découvert': 12411, 
+'km': 8863, 
+'diamètre': 8578, 
+'held': 5472, 
+'season': 5051, 
+'first': 4351, 
+'year': 4242, 
+'final': 3945, 
+'events': 3442, 
+'title': 3393, 
+'championship': 3200, 
+'may': 3001, 
+'football': 2955, 
+'league': 2846, 
+'tournament': 2572, 
+'second': 2561}

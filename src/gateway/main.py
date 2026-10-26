@@ -49,8 +49,6 @@ def manejarRespuesta(clientes: dict) -> None:
                 #sendRespuesta(clienteSocket, EOF)
                 clientes[clienteId] = None
             else:
-                if isinstance(respuesta, Respuesta2MensajeSistema):
-                    print(respuesta.nombre)
                 sendRespuesta(clienteSocket, respuesta.aRespuestaGateway())
             ack()
         except Exception as e:

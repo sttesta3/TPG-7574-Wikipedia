@@ -176,6 +176,28 @@ services:
       - TOTALCUENTAPROM=2
       - TOTALPROMEDIO=2
 
+  transformador_2:
+    build:
+      context: ./src/
+      dockerfile: transformador/Dockerfile
+    container_name: transformador_2
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        clasificador_0:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLATRANSFORMADOR=ColaTransformador
+      - COLASUMTOP=ColaSumTop
+      - EXCHANGEPROMEDIO=ExchangePromedio
+      - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - TOTALCUENTAPROM=2
+      - TOTALPROMEDIO=2
+
   cuenta_prom_0:
     build:
       context: ./src/
@@ -321,9 +343,32 @@ services:
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
       - EXCHANGETOPGLOBAL=ExchangeTopGlobal
-      - TOTALTOPGLOBAL=1
+      - TOTALTOPGLOBAL=2
       - TOTALSUMTOP=2
       - ID=0
+
+  agregador_top_1:
+    build:
+      context: ./src/
+      dockerfile: agregadorTop/Dockerfile
+    container_name: agregador_top_1
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        clasificador_0:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLASUMTOP=ColaSumTop
+      - EXCHANGESUMTOPEOF=ExchangeSumTopEof
+      - EXCHANGETOPPARCIAL=ExchangeTopParcial
+      - EXCHANGETOPGLOBAL=ExchangeTopGlobal
+      - TOTALTOPGLOBAL=2
+      - TOTALSUMTOP=2
+      - ID=1
 
   join_top_0:
     build:
@@ -342,6 +387,26 @@ services:
       - MOMHOST=rabbitmq
       - COLARESPUESTAS=Respuestas
       - EXCHANGETOPGLOBAL=ExchangeTopGlobal
-      - TOTALTOPPARCIAL=1
+      - TOTALTOPPARCIAL=2
       - ID=0
+
+  join_top_1:
+    build:
+      context: ./src/
+      dockerfile: joinTop/Dockerfile
+    container_name: join_top_1
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        clasificador_0:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLARESPUESTAS=Respuestas
+      - EXCHANGETOPGLOBAL=ExchangeTopGlobal
+      - TOTALTOPPARCIAL=2
+      - ID=1
     

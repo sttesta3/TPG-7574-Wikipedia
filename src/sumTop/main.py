@@ -24,6 +24,7 @@ class SumTop:
             self.excahangeTopParciales.append(MessageMiddlewareExchange(MOMHOST, EXCHANGETOPPARCIAL, [EXCHANGETOPPARCIAL+ "_"+str(i)]))
 
         self.clientes = {}
+        self.a = 0
         self.lock = threading.Lock()
 
 
@@ -33,11 +34,14 @@ class SumTop:
                 self.clientes[mensaje.clienteId] = {}
 
             for clave, valor in mensaje.palabras.items():
+                if clave == "découvert":
+                    self.a += 1
                 self.clientes[mensaje.clienteId][clave] = self.clientes[mensaje.clienteId].get(clave, 0) + valor
 
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
         print("LLEGO EOF")
+        print(f"aca {self.a}")
         self.exchangeSumTopEofSend.send(mensaje.aBytes())
 
 
@@ -55,17 +59,23 @@ class SumTop:
             nack()
 
 
+    def _top20(self, palabras: dict[str, int]) -> dict[str, int]:
+        top = sorted(palabras.items(), key=lambda item: item[1], reverse=True)
+        return dict(top[:20])
+
+
     def _manejarEof(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
             with self.lock:
+                print(f"acacve{self.a}")
                 nodos = [{} for _ in range(TOTALTOPPARCIAL)]
                 for clave, valor in self.clientes[mensaje.clienteId].items():
                     i = int.from_bytes(clave.encode("UTF-8")) % TOTALTOPPARCIAL
                     nodos[i][clave] = valor
 
                 for i in range(TOTALTOPPARCIAL):
-                    print(f"MANDO: {nodos[i]}")
+                    print(f"MANDO: {self._top20(nodos[i])}")
                     mensaje = PalabrasMensajeSistema(palabras=nodos[i], clienteId=mensaje.clienteId, url="", lenguaje=0)
                     self.excahangeTopParciales[i].send(mensaje.aBytes())
                     self.excahangeTopParciales[i].send(FinMensajeSistema(mensaje.clienteId).aBytes())

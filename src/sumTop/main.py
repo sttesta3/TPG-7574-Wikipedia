@@ -13,6 +13,35 @@ EXCHANGESUMTOPEOF = os.environ["EXCHANGESUMTOPEOF"]
 EXCHANGETOPPARCIAL = os.environ["EXCHANGETOPPARCIAL"]
 TOTALTOPPARCIAL = int(os.environ["TOTALTOPPARCIAL"])
 
+class ClienteLock():
+    def __init__(self) -> None:
+        self.cond = threading.Condition()
+        self.eof = 0
+        self.respuestas = 0
+
+
+    def nuevoMensaje(self) -> None:
+        with self.cond:
+            self.respuestas += 1
+
+
+    def nuevaRespuesta(self):
+        with self.cond:
+            self.respuestas -= 1
+            if self.respuestas <= 0 and self.eof == 3:
+                self.cond.notify_all()
+            
+
+    def llegadaEof(self) -> bool:
+        llego = False
+        with self.cond:
+            self.eof += 1
+            if self.eof == 2:
+                while self.respuestas > 0:
+                    self.cond.wait()
+                llego = True
+        return llego
+
 
 class SumTop:
     def __init__(self):
@@ -24,24 +53,23 @@ class SumTop:
             self.excahangeTopParciales.append(MessageMiddlewareExchange(MOMHOST, EXCHANGETOPPARCIAL, [EXCHANGETOPPARCIAL+ "_"+str(i)]))
 
         self.clientes = {}
-        self.a = 0
-        self.lock = threading.Lock()
+        self.clientesLock = {}
 
 
-    def _procesarData(self, mensaje: PalabrasMensajeSistema) -> None:
-        with self.lock:
-            if mensaje.clienteId not in self.clientes:
-                self.clientes[mensaje.clienteId] = {}
+    def _procesarData(self, mensaje: PalabrasMensajeSistema) -> None:      
+        if mensaje.clienteId not in self.clientes:
+            self.clientes[mensaje.clienteId] = {}
+            self.clientesLock[mensaje.clienteId] = ClienteLock()
 
-            for clave, valor in mensaje.palabras.items():
-                if clave == "découvert":
-                    self.a += 1
-                self.clientes[mensaje.clienteId][clave] = self.clientes[mensaje.clienteId].get(clave, 0) + valor
+        self.clientesLock[mensaje.clienteId].nuevoMensaje()
+
+        for clave, valor in mensaje.palabras.items():
+            self.clientes[mensaje.clienteId][clave] = self.clientes[mensaje.clienteId].get(clave, 0) + valor
+
+        self.clientesLock[mensaje.clienteId].nuevaRespuesta()
 
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
-        print("LLEGO EOF")
-        print(f"aca {self.a}")
         self.exchangeSumTopEofSend.send(mensaje.aBytes())
 
 
@@ -51,6 +79,7 @@ class SumTop:
             if isinstance(mensaje, FinMensajeSistema): # TODO: esta bien esto?
                 self._procesarEOF(mensaje)
             else:
+                print("ms")
                 self._procesarData(mensaje)
             ack()
         except Exception as e:
@@ -67,8 +96,8 @@ class SumTop:
     def _manejarEof(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
-            with self.lock:
-                print(f"acacve{self.a}")
+            if self.clientesLock[mensaje.clienteId].llegadaEof():
+                print("ENVIO EOF")
                 nodos = [{} for _ in range(TOTALTOPPARCIAL)]
                 for clave, valor in self.clientes[mensaje.clienteId].items():
                     i = int.from_bytes(clave.encode("UTF-8")) % TOTALTOPPARCIAL

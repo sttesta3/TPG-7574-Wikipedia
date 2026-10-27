@@ -1,7 +1,7 @@
 import os
 import sys
 import signal
-from mensajesSistema import recvMensajeSistema, FinMensajeSistema, TransformadorMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema
+from mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasMensajeSistema, Respuesta4MensajeSistema
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
 
 import traceback
@@ -37,6 +37,8 @@ class JoinTop:
 
         if self.clientes[mensaje.clienteId][0] == TOTALTOPPARCIAL:
 
+            self.colaRespuestas.send(Respuesta4MensajeSistema(self._top20(self.clientes[mensaje.clienteId][1])).aBytes())
+            self.colaRespuestas.send(mensaje.aBytes())
             print(f"LLEGO EL TOP20 {self._top20(self.clientes[mensaje.clienteId][1])}")
 
             del self.clientes[mensaje.clienteId]

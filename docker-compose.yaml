@@ -94,6 +94,24 @@ services:
       - COLAIMGDESCARGA=ImgDescarga
       - COLATRANSFORMADOR=ColaTransformador
 
+  clasificador_2:
+    build:
+      context: ./src/
+      dockerfile: clasificador/Dockerfile
+    container_name: clasificador_2
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLADATOS=EntradaDatos
+      - COLARESPUESTAS=Respuestas
+      - COLAIMGDESCARGA=ImgDescarga
+      - COLATRANSFORMADOR=ColaTransformador
+
   img_descargador_0:
     build:
       context: ./src/
@@ -153,34 +171,12 @@ services:
       - EXCHANGECUENTAPROM=ExchangeCuentaProm
       - TOTALCUENTAPROM=2
       - TOTALPROMEDIO=2
-
+  
   transformador_1:
     build:
       context: ./src/
       dockerfile: transformador/Dockerfile
     container_name: transformador_1
-    depends_on:
-        rabbitmq:
-          condition: service_healthy
-        gateway:
-          condition: service_started
-        clasificador_0:
-          condition: service_started
-    environment:
-      - PYTHONUNBUFFERED=1
-      - MOMHOST=rabbitmq
-      - COLATRANSFORMADOR=ColaTransformador
-      - COLASUMTOP=ColaSumTop
-      - EXCHANGEPROMEDIO=ExchangePromedio
-      - EXCHANGECUENTAPROM=ExchangeCuentaProm
-      - TOTALCUENTAPROM=2
-      - TOTALPROMEDIO=2
-
-  transformador_2:
-    build:
-      context: ./src/
-      dockerfile: transformador/Dockerfile
-    container_name: transformador_2
     depends_on:
         rabbitmq:
           condition: service_healthy

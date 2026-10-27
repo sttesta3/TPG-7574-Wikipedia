@@ -22,7 +22,6 @@ class MessageMiddlewareQueue():
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(host, heartbeat=0))
         self.queue_name = queue_name
         self.channel = self.connection.channel()
-        self.channel.basic_qos(prefetch_count=1)
         self.channel.queue_declare(queue=queue_name, durable=True)
 
 
@@ -72,7 +71,6 @@ class MessageMiddlewareExchange():
     def __init__(self, host, exchange_name, routing_keys):
         connection = pika.BlockingConnection(pika.ConnectionParameters(host, heartbeat=0))
         channel = connection.channel()
-        channel.basic_qos(prefetch_count=1)
         channel.exchange_declare(exchange=exchange_name, exchange_type='direct')
 
         self.connection = connection

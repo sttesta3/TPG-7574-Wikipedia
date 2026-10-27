@@ -86,6 +86,7 @@ class Clasificador:
 
 
     def manejarSigterm(self) -> None:
+        # TODO: aca faltaria ver que hacer con el thread q queda dando vueltas
         self.colaDatos.close()
         self.colaRespuestas.close()
         self.colaImgDescarga.close()

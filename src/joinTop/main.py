@@ -1,10 +1,10 @@
 import os
 import sys
 import signal
-from mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasMensajeSistema, Respuesta4MensajeSistema
-from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-
 import traceback
+from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
+from mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasMensajeSistema, Respuesta4MensajeSistema
+
 
 MOMHOST = os.environ["MOMHOST"]
 COLARESPUESTAS = os.environ["COLARESPUESTAS"]
@@ -55,12 +55,15 @@ class JoinTop:
             print(traceback.format_exc())
             nack()
 
+
     def iniciar(self):
         self.exchangeTopGlobal.start_consuming(self.procesarMensaje)
 
 
     def manejarSigterm(self) -> None:
-        pass
+        self.colaRespuestas.close()
+        self.exchangeTopGlobal.close()
+        sys.exit(0)
 
 
 def main() -> int:

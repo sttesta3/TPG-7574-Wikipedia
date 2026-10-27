@@ -1,13 +1,13 @@
 import os
 import sys
 import signal
-import threading
 import aiohttp
 import asyncio
 import traceback
-from mensajesSistema import recvMensajeSistema, FinMensajeSistema, ImgMensajeSistema, Respuesta2MensajeSistema
-from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
+import threading
 from clienteLock import ClienteLock
+from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
+from mensajesSistema import recvMensajeSistema, FinMensajeSistema, ImgMensajeSistema, Respuesta2MensajeSistema
 
 MOMHOST = os.environ["MOMHOST"]
 COLAIMGDESCARGA = os.environ["COLAIMGDESCARGA"]
@@ -34,6 +34,7 @@ class ImgDescargador:
         
         imgBytes = b''
         if mensaje.imgUrl != "":
+            # TODO: podria manejar una sola sesion como variable del ImgDescargador
             async with aiohttp.ClientSession(headers={'User-Agent':'Tp-Fiuba/0.0 (https://fi.uba.ar/;shenseler@fi.uba.ar)'}) as session:
                 async with session.get(mensaje.imgUrl) as resp:
                     if resp.status == 200:
@@ -41,7 +42,6 @@ class ImgDescargador:
 
         self.colaRespuestas.send(Respuesta2MensajeSistema(mensaje.clienteId, mensaje.url, mensaje.nombre, imgBytes).aBytes())
         self.clientes[mensaje.clienteId].nuevaRespuesta()
-
 
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
@@ -97,7 +97,14 @@ class ImgDescargador:
 
 
     def manejarSigterm(self) -> None:
-        pass
+        #TODO: los threads
+        self.colaImgDescarga.close()
+        self.colaRespuestas.close()
+        self.exchangeImgEof.close()
+        self.exchangeImgEofSend.close()
+        self.eventLoop.shutdown_asyncgens()
+        self.eventLoop.close()
+        sys.exit(0)
 
 
 def main() -> int:

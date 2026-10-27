@@ -15,6 +15,7 @@ COLATRANSFORMADOR = os.environ["COLATRANSFORMADOR"]
 COLASUMTOP = os.environ["COLASUMTOP"]
 EXCHANGEPROMEDIO = os.environ["EXCHANGEPROMEDIO"]
 EXCHANGECUENTAPROM = os.environ["EXCHANGECUENTAPROM"]
+EXCHANGETRANSFORMADOREOF = os.environ["EXCHANGETRANSFORMADOREOF"]
 TOTALPROMEDIO = int(os.environ["TOTALPROMEDIO"])
 TOTALCUENTAPROM = int(os.environ["TOTALCUENTAPROM"])
 TOTALCLASIFICADORES = int(os.environ["TOTALCLASIFICADORES"])
@@ -37,8 +38,8 @@ class Transformador:
         for i in range(TOTALCUENTAPROM):
             self.exchangeCuentaProm.append(MessageMiddlewareExchange(MOMHOST, EXCHANGECUENTAPROM, [EXCHANGECUENTAPROM + "_" + str(i)]))
 
-        self.colaEOF = MessageMiddlewareExchange(MOMHOST, "EOF2", ["EOF2"])
-        self.colaEOFSend = MessageMiddlewareExchange(MOMHOST, "EOF2", ["EOF2"])
+        self.colaEOF = MessageMiddlewareExchange(MOMHOST, EXCHANGETRANSFORMADOREOF, [EXCHANGETRANSFORMADOREOF])
+        self.colaEOFSend = MessageMiddlewareExchange(MOMHOST, EXCHANGETRANSFORMADOREOF, [EXCHANGETRANSFORMADOREOF])
 
         self.clientes = {}
 
@@ -71,7 +72,7 @@ class Transformador:
 
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
-        self.colaEOF.send(mensaje.aBytes())
+        self.colaEOFSend.send(mensaje.aBytes())
 
     def procesarMensaje(self, bytes, ack, nack):
         try:
@@ -103,7 +104,7 @@ class Transformador:
 
     
     def _controlarEof(self):
-        self.colaEOFSend.start_consuming(self._manejarEof)
+        self.colaEOF.start_consuming(self._manejarEof)
 
 
     def iniciar(self):
@@ -112,8 +113,11 @@ class Transformador:
 
 
     def manejarSigterm(self) -> None:
+        # Manejar el thread
         self.colaTransformador.close()
         self.colaSumTop.close()
+        self.colaEOFSend.close()
+        self.colaEOF.close()
         for i in range(TOTALCUENTAPROM):
             self.exchangeCuentaProm[i].close()
         for i in range(TOTALPROMEDIO):

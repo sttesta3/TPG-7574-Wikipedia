@@ -1,10 +1,10 @@
 import os
 import sys
 import signal
-from mensajesSistema import recvMensajeSistema, FinMensajeSistema, TransformadorMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema
-from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-
 import traceback
+from middleware import MessageMiddlewareExchange
+from mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasMensajeSistema
+
 
 MOMHOST = os.environ["MOMHOST"]
 COLASUMTOP = os.environ["COLASUMTOP"]
@@ -64,7 +64,9 @@ class AgregadorTop:
 
 
     def manejarSigterm(self) -> None:
-        pass
+        self.exchangeTopParcial.close()
+        for i in range(TOTALTOPGLOBAL):
+            self.exchangeTopGlobal[i].close()
 
 
 def main() -> int:

@@ -173,6 +173,7 @@ services:
       - COLASUMTOP=ColaSumTop
       - EXCHANGEPROMEDIO=ExchangePromedio
       - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
       - TOTALCUENTAPROM=2
       - TOTALPROMEDIO=2
       - TOTALCLASIFICADORES=3
@@ -196,6 +197,7 @@ services:
       - COLASUMTOP=ColaSumTop
       - EXCHANGEPROMEDIO=ExchangePromedio
       - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
       - TOTALCUENTAPROM=2
       - TOTALPROMEDIO=2
       - TOTALCLASIFICADORES=3

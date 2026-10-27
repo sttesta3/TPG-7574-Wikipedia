@@ -3,9 +3,9 @@ import sys
 import signal
 import traceback
 import threading
-from mensajesSistema import recvMensajeSistema, FinMensajeSistema, TransformadorMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema
-from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
 from clienteLock import ClienteLock
+from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
+from mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasMensajeSistema
 
 MOMHOST = os.environ["MOMHOST"]
 COLASUMTOP = os.environ["COLASUMTOP"]
@@ -95,7 +95,12 @@ class SumTop:
 
 
     def manejarSigterm(self) -> None:
-        pass
+        self.colaSumTop.close()
+        self.exchangeSumTopEof.close()
+        self.exchangeSumTopEofSend.close()
+        for i in range(TOTALTOPPARCIAL):
+            self.excahangeTopParciales[i].close()
+        sys.exit(0)
 
 
 def main() -> int:

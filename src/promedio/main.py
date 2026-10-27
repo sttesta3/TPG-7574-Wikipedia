@@ -1,10 +1,10 @@
 import os
 import sys
 import signal
-from mensajesSistema import recvMensajeSistema, FinMensajeSistema, CantidadPalabraMensajeSistema, FinPromMensajeSistema
-from middleware import MessageMiddlewareExchange
-
 import traceback
+from middleware import MessageMiddlewareExchange
+from mensajesSistema import recvMensajeSistema, FinMensajeSistema, CantidadPalabraMensajeSistema, FinPromMensajeSistema
+
 
 MOMHOST = os.environ["MOMHOST"]
 EXCHANGEPROMEDIO = os.environ["EXCHANGEPROMEDIO"]
@@ -67,7 +67,7 @@ class Promedio:
         self.exchangePromedio.close()
         for i in range(TOTALCUENTAPROM):
             self.exchangeCuentaProm[i].close()
-        sys.exit()
+        sys.exit(0)
 
 
 def main() -> int:

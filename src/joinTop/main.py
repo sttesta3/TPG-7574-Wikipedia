@@ -39,8 +39,6 @@ class JoinTop:
 
             self.colaRespuestas.send(Respuesta4MensajeSistema(self._top20(self.clientes[mensaje.clienteId][1])).aBytes())
             self.colaRespuestas.send(mensaje.aBytes())
-            print(f"LLEGO EL TOP20 {self._top20(self.clientes[mensaje.clienteId][1])}")
-
             del self.clientes[mensaje.clienteId]
 
 
@@ -48,7 +46,6 @@ class JoinTop:
         try:
             mensaje = recvMensajeSistema(bytes)
             if isinstance(mensaje, FinMensajeSistema): # TODO: esta bien esto?
-                print(f"recivo EOF de {mensaje.clienteId}")
                 self._procesarEOF(mensaje)
             else:
                 self._procesarData(mensaje)

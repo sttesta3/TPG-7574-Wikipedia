@@ -7,37 +7,14 @@ import asyncio
 import traceback
 from mensajesSistema import recvMensajeSistema, FinMensajeSistema, ImgMensajeSistema, Respuesta2MensajeSistema
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
+from clienteLock import ClienteLock
 
 MOMHOST = os.environ["MOMHOST"]
 COLAIMGDESCARGA = os.environ["COLAIMGDESCARGA"]
 COLARESPUESTAS = os.environ["COLARESPUESTAS"]
 EXCHANGEIMGEOF = os.environ["EXCHANGEIMGEOF"]
-
-class ClienteLock():
-    def __init__(self) -> None:
-        self.cond = threading.Condition()
-        self.eof = False
-        self.respuestas = 0
-
-    def nuevoMensaje(self) -> None:
-        with self.cond:
-            self.respuestas += 1
-
-
-    def nuevaRespuesta(self) -> bool:
-        with self.cond:
-            self.respuestas -= 1
-            if self.respuestas <= 0 and self.eof:
-                self.cond.notify_all()
-            
-
-    def llegadaEof(self) -> bool:
-        with self.cond:
-            self.eof = True
-            while self.respuestas > 0:
-                self.cond.wait()
+TOTALCLASIFICADORES = int(os.environ["TOTALCLASIFICADORES"])
     
-
 class ImgDescargador:
     def __init__(self):
         self.eventLoop = asyncio.new_event_loop()
@@ -78,7 +55,7 @@ class ImgDescargador:
                 self._procesarEOF(mensaje)
             else:
                 if mensaje.clienteId not in self.clientes:
-                    self.clientes[mensaje.clienteId] = ClienteLock()
+                    self.clientes[mensaje.clienteId] = ClienteLock(TOTALCLASIFICADORES)
                 
                 self.clientes[mensaje.clienteId].nuevoMensaje()
                 asyncio.run_coroutine_threadsafe(self._procesarData(mensaje), self.eventLoop)

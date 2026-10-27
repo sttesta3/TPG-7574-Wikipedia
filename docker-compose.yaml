@@ -75,6 +75,7 @@ services:
       - COLARESPUESTAS=Respuestas
       - COLAIMGDESCARGA=ImgDescarga
       - COLATRANSFORMADOR=ColaTransformador
+      - CLASIFICADOREXCHANGEEOF=ClasificadorExchangeEof
 
   clasificador_1:
     build:
@@ -93,6 +94,7 @@ services:
       - COLARESPUESTAS=Respuestas
       - COLAIMGDESCARGA=ImgDescarga
       - COLATRANSFORMADOR=ColaTransformador
+      - CLASIFICADOREXCHANGEEOF=ClasificadorExchangeEof
 
   clasificador_2:
     build:
@@ -130,6 +132,7 @@ services:
       - COLARESPUESTAS=Respuestas
       - COLAIMGDESCARGA=ImgDescarga
       - EXCHANGEIMGEOF=ExchangeImgEof
+      - TOTALCLASIFICADORES=3
 
   img_descargador_1:
     build:
@@ -149,6 +152,7 @@ services:
       - COLARESPUESTAS=Respuestas
       - COLAIMGDESCARGA=ImgDescarga
       - EXCHANGEIMGEOF=ExchangeImgEof
+      - TOTALCLASIFICADORES=3
 
   transformador_0:
     build:
@@ -171,6 +175,7 @@ services:
       - EXCHANGECUENTAPROM=ExchangeCuentaProm
       - TOTALCUENTAPROM=2
       - TOTALPROMEDIO=2
+      - TOTALCLASIFICADORES=3
   
   transformador_1:
     build:
@@ -193,6 +198,7 @@ services:
       - EXCHANGECUENTAPROM=ExchangeCuentaProm
       - TOTALCUENTAPROM=2
       - TOTALPROMEDIO=2
+      - TOTALCLASIFICADORES=3
 
   cuenta_prom_0:
     build:
@@ -256,6 +262,7 @@ services:
       - EXCHANGECUENTAPROM=ExchangeCuentaProm
       - EXCHANGEPROMEDIO=ExchangePromedio
       - TOTALCUENTAPROM=1
+      - TOTALTRANSFORMADORES=2
       - ID=0
 
   promedio_1:
@@ -278,6 +285,7 @@ services:
       - EXCHANGECUENTAPROM=ExchangeCuentaProm
       - EXCHANGEPROMEDIO=ExchangePromedio
       - TOTALCUENTAPROM=2
+      - TOTALTRANSFORMADORES=2
       - ID=1
 
   sum_top_0:
@@ -299,6 +307,7 @@ services:
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
       - TOTALTOPPARCIAL=1
+      - TOTALTRANSFORMADORES=2
 
   sum_top_1:
     build:
@@ -319,6 +328,7 @@ services:
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
       - TOTALTOPPARCIAL=1
+      - TOTALTRANSFORMADORES=2
 
   agregador_top_0:
     build:

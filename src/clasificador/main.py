@@ -2,41 +2,18 @@ import os
 import sys
 import signal
 import threading
-from mensajesSistema import recvMensajeSistema, FinMensajeSistema, LoteDataMensajeSistema, ImgMensajeSistema, Respuesta1MensajeSistema, TransformadorMensajeSistema
+from clienteLock import ClienteLock
 from middleware import MessageMiddlewareQueue,MessageMiddlewareExchange
+from mensajesSistema import recvMensajeSistema, FinMensajeSistema, LoteDataMensajeSistema, ImgMensajeSistema, Respuesta1MensajeSistema, TransformadorMensajeSistema
 
 MOMHOST = os.environ["MOMHOST"]
 COLADATOS = os.environ["COLADATOS"]
 COLARESPUESTAS = os.environ["COLARESPUESTAS"]
 COLAIMGDESCARGA = os.environ["COLAIMGDESCARGA"]
 COLATRANSFORMADOR = os.environ["COLATRANSFORMADOR"]
+CLASIFICADOREXCHANGEEOF = os.environ["CLASIFICADOREXCHANGEEOF"]
 
 LENGUAJEINGLES = 1
-
-class ClienteLock():
-    def __init__(self) -> None:
-        self.cond = threading.Condition()
-        self.eof = False
-        self.respuestas = 0
-
-    def nuevoMensaje(self) -> None:
-        with self.cond:
-            self.respuestas += 1
-
-
-    def nuevaRespuesta(self):
-        with self.cond:
-            self.respuestas -= 1
-            if self.respuestas <= 0 and self.eof:
-                self.cond.notify_all()
-            
-
-    def llegadaEof(self):
-        with self.cond:
-            self.eof = True
-            while self.respuestas > 0:
-                self.cond.wait()
-    
 
 class Clasificador:
     def __init__(self):
@@ -45,8 +22,8 @@ class Clasificador:
         self.colaImgDescarga = MessageMiddlewareQueue(MOMHOST, COLAIMGDESCARGA)
         self.colaTransformador = MessageMiddlewareQueue(MOMHOST, COLATRANSFORMADOR)
 
-        self.colaEOF = MessageMiddlewareExchange(MOMHOST, "EOF", ["EOF"])
-        self.colaEOFSend = MessageMiddlewareExchange(MOMHOST, "EOF", ["EOF"])
+        self.colaEOF = MessageMiddlewareExchange(MOMHOST, CLASIFICADOREXCHANGEEOF, [CLASIFICADOREXCHANGEEOF])
+        self.colaEOFSend = MessageMiddlewareExchange(MOMHOST, CLASIFICADOREXCHANGEEOF, [CLASIFICADOREXCHANGEEOF])
 
         self.clientes = {}
 
@@ -68,7 +45,7 @@ class Clasificador:
             
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
-        self.colaEOF.send(mensaje.aBytes())
+        self.colaEOFSend.send(mensaje.aBytes())
 
 
     def procesarMensaje(self, bytes, ack, nack):
@@ -100,7 +77,7 @@ class Clasificador:
 
     
     def _controlarEof(self):
-        self.colaEOFSend.start_consuming(self._manejarEof)
+        self.colaEOF.start_consuming(self._manejarEof)
 
 
     def iniciar(self):
@@ -113,6 +90,8 @@ class Clasificador:
         self.colaRespuestas.close()
         self.colaImgDescarga.close()
         self.colaTransformador.close()
+        self.colaEOFSend.close()
+        self.colaEOF.close()
         sys.exit(0)
 
 

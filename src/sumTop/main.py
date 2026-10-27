@@ -1,46 +1,18 @@
 import os
 import sys
 import signal
+import traceback
 import threading
 from mensajesSistema import recvMensajeSistema, FinMensajeSistema, TransformadorMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-
-import traceback
+from clienteLock import ClienteLock
 
 MOMHOST = os.environ["MOMHOST"]
 COLASUMTOP = os.environ["COLASUMTOP"]
 EXCHANGESUMTOPEOF = os.environ["EXCHANGESUMTOPEOF"]
 EXCHANGETOPPARCIAL = os.environ["EXCHANGETOPPARCIAL"]
 TOTALTOPPARCIAL = int(os.environ["TOTALTOPPARCIAL"])
-
-class ClienteLock():
-    def __init__(self) -> None:
-        self.cond = threading.Condition()
-        self.eof = 0
-        self.respuestas = 0
-
-
-    def nuevoMensaje(self) -> None:
-        with self.cond:
-            self.respuestas += 1
-
-
-    def nuevaRespuesta(self):
-        with self.cond:
-            self.respuestas -= 1
-            if self.respuestas <= 0 and self.eof == 3:
-                self.cond.notify_all()
-            
-
-    def llegadaEof(self) -> bool:
-        llego = False
-        with self.cond:
-            self.eof += 1
-            if self.eof == 2:
-                while self.respuestas > 0:
-                    self.cond.wait()
-                llego = True
-        return llego
+TOTALTRANSFORMADORES = int(os.environ["TOTALTRANSFORMADORES"])
 
 
 class SumTop:
@@ -59,7 +31,7 @@ class SumTop:
     def _procesarData(self, mensaje: PalabrasMensajeSistema) -> None:      
         if mensaje.clienteId not in self.clientes:
             self.clientes[mensaje.clienteId] = {}
-            self.clientesLock[mensaje.clienteId] = ClienteLock()
+            self.clientesLock[mensaje.clienteId] = ClienteLock(TOTALTRANSFORMADORES)
 
         self.clientesLock[mensaje.clienteId].nuevoMensaje()
 
@@ -79,7 +51,6 @@ class SumTop:
             if isinstance(mensaje, FinMensajeSistema): # TODO: esta bien esto?
                 self._procesarEOF(mensaje)
             else:
-                print("ms")
                 self._procesarData(mensaje)
             ack()
         except Exception as e:
@@ -97,14 +68,12 @@ class SumTop:
         try:
             mensaje = recvMensajeSistema(bytes)
             if self.clientesLock[mensaje.clienteId].llegadaEof():
-                print("ENVIO EOF")
                 nodos = [{} for _ in range(TOTALTOPPARCIAL)]
                 for clave, valor in self.clientes[mensaje.clienteId].items():
                     i = int.from_bytes(clave.encode("UTF-8")) % TOTALTOPPARCIAL
                     nodos[i][clave] = valor
 
                 for i in range(TOTALTOPPARCIAL):
-                    print(f"MANDO: {self._top20(nodos[i])}")
                     mensaje = PalabrasMensajeSistema(palabras=nodos[i], clienteId=mensaje.clienteId, url="", lenguaje=0)
                     self.excahangeTopParciales[i].send(mensaje.aBytes())
                     self.excahangeTopParciales[i].send(FinMensajeSistema(mensaje.clienteId).aBytes())

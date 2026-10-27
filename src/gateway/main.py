@@ -5,7 +5,7 @@ import signal
 import multiprocessing
 from mensajesCliente import recvMensaje
 from mensajesGateway import sendRespuesta
-from mensajesSistema import FinMensajeSistema, Respuesta2MensajeSistema, LoteDataMensajeSistema, recvMensajeSistema
+from mensajesSistema import FinMensajeSistema, Respuesta2MensajeSistema, Respuesta4MensajeSistema, LoteDataMensajeSistema, recvMensajeSistema
 from middleware import MessageMiddlewareQueue
 
 MOMHOST = os.environ["MOMHOST"]
@@ -15,6 +15,8 @@ COLARESPUESTAS = os.environ["COLARESPUESTAS"]
 GATEWAYHOST = os.environ["GATEWAYHOST"]
 GATEWAYPORT = int(os.environ["GATEWAYPORT"])
 LOTE = int(os.environ["LOTE"])
+
+a = 0
 
 def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
     try:
@@ -39,16 +41,23 @@ def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
 def manejarRespuesta(clientes: dict) -> None:
     colaRespuestas = MessageMiddlewareQueue(MOMHOST, COLARESPUESTAS)
     def _consumirRespuesta(message: bytes, ack, nack):
+        global a
         try:
             respuesta = recvMensajeSistema(message)
             clienteId = respuesta.clienteId
             clienteSocket = clientes[clienteId]
             if isinstance(respuesta, FinMensajeSistema):
                 print(f"LLego EOF {respuesta.clienteId}")
+                print(a)
                 # TODO: manejar EOF
                 #sendRespuesta(clienteSocket, EOF)
                 clientes[clienteId] = None
             else:
+                if isinstance(respuesta, Respuesta2MensajeSistema):
+                    a +=1
+                if isinstance(respuesta, Respuesta4MensajeSistema):
+                    print(respuesta.palabras)
+                
                 sendRespuesta(clienteSocket, respuesta.aRespuestaGateway())
             ack()
         except Exception as e:

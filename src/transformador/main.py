@@ -3,11 +3,12 @@ import re
 import sys
 import nltk
 import signal
+import threading
+import traceback
 from nltk.corpus import stopwords
 from mensajesSistema import recvMensajeSistema, FinMensajeSistema, TransformadorMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-
-import traceback
+from clienteLock import ClienteLock
 
 MOMHOST = os.environ["MOMHOST"]
 COLATRANSFORMADOR = os.environ["COLATRANSFORMADOR"]
@@ -16,40 +17,11 @@ EXCHANGEPROMEDIO = os.environ["EXCHANGEPROMEDIO"]
 EXCHANGECUENTAPROM = os.environ["EXCHANGECUENTAPROM"]
 TOTALPROMEDIO = int(os.environ["TOTALPROMEDIO"])
 TOTALCUENTAPROM = int(os.environ["TOTALCUENTAPROM"])
+TOTALCLASIFICADORES = int(os.environ["TOTALCLASIFICADORES"])
 
 WORD_REGEX = r'\b\w+\b'
 NUMBER_REGEX = r'[+-]?((\d+\.?\d*)|(\.\d+))'
 
-import threading
-
-class ClienteLock():
-    def __init__(self) -> None:
-        self.cond = threading.Condition()
-        self.eof = 0
-        self.respuestas = 0
-
-    def nuevoMensaje(self) -> None:
-        with self.cond:
-            self.respuestas += 1
-
-
-    def nuevaRespuesta(self):
-        with self.cond:
-            self.respuestas -= 1
-            if self.respuestas <= 0 and self.eof == 3:
-                self.cond.notify_all()
-            
-
-    def llegadaEof(self) -> bool:
-        llego = False
-        with self.cond:
-            self.eof += 1
-            if self.eof == 3:
-                while self.respuestas > 0:
-                    self.cond.wait()
-                llego = True
-        return llego
-    
 
 class Transformador:
     def __init__(self):
@@ -82,7 +54,7 @@ class Transformador:
 
     def _procesarData(self, mensaje: TransformadorMensajeSistema) -> None:
         if mensaje.clienteId not in self.clientes:
-            self.clientes[mensaje.clienteId] = ClienteLock()
+            self.clientes[mensaje.clienteId] = ClienteLock(TOTALCLASIFICADORES)
         
         self.clientes[mensaje.clienteId].nuevoMensaje()
 
@@ -107,7 +79,6 @@ class Transformador:
             if isinstance(mensaje, FinMensajeSistema): # TODO: esta bien esto?
                 self._procesarEOF(mensaje)
             else:
-                print("ms")
                 self._procesarData(mensaje)
             ack()
         except Exception as e:
@@ -121,12 +92,10 @@ class Transformador:
             mensaje = recvMensajeSistema(bytes)
 
             if self.clientes[mensaje.clienteId].llegadaEof():
-                print("envio EOF")
                 self.colaSumTop.send(mensaje.aBytes())
 
                 nodo = mensaje.clienteId.int % TOTALPROMEDIO
-                #self.exchangePromedio[nodo].send(mensaje.aBytes())
-
+                self.exchangePromedio[nodo].send(mensaje.aBytes())
             ack()
         except Exception as e:
             print(e)

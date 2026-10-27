@@ -36,11 +36,13 @@ def _resumenAPalabras(resumen: str) -> dict[str]:
     return palabrasSinStop
 
 
-def query2(fila: namedtuple) -> None:
+def query2(fila: namedtuple) -> int:
     if fila.date_modified.year <= 2020:
         texto, bio = _seccionATexto(fila.sections)
         if bio:
             print(fila.name)
+            return 1
+    return 0
 
 
 top = {}
@@ -62,12 +64,15 @@ def main() -> None:
 
         dataset = pd.concat([datasetEn, datasetFr])
 
+        i = 0
         for fila in dataset.itertuples():
-            #query2(fila)
-            query4(fila)
+            i += query2(fila)
+            #query4(fila)
+
+        print(i)
             
-        global top
-        print(sorted(top.items(), key=lambda item: item[1], reverse=True)[:20])
+        #global top
+        #print(sorted(top.items(), key=lambda item: item[1], reverse=True)[:20])
 
 
 if __name__ == "__main__":

@@ -10,8 +10,11 @@ MOMHOST = os.environ["MOMHOST"]
 COLASUMTOP = os.environ["COLASUMTOP"]
 EXCHANGETOPPARCIAL = os.environ["EXCHANGETOPPARCIAL"]
 EXCHANGETOPGLOBAL = os.environ["EXCHANGETOPGLOBAL"]
+EXCHANGEPALABRASUNICAS = os.environ["EXCHANGEPALABRASUNICAS"]
 TOTALSUMTOP = int(os.environ["TOTALSUMTOP"])
 TOTALTOPGLOBAL = int(os.environ["TOTALTOPGLOBAL"])
+TOTALPALABRASUNICAS = int(os.environ["TOTALPALABRASUNICAS"])
+TOP_SIZE=20
 ID = os.environ["ID"]
 
 
@@ -35,7 +38,7 @@ class AgregadorTop:
 
     def _top20(self, palabras: dict[str, int]) -> dict[str, int]:
         top = sorted(palabras.items(), key=lambda item: item[1], reverse=True)
-        return dict(top[:20])
+        return dict(top[:TOP_SIZE])
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
         self.clientes[mensaje.clienteId][0] += 1

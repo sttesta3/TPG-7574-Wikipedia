@@ -1,15 +1,16 @@
 import os
 import sys
 import signal
-from mensajesSistema import recvMensajeSistema, FinMensajeSistema, CantidadPalabraMensajeSistema, FinPromMensajeSistema
-from middleware import MessageMiddlewareExchange
-
 import traceback
+from middleware import MessageMiddlewareExchange
+from mensajesSistema import recvMensajeSistema, FinMensajeSistema, CantidadPalabraMensajeSistema, FinPromMensajeSistema
+
 
 MOMHOST = os.environ["MOMHOST"]
 EXCHANGEPROMEDIO = os.environ["EXCHANGEPROMEDIO"]
 EXCHANGECUENTAPROM = os.environ["EXCHANGECUENTAPROM"]
 TOTALCUENTAPROM = int(os.environ["TOTALCUENTAPROM"])
+TOTALTRANSFORMADORES = int(os.environ["TOTALTRANSFORMADORES"])
 ID = os.environ["ID"]
 
 
@@ -25,20 +26,23 @@ class Promedio:
     def _procesarData(self, mensaje: CantidadPalabraMensajeSistema) -> None:
         clienteId = str(mensaje.clienteId)
         if clienteId not in self.clientes:
-            self.clientes[clienteId] = [mensaje.cantidad, 1]
+            self.clientes[clienteId] = [mensaje.cantidad, 1, 0]
         else:
             self.clientes[clienteId][0] += mensaje.cantidad
             self.clientes[clienteId][1] += 1
 
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
-        promedio = self.clientes[str(mensaje.clienteId)][0] // self.clientes[str(mensaje.clienteId)][1] 
-        
-        nodo = mensaje.clienteId.int % TOTALCUENTAPROM
+        self.clientes[str(mensaje.clienteId)][2] += 1
 
-        self.exchangeCuentaProm[nodo].send(FinPromMensajeSistema(mensaje.clienteId, promedio).aBytes())
+        if self.clientes[str(mensaje.clienteId)][2] == TOTALTRANSFORMADORES:
 
-        del self.clientes[str(mensaje.clienteId)]
+            promedio = self.clientes[str(mensaje.clienteId)][0] // self.clientes[str(mensaje.clienteId)][1] 
+            
+            nodo = mensaje.clienteId.int % TOTALCUENTAPROM
+            self.exchangeCuentaProm[nodo].send(FinPromMensajeSistema(mensaje.clienteId, promedio).aBytes())
+
+            del self.clientes[str(mensaje.clienteId)]
         
     
     def procesarMensaje(self, bytes, ack, nack):
@@ -63,7 +67,7 @@ class Promedio:
         self.exchangePromedio.close()
         for i in range(TOTALCUENTAPROM):
             self.exchangeCuentaProm[i].close()
-        sys.exit()
+        sys.exit(0)
 
 
 def main() -> int:

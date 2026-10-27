@@ -1,43 +1,20 @@
 import os
 import sys
 import signal
-import threading
 import aiohttp
 import asyncio
 import traceback
-from mensajesSistema import recvMensajeSistema, FinMensajeSistema, ImgMensajeSistema, Respuesta2MensajeSistema
+import threading
+from clienteLock import ClienteLock
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
+from mensajesSistema import recvMensajeSistema, FinMensajeSistema, ImgMensajeSistema, Respuesta2MensajeSistema
 
 MOMHOST = os.environ["MOMHOST"]
 COLAIMGDESCARGA = os.environ["COLAIMGDESCARGA"]
 COLARESPUESTAS = os.environ["COLARESPUESTAS"]
 EXCHANGEIMGEOF = os.environ["EXCHANGEIMGEOF"]
-
-class ClienteLock():
-    def __init__(self) -> None:
-        self.cond = threading.Condition()
-        self.eof = False
-        self.respuestas = 0
-
-    def nuevoMensaje(self) -> None:
-        with self.cond:
-            self.respuestas += 1
-
-
-    def nuevaRespuesta(self) -> bool:
-        with self.cond:
-            self.respuestas -= 1
-            if self.respuestas <= 0 and self.eof:
-                self.cond.notify_all()
-            
-
-    def llegadaEof(self) -> bool:
-        with self.cond:
-            self.eof = True
-            while self.respuestas > 0:
-                self.cond.wait()
+TOTALCLASIFICADORES = int(os.environ["TOTALCLASIFICADORES"])
     
-
 class ImgDescargador:
     def __init__(self):
         self.eventLoop = asyncio.new_event_loop()
@@ -57,6 +34,7 @@ class ImgDescargador:
         
         imgBytes = b''
         if mensaje.imgUrl != "":
+            # TODO: podria manejar una sola sesion como variable del ImgDescargador
             async with aiohttp.ClientSession(headers={'User-Agent':'Tp-Fiuba/0.0 (https://fi.uba.ar/;shenseler@fi.uba.ar)'}) as session:
                 async with session.get(mensaje.imgUrl) as resp:
                     if resp.status == 200:
@@ -64,7 +42,6 @@ class ImgDescargador:
 
         self.colaRespuestas.send(Respuesta2MensajeSistema(mensaje.clienteId, mensaje.url, mensaje.nombre, imgBytes).aBytes())
         self.clientes[mensaje.clienteId].nuevaRespuesta()
-
 
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
@@ -78,7 +55,7 @@ class ImgDescargador:
                 self._procesarEOF(mensaje)
             else:
                 if mensaje.clienteId not in self.clientes:
-                    self.clientes[mensaje.clienteId] = ClienteLock()
+                    self.clientes[mensaje.clienteId] = ClienteLock(TOTALCLASIFICADORES)
                 
                 self.clientes[mensaje.clienteId].nuevoMensaje()
                 asyncio.run_coroutine_threadsafe(self._procesarData(mensaje), self.eventLoop)
@@ -120,7 +97,14 @@ class ImgDescargador:
 
 
     def manejarSigterm(self) -> None:
-        pass
+        #TODO: los threads
+        self.colaImgDescarga.close()
+        self.colaRespuestas.close()
+        self.exchangeImgEof.close()
+        self.exchangeImgEofSend.close()
+        self.eventLoop.shutdown_asyncgens()
+        self.eventLoop.close()
+        sys.exit(0)
 
 
 def main() -> int:

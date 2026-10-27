@@ -75,6 +75,44 @@ services:
       - COLARESPUESTAS=Respuestas
       - COLAIMGDESCARGA=ImgDescarga
       - COLATRANSFORMADOR=ColaTransformador
+      - CLASIFICADOREXCHANGEEOF=ClasificadorExchangeEof
+
+  clasificador_1:
+    build:
+      context: ./src/
+      dockerfile: clasificador/Dockerfile
+    container_name: clasificador_1
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLADATOS=EntradaDatos
+      - COLARESPUESTAS=Respuestas
+      - COLAIMGDESCARGA=ImgDescarga
+      - COLATRANSFORMADOR=ColaTransformador
+      - CLASIFICADOREXCHANGEEOF=ClasificadorExchangeEof
+
+  clasificador_2:
+    build:
+      context: ./src/
+      dockerfile: clasificador/Dockerfile
+    container_name: clasificador_2
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLADATOS=EntradaDatos
+      - COLARESPUESTAS=Respuestas
+      - COLAIMGDESCARGA=ImgDescarga
+      - COLATRANSFORMADOR=ColaTransformador
 
   img_descargador_0:
     build:
@@ -94,6 +132,7 @@ services:
       - COLARESPUESTAS=Respuestas
       - COLAIMGDESCARGA=ImgDescarga
       - EXCHANGEIMGEOF=ExchangeImgEof
+      - TOTALCLASIFICADORES=3
 
   img_descargador_1:
     build:
@@ -113,6 +152,7 @@ services:
       - COLARESPUESTAS=Respuestas
       - COLAIMGDESCARGA=ImgDescarga
       - EXCHANGEIMGEOF=ExchangeImgEof
+      - TOTALCLASIFICADORES=3
 
   transformador_0:
     build:
@@ -133,9 +173,11 @@ services:
       - COLASUMTOP=ColaSumTop
       - EXCHANGEPROMEDIO=ExchangePromedio
       - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
       - TOTALCUENTAPROM=2
       - TOTALPROMEDIO=2
-
+      - TOTALCLASIFICADORES=3
+  
   transformador_1:
     build:
       context: ./src/
@@ -155,8 +197,10 @@ services:
       - COLASUMTOP=ColaSumTop
       - EXCHANGEPROMEDIO=ExchangePromedio
       - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
       - TOTALCUENTAPROM=2
       - TOTALPROMEDIO=2
+      - TOTALCLASIFICADORES=3
 
   cuenta_prom_0:
     build:
@@ -220,6 +264,7 @@ services:
       - EXCHANGECUENTAPROM=ExchangeCuentaProm
       - EXCHANGEPROMEDIO=ExchangePromedio
       - TOTALCUENTAPROM=1
+      - TOTALTRANSFORMADORES=2
       - ID=0
 
   promedio_1:
@@ -242,5 +287,134 @@ services:
       - EXCHANGECUENTAPROM=ExchangeCuentaProm
       - EXCHANGEPROMEDIO=ExchangePromedio
       - TOTALCUENTAPROM=2
+      - TOTALTRANSFORMADORES=2
       - ID=1
 
+  sum_top_0:
+    build:
+      context: ./src/
+      dockerfile: sumTop/Dockerfile
+    container_name: sum_top_0
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        clasificador_0:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLASUMTOP=ColaSumTop
+      - EXCHANGESUMTOPEOF=ExchangeSumTopEof
+      - EXCHANGETOPPARCIAL=ExchangeTopParcial
+      - TOTALTOPPARCIAL=1
+      - TOTALTRANSFORMADORES=2
+
+  sum_top_1:
+    build:
+      context: ./src/
+      dockerfile: sumTop/Dockerfile
+    container_name: sum_top_1
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        clasificador_0:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLASUMTOP=ColaSumTop
+      - EXCHANGESUMTOPEOF=ExchangeSumTopEof
+      - EXCHANGETOPPARCIAL=ExchangeTopParcial
+      - TOTALTOPPARCIAL=1
+      - TOTALTRANSFORMADORES=2
+
+  agregador_top_0:
+    build:
+      context: ./src/
+      dockerfile: agregadorTop/Dockerfile
+    container_name: agregador_top_0
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        clasificador_0:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLASUMTOP=ColaSumTop
+      - EXCHANGESUMTOPEOF=ExchangeSumTopEof
+      - EXCHANGETOPPARCIAL=ExchangeTopParcial
+      - EXCHANGETOPGLOBAL=ExchangeTopGlobal
+      - TOTALTOPGLOBAL=2
+      - TOTALSUMTOP=2
+      - ID=0
+
+  agregador_top_1:
+    build:
+      context: ./src/
+      dockerfile: agregadorTop/Dockerfile
+    container_name: agregador_top_1
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        clasificador_0:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLASUMTOP=ColaSumTop
+      - EXCHANGESUMTOPEOF=ExchangeSumTopEof
+      - EXCHANGETOPPARCIAL=ExchangeTopParcial
+      - EXCHANGETOPGLOBAL=ExchangeTopGlobal
+      - TOTALTOPGLOBAL=2
+      - TOTALSUMTOP=2
+      - ID=1
+
+  join_top_0:
+    build:
+      context: ./src/
+      dockerfile: joinTop/Dockerfile
+    container_name: join_top_0
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        clasificador_0:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLARESPUESTAS=Respuestas
+      - EXCHANGETOPGLOBAL=ExchangeTopGlobal
+      - TOTALTOPPARCIAL=2
+      - ID=0
+
+  join_top_1:
+    build:
+      context: ./src/
+      dockerfile: joinTop/Dockerfile
+    container_name: join_top_1
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        clasificador_0:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLARESPUESTAS=Respuestas
+      - EXCHANGETOPGLOBAL=ExchangeTopGlobal
+      - TOTALTOPPARCIAL=2
+      - ID=1
+    

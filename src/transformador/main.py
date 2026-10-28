@@ -97,6 +97,8 @@ class Transformador:
 
                 nodo = mensaje.clienteId.int % TOTALPROMEDIO
                 self.exchangePromedio[nodo].send(mensaje.aBytes())
+
+                del self.clientes[mensaje.clienteId]
             ack()
         except Exception as e:
             print(e)

@@ -8,13 +8,16 @@ services:
       rabbitmq:
         condition: service_healthy
     environment:
+      - PYTHONUNBUFFERED=1
       - GATEWAYHOST=gateway
       - GATEWAYPORT=8000
       - MOMHOST=rabbitmq
       - COLADATOS=EntradaDatos
       - COLARESPUESTAS=Respuestas
       - LOTE=10
-      - PYTHONUNBUFFERED=1
+      - TOTALIMGEOF=2
+      - TOTALPROMEOF=1
+      - TOTALTOPEOF=1
     healthcheck:
       test: ["CMD", "python3", "-c", "import socket; s=socket.create_connection(('127.0.0.1', 8000), timeout=2); s.close()"]
       interval: 2s
@@ -57,6 +60,7 @@ services:
     - PYTHONUNBUFFERED=1
     volumes:
     - ./datasets:/datasets
+    - ./output:/output
 
   clasificador_0:
     build:

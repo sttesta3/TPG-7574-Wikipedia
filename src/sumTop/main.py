@@ -73,6 +73,8 @@ class SumTop:
                     self.excahangeTopParciales[i].send(mensaje.aBytes())
                     self.excahangeTopParciales[i].send(FinMensajeSistema(mensaje.clienteId).aBytes())
 
+                del self.clientesLock[mensaje.clienteId]
+                del self.clientes[mensaje.clienteId]
                 
             ack()
         except Exception as e:

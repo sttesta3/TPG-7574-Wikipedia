@@ -1,7 +1,7 @@
 import socket
 from abc import ABC, abstractmethod
 from safeSocket import safeRecv, safeSend
-from mensajesCliente import FIN_MENSAJE
+from mensajesCliente import FIN_MENSAJE, FinMensaje
 
 RESPUESTA1_MENSAJE = b'\x01'
 RESPUESTA2_MENSAJE = b'\x02'
@@ -188,5 +188,7 @@ def recvMensaje(socket: socket.socket) -> Respuesta:
         return obtenerRespuesta(socket, Respuesta4Mensaje())
     if type == RESPUESTA5_MENSAJE:
         return obtenerRespuesta(socket, Respuesta5Mensaje())
+    if type == FIN_MENSAJE:
+        return FinMensaje(None)
     else:
         return None

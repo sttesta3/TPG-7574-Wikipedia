@@ -31,6 +31,7 @@ class CuentaProm:
                 if int(cantidad) > mensaje.promedio:
                     self.colaRespuestas.send(Respuesta5MensajeSistema(mensaje.clienteId,  url, int(cantidad)).aBytes())
         self.colaRespuestas.send(FinMensajeSistema(mensaje.clienteId).aBytes())
+        
         os.remove(str(mensaje.clienteId))
         del self.clientes[str(mensaje.clienteId)]
         

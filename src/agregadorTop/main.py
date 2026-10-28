@@ -43,8 +43,9 @@ class AgregadorTop:
             nodo = mensaje.clienteId.int % TOTALTOPGLOBAL
             self.exchangeTopGlobal[nodo].send(PalabrasMensajeSistema(clienteId=mensaje.clienteId, palabras=self._top20(self.clientes[mensaje.clienteId][1]), url="", lenguaje=0).aBytes())    
             self.exchangeTopGlobal[nodo].send(FinMensajeSistema(mensaje.clienteId).aBytes())
+            
             del self.clientes[mensaje.clienteId]
-
+            
 
     def procesarMensaje(self, bytes, ack, nack):
         try:

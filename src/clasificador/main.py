@@ -68,6 +68,8 @@ class Clasificador:
             if self.clientes[mensaje.clienteId].llegadaEof():
                 self.colaImgDescarga.send(mensaje.aBytes())
                 self.colaTransformador.send(mensaje.aBytes())
+                
+                del self.clientes[mensaje.clienteId]
 
             ack()
         except Exception as e:

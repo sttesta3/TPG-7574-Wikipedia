@@ -113,6 +113,7 @@ services:
       - COLARESPUESTAS=Respuestas
       - COLAIMGDESCARGA=ImgDescarga
       - COLATRANSFORMADOR=ColaTransformador
+      - CLASIFICADOREXCHANGEEOF=ClasificadorExchangeEof
 
   img_descargador_0:
     build:
@@ -308,7 +309,7 @@ services:
       - COLASUMTOP=ColaSumTop
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
-      - TOTALTOPPARCIAL=1
+      - TOTALTOPPARCIAL=2
       - TOTALTRANSFORMADORES=2
 
   sum_top_1:
@@ -329,7 +330,7 @@ services:
       - COLASUMTOP=ColaSumTop
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
-      - TOTALTOPPARCIAL=1
+      - TOTALTOPPARCIAL=2
       - TOTALTRANSFORMADORES=2
 
   agregador_top_0:

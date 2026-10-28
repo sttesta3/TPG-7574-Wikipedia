@@ -73,8 +73,8 @@ class ImgDescargador:
                 if mensaje.clienteId not in self.clientes:
                     self.clientes[mensaje.clienteId] = ClienteLock()
 
-                self.clientes[mensaje.clienteId].llegadaEof()
-                asyncio.run_coroutine_threadsafe(self._procesarData(ImgMensajeSistema(mensaje.clienteId), True), self.eventLoop)
+                if self.clientes[mensaje.clienteId].llegadaEof():
+                    asyncio.run_coroutine_threadsafe(self._procesarData(ImgMensajeSistema(mensaje.clienteId), True), self.eventLoop)
                 
                 ack()
             except Exception as e:

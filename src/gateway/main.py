@@ -47,8 +47,7 @@ def manejarRespuesta(clientes: dict) -> None:
             clienteId = respuesta.clienteId
             clienteSocket = clientes[clienteId]
             if isinstance(respuesta, FinMensajeSistema):
-                print(f"LLego EOF {respuesta.clienteId}")
-                print(a)
+                print(f"LLego EOF {respuesta.clienteId} - {a}")
                 # TODO: manejar EOF
                 #sendRespuesta(clienteSocket, EOF)
                 clientes[clienteId] = None

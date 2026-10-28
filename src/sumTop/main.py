@@ -59,11 +59,6 @@ class SumTop:
             nack()
 
 
-    def _top20(self, palabras: dict[str, int]) -> dict[str, int]:
-        top = sorted(palabras.items(), key=lambda item: item[1], reverse=True)
-        return dict(top[:20])
-
-
     def _manejarEof(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)

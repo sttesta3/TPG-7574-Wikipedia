@@ -14,11 +14,14 @@ COLAIMGDESCARGA = os.environ["COLAIMGDESCARGA"]
 COLARESPUESTAS = os.environ["COLARESPUESTAS"]
 EXCHANGEIMGEOF = os.environ["EXCHANGEIMGEOF"]
 TOTALCLASIFICADORES = int(os.environ["TOTALCLASIFICADORES"])
-    
+MAXCLIENTES = int(os.environ["MAXCLIENTES"])
+
 class ImgDescargador:
     def __init__(self):
         self.eventLoop = asyncio.new_event_loop()
         self.clientes = {}
+        self.lock = threading.Lock()
+        self.maxClientes = 0
 
         self.colaImgDescarga = MessageMiddlewareQueue(MOMHOST, COLAIMGDESCARGA)
         self.colaRespuestas = MessageMiddlewareQueue(MOMHOST, COLARESPUESTAS)
@@ -42,6 +45,8 @@ class ImgDescargador:
 
         self.colaRespuestas.send(Respuesta2MensajeSistema(mensaje.clienteId, mensaje.url, mensaje.nombre, imgBytes).aBytes())
         self.clientes[mensaje.clienteId].nuevaRespuesta()
+        with self.lock:
+            self.maxClientes -= 1
 
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
@@ -68,13 +73,20 @@ class ImgDescargador:
     def _controlarEof(self):
         
         def manejarEof(bytes, ack, nack):
+            with self.lock:
+                if self.maxClientes < MAXCLIENTES:
+                    self.maxClientes += 1
+                else:
+                    nack()
+                    return
+
             try:
                 mensaje = recvMensajeSistema(bytes)
                 if mensaje.clienteId not in self.clientes:
                     self.clientes[mensaje.clienteId] = ClienteLock()
 
-                self.clientes[mensaje.clienteId].llegadaEof()
-                asyncio.run_coroutine_threadsafe(self._procesarData(ImgMensajeSistema(mensaje.clienteId), True), self.eventLoop)
+                if self.clientes[mensaje.clienteId].llegadaEof():
+                    asyncio.run_coroutine_threadsafe(self._procesarData(ImgMensajeSistema(mensaje.clienteId), True), self.eventLoop)
                 
                 ack()
             except Exception as e:

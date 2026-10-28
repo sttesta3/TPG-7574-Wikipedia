@@ -27,7 +27,6 @@ class JoinTop:
 
         self.clientes[mensaje.clienteId][1] = self.clientes[mensaje.clienteId][1] | mensaje.palabras
 
-
     def _top20(self, palabras: dict[str, int]) -> dict[str, int]:
         top = sorted(palabras.items(), key=lambda item: item[1], reverse=True)
         return dict(top[:20])
@@ -36,8 +35,7 @@ class JoinTop:
         self.clientes[mensaje.clienteId][0] += 1
 
         if self.clientes[mensaje.clienteId][0] == TOTALTOPPARCIAL:
-
-            self.colaRespuestas.send(Respuesta4MensajeSistema(self._top20(self.clientes[mensaje.clienteId][1])).aBytes())
+            self.colaRespuestas.send(Respuesta4MensajeSistema(mensaje.clienteId, self._top20(self.clientes[mensaje.clienteId][1])).aBytes())
             self.colaRespuestas.send(mensaje.aBytes())
             del self.clientes[mensaje.clienteId]
 

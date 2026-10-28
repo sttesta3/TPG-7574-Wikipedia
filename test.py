@@ -7,7 +7,7 @@ from collections import namedtuple
 
 DATASETPATHEN = "datasets/enwiki_namespace_0_"
 DATASETPATHFR = "datasets/frwiki_namespace_0_"
-TOTALDATASETS = 1
+TOTALDATASETS = 5
 
 WORD_REGEX = r'\b\w+\b'
 NUMBER_REGEX = r'[+-]?((\d+\.?\d*)|(\.\d+))'
@@ -58,22 +58,22 @@ def query4(fila: namedtuple) -> None:
 
 
 def main() -> None:
+    j = 0
     for i in range(TOTALDATASETS):
         datasetEn = pd.read_parquet(DATASETPATHEN + str(i).zfill(5) + ".parquet")
         datasetFr = pd.read_parquet(DATASETPATHFR + str(i).zfill(5) + ".parquet")
 
         dataset = pd.concat([datasetEn, datasetFr])
 
-        i = 0
         for fila in dataset.itertuples():
-            i += query2(fila)
+            j += query2(fila)
             #query4(fila)
 
-        print(i)
             
         #global top
         #print(sorted(top.items(), key=lambda item: item[1], reverse=True)[:20])
 
+    print(j)
 
 if __name__ == "__main__":
     main()

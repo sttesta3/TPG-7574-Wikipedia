@@ -3,20 +3,21 @@ import uuid
 import socket
 import signal
 import multiprocessing
-from mensajesCliente import recvMensaje
+from mensajesCliente import recvMensaje, FinMensaje
 from mensajesGateway import sendRespuesta
-from mensajesSistema import FinMensajeSistema, Respuesta2MensajeSistema, Respuesta4MensajeSistema, LoteDataMensajeSistema, recvMensajeSistema
+from mensajesSistema import FinMensajeSistema, LoteDataMensajeSistema, recvMensajeSistema
 from middleware import MessageMiddlewareQueue
-
-MOMHOST = os.environ["MOMHOST"]
-COLADATOS = os.environ["COLADATOS"]
-COLARESPUESTAS = os.environ["COLARESPUESTAS"]
 
 GATEWAYHOST = os.environ["GATEWAYHOST"]
 GATEWAYPORT = int(os.environ["GATEWAYPORT"])
 LOTE = int(os.environ["LOTE"])
+MOMHOST = os.environ["MOMHOST"]
+COLADATOS = os.environ["COLADATOS"]
+COLARESPUESTAS = os.environ["COLARESPUESTAS"]
 
-a = 0
+TOTALIMGEOF = int(os.environ["TOTALIMGEOF"])
+TOTALPROMEOF = int(os.environ["TOTALPROMEOF"])
+TOTALTOPEOF = int(os.environ["TOTALTOPEOF"])
 
 def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
     try:
@@ -41,22 +42,20 @@ def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
 def manejarRespuesta(clientes: dict) -> None:
     colaRespuestas = MessageMiddlewareQueue(MOMHOST, COLARESPUESTAS)
     def _consumirRespuesta(message: bytes, ack, nack):
-        global a
         try:
             respuesta = recvMensajeSistema(message)
             clienteId = respuesta.clienteId
-            clienteSocket = clientes[clienteId]
+            clienteSocket = clientes[clienteId][0]
             if isinstance(respuesta, FinMensajeSistema):
-                print(f"LLego EOF {respuesta.clienteId} - {a}")
-                # TODO: manejar EOF
-                #sendRespuesta(clienteSocket, EOF)
-                clientes[clienteId] = None
+                cliente = clientes[clienteId]
+                cliente[1] += 1
+                clientes[clienteId] = cliente
+                print(f"LLego EOF {respuesta.clienteId} - {clientes[clienteId][1]}")
+                if clientes[clienteId][1] == TOTALIMGEOF + TOTALPROMEOF + TOTALTOPEOF:
+                    print("mando")
+                    FinMensaje(clienteSocket).send()
+                    del clientes[clienteId]
             else:
-                if isinstance(respuesta, Respuesta2MensajeSistema):
-                    a +=1
-                if isinstance(respuesta, Respuesta4MensajeSistema):
-                    print(respuesta.palabras)
-                
                 sendRespuesta(clienteSocket, respuesta.aRespuestaGateway())
             ack()
         except Exception as e:
@@ -88,7 +87,7 @@ def main() -> None:
                     try:
                         clientSocket, _ = serverSocket.accept()
                         clientId = uuid.uuid4()
-                        clientes[clientId] = clientSocket
+                        clientes[clientId] = [clientSocket, 0]
 
                         processes_pool.apply_async(manejarPeticion, args=(clientId, clientSocket))
                     except socket.error:

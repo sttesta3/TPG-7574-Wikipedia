@@ -65,10 +65,9 @@ class Clasificador:
         try:
             mensaje = recvMensajeSistema(bytes)
 
-            self.clientes[mensaje.clienteId].llegadaEof()
-            
-            self.colaImgDescarga.send(mensaje.aBytes())
-            self.colaTransformador.send(mensaje.aBytes())
+            if self.clientes[mensaje.clienteId].llegadaEof():
+                self.colaImgDescarga.send(mensaje.aBytes())
+                self.colaTransformador.send(mensaje.aBytes())
 
             ack()
         except Exception as e:

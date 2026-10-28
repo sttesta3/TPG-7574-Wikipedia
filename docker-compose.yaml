@@ -134,6 +134,7 @@ services:
       - COLAIMGDESCARGA=ImgDescarga
       - EXCHANGEIMGEOF=ExchangeImgEof
       - TOTALCLASIFICADORES=3
+      - MAXCLIENTES=10
 
   img_descargador_1:
     build:
@@ -154,6 +155,7 @@ services:
       - COLAIMGDESCARGA=ImgDescarga
       - EXCHANGEIMGEOF=ExchangeImgEof
       - TOTALCLASIFICADORES=3
+      - MAXCLIENTES=10
 
   transformador_0:
     build:

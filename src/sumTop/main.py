@@ -31,9 +31,10 @@ class SumTop:
         with self.lock:
             if mensaje.clienteId not in self.clientes:
                 self.clientes[mensaje.clienteId] = {}
+                self.clientes[mensaje.clienteId][mensaje.language] = {}
 
             for clave, valor in mensaje.palabras.items():
-                self.clientes[mensaje.clienteId][clave] = self.clientes[mensaje.clienteId].get(clave, 0) + valor
+                self.clientes[mensaje.clienteId][mensaje.language][clave] = self.clientes[mensaje.clienteId][mensaje.language].get(clave, 0) + valor
 
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
@@ -60,16 +61,17 @@ class SumTop:
             mensaje = recvMensajeSistema(bytes)
             with self.lock:
                 nodos = [{} for _ in range(TOTALTOPPARCIAL)]
-                for clave, valor in self.clientes[mensaje.clienteId].items():
-                    i = int.from_bytes(clave.encode("UTF-8")) % TOTALTOPPARCIAL
-                    nodos[i][clave] = valor
+                for lenguaje, palabras in self.clientes[mensaje.clienteId].items():
+                    for clave, valor in palabras:
+                        i = int.from_bytes(clave.encode("UTF-8")) % TOTALTOPPARCIAL
+                        nodos[i][lenguaje][clave] = valor
 
                 for i in range(TOTALTOPPARCIAL):
-                    print(f"MANDO: {nodos[i]}")
-                    mensaje = PalabrasMensajeSistema(palabras=nodos[i], clienteId=mensaje.clienteId, url="", lenguaje=0)
-                    self.excahangeTopParciales[i].send(mensaje.aBytes())
+                    for lenguaje, palabras in nodos[i]:
+                        print(f"MANDO: {nodos[i]}")
+                        mensaje = PalabrasMensajeSistema(palabras=palabras, clienteId=mensaje.clienteId, url="", lenguaje=lenguaje)
+                        self.excahangeTopParciales[i].send(mensaje.aBytes())
                     self.excahangeTopParciales[i].send(FinMensajeSistema(mensaje.clienteId).aBytes())
-
                 
             ack()
         except Exception as e:

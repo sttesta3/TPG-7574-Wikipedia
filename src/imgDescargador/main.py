@@ -5,7 +5,7 @@ import threading
 import aiohttp
 import asyncio
 import traceback
-from mensajesSistema import recvMensajeSistema, FinMensajeSistema, ImgMensajeSistema, Respuesta2MensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, ImgMensajeSistema, Respuesta2MensajeSistema
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
 
 MOMHOST = os.environ["MOMHOST"]

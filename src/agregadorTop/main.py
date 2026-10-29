@@ -1,13 +1,14 @@
 import os
 import sys
 import signal
-from mensajesSistema import recvMensajeSistema, FinMensajeSistema, TransformadorMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, TransformadorMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema, Respuesta3MensajeSistema
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
 
 import traceback
 
 MOMHOST = os.environ["MOMHOST"]
 COLASUMTOP = os.environ["COLASUMTOP"]
+COLARESPUESTAS = os.environ["COLARESPUESTAS"]
 EXCHANGETOPPARCIAL = os.environ["EXCHANGETOPPARCIAL"]
 EXCHANGETOPGLOBAL = os.environ["EXCHANGETOPGLOBAL"]
 EXCHANGEPALABRASUNICAS = os.environ["EXCHANGEPALABRASUNICAS"]
@@ -24,6 +25,7 @@ class AgregadorTop:
         self.exchangeTopGlobal = []
         for i in range(TOTALTOPGLOBAL):
             self.exchangeTopGlobal.append(MessageMiddlewareExchange(MOMHOST, EXCHANGETOPGLOBAL, [EXCHANGETOPGLOBAL+"_"+str(i)]))
+        self.colaRespuestas = MessageMiddlewareQueue(MOMHOST, COLARESPUESTAS)
          
         self.clientes = {}
 
@@ -31,11 +33,12 @@ class AgregadorTop:
     def _procesarData(self, mensaje: PalabrasMensajeSistema) -> None:
         if mensaje.clienteId not in self.clientes:
             self.clientes[mensaje.clienteId] = [0, {}]
-
+        if mensaje.language not in self.clientes[mensaje.clienteId][1]:
+            self.clientes[mensaje.clienteId][1][mensaje.lenguaje] = {}
+            
         for clave, valor in mensaje.palabras.items():
-            self.clientes[mensaje.clienteId][1][clave] = self.clientes[mensaje.clienteId][1].get(clave, 0) + valor
-
-
+            self.clientes[mensaje.clienteId][1][mensaje.lenguaje][clave] = self.clientes[mensaje.clienteId][1][mensaje.lenguaje].get(clave, 0) + valor
+        
     def _top20(self, palabras: dict[str, int]) -> dict[str, int]:
         top = sorted(palabras.items(), key=lambda item: item[1], reverse=True)
         return dict(top[:TOP_SIZE])
@@ -43,9 +46,22 @@ class AgregadorTop:
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
         self.clientes[mensaje.clienteId][0] += 1
         if self.clientes[mensaje.clienteId][0] == TOTALSUMTOP:
+            
             print(self._top20(self.clientes[mensaje.clienteId][1]))
+
+            duplicadas = []
+            lenguajes = self.clientes[mensaje.clienteId][1].keys()
+            mergedTop = self.clientes[mensaje.clienteId][1][lenguajes[0]]
+            for palabra, cuenta in self.clientes[mensaje.clienteId][1][lenguajes[1]].items():
+                if palabra in mergedTop:
+                    mergedTop[palabra] += cuenta
+                    duplicadas.append(palabra) # TODO: Puede encolarse en respuestas tipo streaming 
+                else:
+                    mergedTop[palabra] = cuenta                
+            self.colaRespuestas.send(Respuesta3MensajeSistema(clienteId=mensaje.clienteId, palabras=duplicadas))
+                
             nodo = mensaje.clienteId.int % TOTALTOPGLOBAL
-            self.exchangeTopGlobal[nodo].send(PalabrasMensajeSistema(clienteId=mensaje.clienteId, palabras=self._top20(self.clientes[mensaje.clienteId][1]), url="", lenguaje=0).aBytes())    
+            self.exchangeTopGlobal[nodo].send(PalabrasMensajeSistema(clienteId=mensaje.clienteId, palabras=self._top20(mergedTop), url="", lenguaje=0).aBytes())    
             self.exchangeTopGlobal[nodo].send(FinMensajeSistema(mensaje.clienteId).aBytes())
             del self.clientes[mensaje.clienteId]
 

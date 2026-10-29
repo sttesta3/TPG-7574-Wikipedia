@@ -31,6 +31,7 @@ class SumTop:
         with self.lock:
             if mensaje.clienteId not in self.clientes:
                 self.clientes[mensaje.clienteId] = {}
+            if mensaje.language not in self.clientes[mensaje.clienteId]: 
                 self.clientes[mensaje.clienteId][mensaje.language] = {}
 
             for clave, valor in mensaje.palabras.items():

@@ -19,6 +19,31 @@ TOP_SIZE=20
 ID = os.environ["ID"]
 
 
+class PalabrasPorIdioma:
+    def __init__(self):
+        self.palabras = {}
+
+    def add(self, cantidad: int, lenguaje, palabra: str) -> bool:
+        '''
+        recibe lenguaje, palabra, cantidad 
+        actualiza la lista de palabras y devuelve True para la PRIMERA detección de palabra compartida  
+        '''
+        duplicada = False
+        actual = self.palabras.get(palabra, [0,{}]) # [conteo de apariciones de la palabra, { idioma: 1 } (tabla de hash de idiomas)]
+        actual[0] += cantidad
+        if not lenguaje in actual[1]:
+            actual[1][lenguaje] = 1
+            # Nota: Esta pensado para dos idiomas 
+            duplicada = len(actual[1]) == 2
+        self.palabras[palabra] = actual
+        return duplicada
+
+    def mergeTop(self) -> dict[str, int]:
+        result = {}
+        for clave, valor in self.palabras.items():
+            result[clave] = valor[0]
+        return result
+    
 class AgregadorTop:
     def __init__(self):
         self.exchangeTopParcial = MessageMiddlewareExchange(MOMHOST, EXCHANGETOPPARCIAL, [EXCHANGETOPPARCIAL+"_"+str(ID)])
@@ -32,12 +57,12 @@ class AgregadorTop:
 
     def _procesarData(self, mensaje: PalabrasMensajeSistema) -> None:
         if mensaje.clienteId not in self.clientes:
-            self.clientes[mensaje.clienteId] = [0, {}]
-        if mensaje.language not in self.clientes[mensaje.clienteId][1]:
-            self.clientes[mensaje.clienteId][1][mensaje.lenguaje] = {}
+            self.clientes[mensaje.clienteId] = [0, PalabrasPorIdioma()]
             
         for clave, valor in mensaje.palabras.items():
-            self.clientes[mensaje.clienteId][1][mensaje.lenguaje][clave] = self.clientes[mensaje.clienteId][1][mensaje.lenguaje].get(clave, 0) + valor
+            if self.clientes[mensaje.clienteId].add(palabra=clave, cantidad=valor, lenguaje=mensaje.lenguaje):
+                # Palabra duplicada. Implementacion tipo "streaming"
+                self.colaRespuestas.send(Respuesta3MensajeSistema(clienteId=mensaje.clienteId, palabra=clave))
         
     def _top20(self, palabras: dict[str, int]) -> dict[str, int]:
         top = sorted(palabras.items(), key=lambda item: item[1], reverse=True)
@@ -46,22 +71,10 @@ class AgregadorTop:
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
         self.clientes[mensaje.clienteId][0] += 1
         if self.clientes[mensaje.clienteId][0] == TOTALSUMTOP:
-            
-            print(self._top20(self.clientes[mensaje.clienteId][1]))
+#            print(self._top20(self.clientes[mensaje.clienteId][1]))
 
-            duplicadas = []
-            lenguajes = self.clientes[mensaje.clienteId][1].keys()
-            mergedTop = self.clientes[mensaje.clienteId][1][lenguajes[0]]
-            for palabra, cuenta in self.clientes[mensaje.clienteId][1][lenguajes[1]].items():
-                if palabra in mergedTop:
-                    mergedTop[palabra] += cuenta
-                    duplicadas.append(palabra) # TODO: Puede encolarse en respuestas tipo streaming 
-                else:
-                    mergedTop[palabra] = cuenta                
-            self.colaRespuestas.send(Respuesta3MensajeSistema(clienteId=mensaje.clienteId, palabras=duplicadas))
-                
             nodo = mensaje.clienteId.int % TOTALTOPGLOBAL
-            self.exchangeTopGlobal[nodo].send(PalabrasMensajeSistema(clienteId=mensaje.clienteId, palabras=self._top20(mergedTop), url="", lenguaje=0).aBytes())    
+            self.exchangeTopGlobal[nodo].send(PalabrasMensajeSistema(clienteId=mensaje.clienteId, palabras=self._top20(self.clientes[mensaje.clienteId][1].mergeTop()), url="", lenguaje=0).aBytes())    
             self.exchangeTopGlobal[nodo].send(FinMensajeSistema(mensaje.clienteId).aBytes())
             del self.clientes[mensaje.clienteId]
 

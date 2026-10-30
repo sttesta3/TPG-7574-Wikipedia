@@ -1,4 +1,4 @@
-FROM nodo-base
+FROM nodo-base:latest
 
 COPY imgDescargador/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt

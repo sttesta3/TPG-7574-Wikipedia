@@ -1,4 +1,4 @@
-FROM nodo-base
+FROM nodo-base:latest
 
 COPY joinTop .
 

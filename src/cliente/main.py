@@ -62,7 +62,7 @@ def main():
     coneccion.connect((GATEWAYHOST, GATEWAYPORT))
     signal.signal(signal.SIGTERM, lambda signum, frame: manejarSigterm(coneccion))
 
-    logging.info("Iniciando cliente..."
+    logging.info("Iniciando cliente...")
     emisor = threading.Thread(
         target=enviarParquet,
         args=(coneccion,),

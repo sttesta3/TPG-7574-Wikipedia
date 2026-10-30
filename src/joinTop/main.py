@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 import signal
 import traceback
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
@@ -49,8 +50,8 @@ class JoinTop:
                 self._procesarData(mensaje)
             ack()
         except Exception as e:
-            print(e)
-            print(traceback.format_exc())
+            logging.info(e)
+            logging.info(traceback.format_exc())
             nack()
 
 

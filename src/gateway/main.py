@@ -1,5 +1,6 @@
 import os
 import uuid
+import logging
 import socket
 import signal
 import multiprocessing
@@ -30,11 +31,12 @@ def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
                 eof = True
                 colaDatos.send(FinMensajeSistema(clienteId).aBytes())
             else:
+                logging.info(f"Cliente {clienteId} mensaje {mensaje}")
                 colaDatos.send(LoteDataMensajeSistema(clienteId, mensaje).aBytes())
     except socket.error:
-        print("The connection with the server was lost")
+        logging.info("The connection with the server was lost")
     except Exception as e:
-        print(e)
+        logging.info(e)
     finally:
         colaDatos.close()
 
@@ -50,16 +52,16 @@ def manejarRespuesta(clientes: dict) -> None:
                 cliente = clientes[clienteId]
                 cliente[1] += 1
                 clientes[clienteId] = cliente
-                print(f"LLego EOF {respuesta.clienteId} - {clientes[clienteId][1]}")
+                logging.info(f"LLego EOF {respuesta.clienteId} - {clientes[clienteId][1]}")
                 if clientes[clienteId][1] == TOTALIMGEOF + TOTALPROMEOF + TOTALTOPEOF:
-                    print("mando")
+                    logging.info("mando")
                     FinMensaje(clienteSocket).send()
                     del clientes[clienteId]
             else:
                 sendRespuesta(clienteSocket, respuesta.aRespuestaGateway())
             ack()
         except Exception as e:
-            print(e)
+            logging.info(e)
             nack()
         
     colaRespuestas.start_consuming(_consumirRespuesta)
@@ -96,7 +98,7 @@ def main() -> None:
                         else:
                             return 0
                     except Exception as e:
-                        print(e)
+                        logging.info(e)
                         return 2
     return 0
 

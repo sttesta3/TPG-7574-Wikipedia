@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 import signal
 import traceback
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
@@ -69,7 +70,7 @@ class AgregadorTop:
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
         self.clientes[mensaje.clienteId][0] += 1
         if self.clientes[mensaje.clienteId][0] == TOTALSUMTOP:
-#            print(self._top20(self.clientes[mensaje.clienteId][1]))
+#            logging.info(self._top20(self.clientes[mensaje.clienteId][1]))
 
             nodo = mensaje.clienteId.int % TOTALTOPGLOBAL
             self.exchangeTopGlobal[nodo].send(PalabrasMensajeSistema(clienteId=mensaje.clienteId, palabras=self._top20(self.clientes[mensaje.clienteId][1].mergeTop()), url="", lenguaje=0).aBytes())    
@@ -87,8 +88,8 @@ class AgregadorTop:
                 self._procesarData(mensaje)
             ack()
         except Exception as e:
-            print(e)
-            print(traceback.format_exc())
+            logging.info(e)
+            logging.info(traceback.format_exc())
             nack()
 
     def iniciar(self):

@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 import signal
 import traceback
 import threading
@@ -53,8 +54,8 @@ class SumTop:
                 self._procesarData(mensaje)
             ack()
         except Exception as e:
-            print(e)
-            print(traceback.format_exc())
+            logging.info(e)
+            logging.info(traceback.format_exc())
             nack()
 
 
@@ -70,7 +71,7 @@ class SumTop:
 
                 for i in range(TOTALTOPPARCIAL):
                     for lenguaje, palabras in nodos[i]:
-                        print(f"MANDO: {nodos[i]}")
+                        logging.info(f"MANDO: {nodos[i]}")
                         mensaje = PalabrasMensajeSistema(palabras=palabras, clienteId=mensaje.clienteId, url="", lenguaje=lenguaje)
                         self.excahangeTopParciales[i].send(mensaje.aBytes())
                     self.excahangeTopParciales[i].send(FinMensajeSistema(mensaje.clienteId).aBytes())
@@ -80,7 +81,7 @@ class SumTop:
                 
             ack()
         except Exception as e:
-            print(e)
+            logging.info(e)
             nack()
     
     

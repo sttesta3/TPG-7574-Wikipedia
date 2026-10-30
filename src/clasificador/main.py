@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 import signal
 import threading
 from clienteLock import ClienteLock
@@ -57,7 +58,7 @@ class Clasificador:
                 self._procesarData(mensaje)
             ack()
         except Exception as e:
-            print(e)
+            logging.info(e)
             nack()
 
 
@@ -73,7 +74,7 @@ class Clasificador:
 
             ack()
         except Exception as e:
-            print(e)
+            logging.info(e)
             nack()
 
     

@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 import signal
 import aiohttp
 import asyncio
@@ -66,7 +67,7 @@ class ImgDescargador:
                 asyncio.run_coroutine_threadsafe(self._procesarData(mensaje), self.eventLoop)
             ack()
         except Exception as e:
-            print(e)
+            logging.info(e)
             ack()
 
 
@@ -90,8 +91,8 @@ class ImgDescargador:
                 
                 ack()
             except Exception as e:
-                print(e)
-                print(traceback.format_exc())
+                logging.info(e)
+                logging.info(traceback.format_exc())
                 nack()
 
         self.exchangeImgEof.start_consuming(manejarEof)

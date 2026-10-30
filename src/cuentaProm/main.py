@@ -1,5 +1,6 @@
 import os
 import sys
+import logging
 import signal
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
 from protocolo.mensajesSistema import recvMensajeSistema, FinPromMensajeSistema, CantidadPalabraMensajeSistema, Respuesta5MensajeSistema, FinMensajeSistema
@@ -45,7 +46,7 @@ class CuentaProm:
                 self._procesarData(mensaje)
             ack()
         except Exception as e:
-            print(e)
+            logging.info(e)
             nack()
 
 

@@ -1,10 +1,10 @@
 import os
 import sys
 import signal
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, TransformadorMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema, Respuesta3MensajeSistema
-from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-
 import traceback
+from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasMensajeSistema
+
 
 MOMHOST = os.environ["MOMHOST"]
 COLASUMTOP = os.environ["COLASUMTOP"]
@@ -75,8 +75,9 @@ class AgregadorTop:
             nodo = mensaje.clienteId.int % TOTALTOPGLOBAL
             self.exchangeTopGlobal[nodo].send(PalabrasMensajeSistema(clienteId=mensaje.clienteId, palabras=self._top20(self.clientes[mensaje.clienteId][1].mergeTop()), url="", lenguaje=0).aBytes())    
             self.exchangeTopGlobal[nodo].send(FinMensajeSistema(mensaje.clienteId).aBytes())
+            
             del self.clientes[mensaje.clienteId]
-
+            
 
     def procesarMensaje(self, bytes, ack, nack):
         try:
@@ -96,7 +97,9 @@ class AgregadorTop:
 
 
     def manejarSigterm(self) -> None:
-        pass
+        self.exchangeTopParcial.close()
+        for i in range(TOTALTOPGLOBAL):
+            self.exchangeTopGlobal[i].close()
 
 
 def main() -> int:

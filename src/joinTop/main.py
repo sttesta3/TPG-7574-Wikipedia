@@ -1,10 +1,10 @@
 import os
 import sys
 import signal
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, TransformadorMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema
-from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-
 import traceback
+from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasMensajeSistema, Respuesta4MensajeSistema
+
 
 MOMHOST = os.environ["MOMHOST"]
 COLARESPUESTAS = os.environ["COLARESPUESTAS"]
@@ -27,7 +27,6 @@ class JoinTop:
 
         self.clientes[mensaje.clienteId][1] = self.clientes[mensaje.clienteId][1] | mensaje.palabras
 
-
     def _top20(self, palabras: dict[str, int]) -> dict[str, int]:
         top = sorted(palabras.items(), key=lambda item: item[1], reverse=True)
         return dict(top[:20])
@@ -36,9 +35,8 @@ class JoinTop:
         self.clientes[mensaje.clienteId][0] += 1
 
         if self.clientes[mensaje.clienteId][0] == TOTALTOPPARCIAL:
-
-            print(f"LLEGO EL TOP20 {self._top20(self.clientes[mensaje.clienteId][1])}")
-
+            self.colaRespuestas.send(Respuesta4MensajeSistema(mensaje.clienteId, self._top20(self.clientes[mensaje.clienteId][1])).aBytes())
+            self.colaRespuestas.send(mensaje.aBytes())
             del self.clientes[mensaje.clienteId]
 
 
@@ -46,7 +44,6 @@ class JoinTop:
         try:
             mensaje = recvMensajeSistema(bytes)
             if isinstance(mensaje, FinMensajeSistema): # TODO: esta bien esto?
-                print(f"recivo EOF de {mensaje.clienteId}")
                 self._procesarEOF(mensaje)
             else:
                 self._procesarData(mensaje)
@@ -56,12 +53,15 @@ class JoinTop:
             print(traceback.format_exc())
             nack()
 
+
     def iniciar(self):
         self.exchangeTopGlobal.start_consuming(self.procesarMensaje)
 
 
     def manejarSigterm(self) -> None:
-        pass
+        self.colaRespuestas.close()
+        self.exchangeTopGlobal.close()
+        sys.exit(0)
 
 
 def main() -> int:

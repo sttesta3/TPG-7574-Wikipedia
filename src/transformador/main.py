@@ -3,22 +3,26 @@ import re
 import sys
 import nltk
 import signal
+import threading
+import traceback
 from nltk.corpus import stopwords
 from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, TransformadorMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-
-import traceback
+from clienteLock import ClienteLock
 
 MOMHOST = os.environ["MOMHOST"]
 COLATRANSFORMADOR = os.environ["COLATRANSFORMADOR"]
 COLASUMTOP = os.environ["COLASUMTOP"]
 EXCHANGEPROMEDIO = os.environ["EXCHANGEPROMEDIO"]
 EXCHANGECUENTAPROM = os.environ["EXCHANGECUENTAPROM"]
+EXCHANGETRANSFORMADOREOF = os.environ["EXCHANGETRANSFORMADOREOF"]
 TOTALPROMEDIO = int(os.environ["TOTALPROMEDIO"])
 TOTALCUENTAPROM = int(os.environ["TOTALCUENTAPROM"])
+TOTALCLASIFICADORES = int(os.environ["TOTALCLASIFICADORES"])
 
 WORD_REGEX = r'\b\w+\b'
 NUMBER_REGEX = r'[+-]?((\d+\.?\d*)|(\.\d+))'
+
 
 class Transformador:
     def __init__(self):
@@ -34,6 +38,11 @@ class Transformador:
         for i in range(TOTALCUENTAPROM):
             self.exchangeCuentaProm.append(MessageMiddlewareExchange(MOMHOST, EXCHANGECUENTAPROM, [EXCHANGECUENTAPROM + "_" + str(i)]))
 
+        self.colaEOF = MessageMiddlewareExchange(MOMHOST, EXCHANGETRANSFORMADOREOF, [EXCHANGETRANSFORMADOREOF])
+        self.colaEOFSend = MessageMiddlewareExchange(MOMHOST, EXCHANGETRANSFORMADOREOF, [EXCHANGETRANSFORMADOREOF])
+
+        self.clientes = {}
+
 
     def _resumenAPalabras(self, resumen: str) -> dict[str]:
         palabrasSinStop = {}
@@ -45,6 +54,11 @@ class Transformador:
 
 
     def _procesarData(self, mensaje: TransformadorMensajeSistema) -> None:
+        if mensaje.clienteId not in self.clientes:
+            self.clientes[mensaje.clienteId] = ClienteLock(TOTALCLASIFICADORES)
+        
+        self.clientes[mensaje.clienteId].nuevoMensaje()
+
         palabras = self._resumenAPalabras(mensaje.resumen)
         self.colaSumTop.send(PalabrasMensajeSistema(mensaje.clienteId, mensaje.url, mensaje.lenguaje, palabras).aBytes())
         if mensaje.fecha <= 2020:
@@ -54,13 +68,11 @@ class Transformador:
             nodo = mensaje.clienteId.int % TOTALCUENTAPROM
             self.exchangeCuentaProm[nodo].send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
 
+        self.clientes[mensaje.clienteId].nuevaRespuesta()
+
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
-        self.colaSumTop.send(mensaje.aBytes())
-        
-        nodo = mensaje.clienteId.int % TOTALPROMEDIO
-        self.exchangePromedio[nodo].send(mensaje.aBytes())
-        
+        self.colaEOFSend.send(mensaje.aBytes())
 
     def procesarMensaje(self, bytes, ack, nack):
         try:
@@ -76,13 +88,38 @@ class Transformador:
             nack()
 
 
+    def _manejarEof(self, bytes, ack, nack):
+        try:
+            mensaje = recvMensajeSistema(bytes)
+
+            if self.clientes[mensaje.clienteId].llegadaEof():
+                self.colaSumTop.send(mensaje.aBytes())
+
+                nodo = mensaje.clienteId.int % TOTALPROMEDIO
+                self.exchangePromedio[nodo].send(mensaje.aBytes())
+
+                del self.clientes[mensaje.clienteId]
+            ack()
+        except Exception as e:
+            print(e)
+            nack()
+
+    
+    def _controlarEof(self):
+        self.colaEOF.start_consuming(self._manejarEof)
+
+
     def iniciar(self):
+        threading.Thread(target=self._controlarEof, daemon=True).start()
         self.colaTransformador.start_consuming(self.procesarMensaje)
 
 
     def manejarSigterm(self) -> None:
+        # Manejar el thread
         self.colaTransformador.close()
         self.colaSumTop.close()
+        self.colaEOFSend.close()
+        self.colaEOF.close()
         for i in range(TOTALCUENTAPROM):
             self.exchangeCuentaProm[i].close()
         for i in range(TOTALPROMEDIO):

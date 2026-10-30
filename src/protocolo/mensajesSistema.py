@@ -1,7 +1,7 @@
 import uuid
 from abc import ABC, abstractmethod
 from protocolo.mensajesCliente import DataMensaje, FIN_MENSAJE
-from protocolo.mensajesGateway import Respuesta1Mensaje, Respuesta2Mensaje, Respuesta5Mensaje
+from protocolo.mensajesGateway import Respuesta1Mensaje, Respuesta2Mensaje, Respuesta4Mensaje, Respuesta5Mensaje
 
 RESPUESTA1_MENSAJE = b'\x01'
 RESPUESTA2_MENSAJE = b'\x02'
@@ -411,6 +411,49 @@ class Respuesta5MensajeSistema(MensajeSistema):
         return Respuesta5Mensaje(self.url, self.cantidad)
 
 
+class Respuesta4MensajeSistema(MensajeSistema):
+    def __init__(self, clienteId: uuid.UUID = None, palabras: dict[str, int] = None):
+        self.clienteId = clienteId
+        self.palabras = palabras
+
+    def aBytes(self) -> bytes:
+        mensajeBytes = RESPUESTA4_MENSAJE
+
+        palabraTotal = []
+        for clave, valor in self.palabras.items():
+            palabraTotal.append(clave)
+            palabraTotal.append(str(valor)) 
+
+        palabrasBytes = ",".join(palabraTotal).encode("UTF-8")
+        mensajeBytes += len(palabrasBytes).to_bytes(4, byteorder="big")
+        mensajeBytes += palabrasBytes
+
+        mensajeBytes += self.clienteId.bytes
+
+        return mensajeBytes
+    
+
+    def deBytes(self, bytes: bytes) -> None:
+        totalLeido = 0
+
+        palabrasLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
+        palabras = bytes[totalLeido+4:totalLeido+palabrasLen+4].decode()
+        self.palabras = {}
+        palabras = palabras.split(",")
+        for i in range(0, len(palabras), 2):
+            clave = palabras[i]
+            valor = int(palabras[i + 1])
+            self.palabras[clave] = valor
+        
+        totalLeido += (palabrasLen + 4)
+
+        self.clienteId = uuid.UUID(bytes=(bytes[totalLeido:totalLeido+16]))
+
+
+    def aRespuestaGateway(self) -> Respuesta4Mensaje:
+        return Respuesta4Mensaje(self.palabras)
+
+
 def recvMensajeSistema(mensaje: bytes) -> MensajeSistema:
     type = mensaje[:1]
     rta = None
@@ -433,6 +476,8 @@ def recvMensajeSistema(mensaje: bytes) -> MensajeSistema:
         rta = Respuesta1MensajeSistema() 
     elif type == RESPUESTA2_MENSAJE:
         rta = Respuesta2MensajeSistema()
+    elif type == RESPUESTA4_MENSAJE:
+        rta = Respuesta4MensajeSistema()
     elif type == RESPUESTA5_MENSAJE:
         rta = Respuesta5MensajeSistema()
     else:

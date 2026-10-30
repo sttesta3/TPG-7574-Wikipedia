@@ -34,6 +34,23 @@ def recibirRespuestas(socket: socket) -> None:
     while not eof:
         respuesta = recvMensaje(socket)
 
+        # TODO: tal vez hacerlo mas polimorfico (?
+        if isinstance(respuesta, FinMensaje):
+            eof = True
+        if isinstance(respuesta, Respuesta1Mensaje):
+            with open("/output/output1.txt", "a", encoding="utf-8") as f:
+                f.write(respuesta.url + " - "+ str(respuesta.fecha) + "\n")
+        if isinstance(respuesta, Respuesta2Mensaje):
+            with open("/output/output2.txt", "a", encoding="utf-8") as f:
+                f.write(respuesta.nombre + " - "+respuesta.url + " - "+ str(respuesta.imgBytes) + "\n")
+        if isinstance(respuesta, Respuesta4Mensaje):
+            with open("/output/output4.txt", "a", encoding="utf-8") as f:
+                for k,v in respuesta.palabras.items():
+                    f.write(k +" - " +str(v) + "\n")
+        if isinstance(respuesta, Respuesta5Mensaje):
+            with open("/output/output5.txt", "a", encoding="utf-8") as f:
+                f.write(respuesta.url + " - "+ str(respuesta.cantidad)+ "\n")
+  
 
 def manejarSigterm(coneccion: socket.socket, ) -> None:
     coneccion.shutdown(socket.SHUT_RDWR)

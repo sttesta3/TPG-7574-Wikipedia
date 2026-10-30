@@ -1,7 +1,7 @@
 import socket
 from abc import ABC, abstractmethod
 from safeSocket import safeRecv, safeSend
-from protocolo.mensajesCliente import FIN_MENSAJE
+from protocolo.mensajesCliente import FIN_MENSAJE, FinMensaje
 
 RESPUESTA1_MENSAJE = b'\x01'
 RESPUESTA2_MENSAJE = b'\x02'
@@ -105,14 +105,30 @@ class Respuesta3Mensaje(Respuesta):
 
 
 class Respuesta4Mensaje(Respuesta):
-    def __init__(self) -> None:
-        pass
+    def __init__(self, palabras: dict[str, int] = None) -> None:
+        self.palabras = palabras
 
     def aBytes(self) -> bytes:
-        pass
+        mensajeBytes = RESPUESTA4_MENSAJE
+
+        palabraTotal = []
+        for clave, valor in self.palabras.items():
+            palabraTotal.append(clave)
+            palabraTotal.append(str(valor)) 
+        palabrasBytes = ",".join(palabraTotal).encode("UTF-8")
+        mensajeBytes += len(palabrasBytes).to_bytes(4, byteorder="big")
+        mensajeBytes += palabrasBytes
+
+        return mensajeBytes
 
     def deBytes(self, bytes: bytes) -> None:        
-        pass
+        self.palabras = {}
+ 
+        palabras = bytes.decode().split(",")
+        for i in range(0, len(palabras), 2):
+            clave = palabras[i]
+            valor = int(palabras[i + 1])
+            self.palabras[clave] = valor
 
 
 class Respuesta5Mensaje(Respuesta):
@@ -172,5 +188,7 @@ def recvMensaje(socket: socket.socket) -> Respuesta:
         return obtenerRespuesta(socket, Respuesta4Mensaje())
     if type == RESPUESTA5_MENSAJE:
         return obtenerRespuesta(socket, Respuesta5Mensaje())
+    if type == FIN_MENSAJE:
+        return FinMensaje(None)
     else:
         return None

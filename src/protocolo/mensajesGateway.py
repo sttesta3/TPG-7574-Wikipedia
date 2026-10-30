@@ -1,7 +1,7 @@
 import socket
 from abc import ABC, abstractmethod
 from safeSocket import safeRecv, safeSend
-from mensajesCliente import FIN_MENSAJE, FinMensaje
+from protocolo.mensajesCliente import FIN_MENSAJE, FinMensaje
 
 RESPUESTA1_MENSAJE = b'\x01'
 RESPUESTA2_MENSAJE = b'\x02'

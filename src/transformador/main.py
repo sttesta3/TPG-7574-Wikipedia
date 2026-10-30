@@ -6,7 +6,7 @@ import signal
 import threading
 import traceback
 from nltk.corpus import stopwords
-from mensajesSistema import recvMensajeSistema, FinMensajeSistema, TransformadorMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, TransformadorMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
 from clienteLock import ClienteLock
 

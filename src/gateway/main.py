@@ -3,9 +3,9 @@ import uuid
 import socket
 import signal
 import multiprocessing
-from mensajesCliente import recvMensaje, FinMensaje
-from mensajesGateway import sendRespuesta
-from mensajesSistema import FinMensajeSistema, LoteDataMensajeSistema, recvMensajeSistema
+from protocolo.mensajesCliente import recvMensaje, FinMensaje
+from protocolo.mensajesGateway import sendRespuesta
+from protocolo.mensajesSistema import FinMensajeSistema, Respuesta2MensajeSistema, LoteDataMensajeSistema, recvMensajeSistema
 from middleware import MessageMiddlewareQueue
 
 GATEWAYHOST = os.environ["GATEWAYHOST"]

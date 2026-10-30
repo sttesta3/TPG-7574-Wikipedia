@@ -4,8 +4,8 @@ import socket
 import signal
 import threading
 import pandas as pd
-from mensajesCliente import LoteMensaje, FinMensaje
-from mensajesGateway import recvMensaje, Respuesta1Mensaje, Respuesta2Mensaje, Respuesta4Mensaje, Respuesta5Mensaje
+from protocolo.mensajesCliente import LoteMensaje, FinMensaje
+from protocolo.mensajesGateway import recvMensaje, Respuesta1Mensaje, Respuesta2Mensaje, Respuesta5Mensaje
 
 DATASETPATHEN = os.environ["DATASETPATHEN"]
 DATASETPATHFR = os.environ["DATASETPATHFR"]

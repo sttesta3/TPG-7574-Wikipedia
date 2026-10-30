@@ -6,7 +6,7 @@ COPY gateway/requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY socket/safeSocket.py .
-COPY protocolo/*.py .
+COPY protocolo/*.py protocolo/
 COPY middleware/middleware.py .
 COPY gateway .
 

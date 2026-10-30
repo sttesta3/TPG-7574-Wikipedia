@@ -3,7 +3,7 @@ import sys
 import signal
 import traceback
 from middleware import MessageMiddlewareExchange
-from mensajesSistema import recvMensajeSistema, FinMensajeSistema, CantidadPalabraMensajeSistema, FinPromMensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, CantidadPalabraMensajeSistema, FinPromMensajeSistema
 
 
 MOMHOST = os.environ["MOMHOST"]

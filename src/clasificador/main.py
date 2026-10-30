@@ -4,7 +4,7 @@ import signal
 import threading
 from clienteLock import ClienteLock
 from middleware import MessageMiddlewareQueue,MessageMiddlewareExchange
-from mensajesSistema import recvMensajeSistema, FinMensajeSistema, LoteDataMensajeSistema, ImgMensajeSistema, Respuesta1MensajeSistema, TransformadorMensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, LoteDataMensajeSistema, ImgMensajeSistema, Respuesta1MensajeSistema, TransformadorMensajeSistema
 
 MOMHOST = os.environ["MOMHOST"]
 COLADATOS = os.environ["COLADATOS"]

@@ -5,7 +5,7 @@ import traceback
 import threading
 from clienteLock import ClienteLock
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-from mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasMensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasMensajeSistema
 
 MOMHOST = os.environ["MOMHOST"]
 COLASUMTOP = os.environ["COLASUMTOP"]
@@ -28,18 +28,17 @@ class SumTop:
         self.clientesLock = {}
 
 
-    def _procesarData(self, mensaje: PalabrasMensajeSistema) -> None:      
+    def _procesarData(self, mensaje: PalabrasMensajeSistema) -> None:
         if mensaje.clienteId not in self.clientes:
             self.clientes[mensaje.clienteId] = {}
             self.clientesLock[mensaje.clienteId] = ClienteLock(TOTALTRANSFORMADORES)
+        if mensaje.language not in self.clientes[mensaje.clienteId]: 
+            self.clientes[mensaje.clienteId][mensaje.language] = {}
 
         self.clientesLock[mensaje.clienteId].nuevoMensaje()
-
         for clave, valor in mensaje.palabras.items():
-            self.clientes[mensaje.clienteId][clave] = self.clientes[mensaje.clienteId].get(clave, 0) + valor
-
+            self.clientes[mensaje.clienteId][mensaje.language][clave] = self.clientes[mensaje.clienteId][mensaje.language].get(clave, 0) + valor
         self.clientesLock[mensaje.clienteId].nuevaRespuesta()
-
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
         self.exchangeSumTopEofSend.send(mensaje.aBytes())
@@ -64,13 +63,16 @@ class SumTop:
             mensaje = recvMensajeSistema(bytes)
             if self.clientesLock[mensaje.clienteId].llegadaEof():
                 nodos = [{} for _ in range(TOTALTOPPARCIAL)]
-                for clave, valor in self.clientes[mensaje.clienteId].items():
-                    i = int.from_bytes(clave.encode("UTF-8")) % TOTALTOPPARCIAL
-                    nodos[i][clave] = valor
+                for lenguaje, palabras in self.clientes[mensaje.clienteId].items():
+                    for clave, valor in palabras:
+                        i = int.from_bytes(clave.encode("UTF-8")) % TOTALTOPPARCIAL
+                        nodos[i][lenguaje][clave] = valor
 
                 for i in range(TOTALTOPPARCIAL):
-                    mensaje = PalabrasMensajeSistema(palabras=nodos[i], clienteId=mensaje.clienteId, url="", lenguaje=0)
-                    self.excahangeTopParciales[i].send(mensaje.aBytes())
+                    for lenguaje, palabras in nodos[i]:
+                        print(f"MANDO: {nodos[i]}")
+                        mensaje = PalabrasMensajeSistema(palabras=palabras, clienteId=mensaje.clienteId, url="", lenguaje=lenguaje)
+                        self.excahangeTopParciales[i].send(mensaje.aBytes())
                     self.excahangeTopParciales[i].send(FinMensajeSistema(mensaje.clienteId).aBytes())
 
                 del self.clientesLock[mensaje.clienteId]

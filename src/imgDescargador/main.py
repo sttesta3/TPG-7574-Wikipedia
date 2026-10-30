@@ -6,8 +6,8 @@ import asyncio
 import traceback
 import threading
 from clienteLock import ClienteLock
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, ImgMensajeSistema, Respuesta2MensajeSistema
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-from mensajesSistema import recvMensajeSistema, FinMensajeSistema, ImgMensajeSistema, Respuesta2MensajeSistema
 
 MOMHOST = os.environ["MOMHOST"]
 COLAIMGDESCARGA = os.environ["COLAIMGDESCARGA"]

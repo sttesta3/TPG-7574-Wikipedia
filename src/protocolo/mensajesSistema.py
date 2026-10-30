@@ -1,7 +1,7 @@
 import uuid
 from abc import ABC, abstractmethod
-from mensajesCliente import DataMensaje, FIN_MENSAJE
-from mensajesGateway import Respuesta1Mensaje, Respuesta2Mensaje, Respuesta4Mensaje, Respuesta5Mensaje
+from protocolo.mensajesCliente import DataMensaje, FIN_MENSAJE
+from protocolo.mensajesGateway import Respuesta1Mensaje, Respuesta2Mensaje, Respuesta4Mensaje, Respuesta5Mensaje
 
 RESPUESTA1_MENSAJE = b'\x01'
 RESPUESTA2_MENSAJE = b'\x02'
@@ -339,6 +339,49 @@ class Respuesta2MensajeSistema(MensajeSistema):
     def aRespuestaGateway(self) -> Respuesta2Mensaje:
         return Respuesta2Mensaje(self.nombre, self.url, self.imgBytes) 
 
+class Respuesta2MensajeSistema(MensajeSistema):
+    def __init__(self, clienteId: uuid.UUID = None, url: str = None, nombre: str = None, imgBytes: bytes = None):
+        self.clienteId = clienteId
+        self.url = url
+        self.nombre = nombre
+        self.imgBytes = imgBytes
+
+
+    def aBytes(self) -> bytes:
+        bytesMensaje = RESPUESTA2_MENSAJE
+        bytesMensaje += (Respuesta2Mensaje(self.nombre, self.url, self.imgBytes).aBytes())[1:]
+        bytesMensaje += self.clienteId.bytes
+
+        return bytesMensaje
+
+
+    def deBytes(self, bytes: bytes) -> None:
+        rtaMsg = Respuesta2Mensaje()
+        rtaMsg.deBytes(bytes[4:len(bytes)-16])
+        self.nombre = rtaMsg.nombre
+        self.imgBytes = rtaMsg.imgBytes
+        self.url = rtaMsg.url
+
+        self.clienteId = uuid.UUID(bytes=bytes[len(bytes)-16:])
+
+
+    def aRespuestaGateway(self) -> Respuesta2Mensaje:
+        return Respuesta2Mensaje(self.nombre, self.url, self.imgBytes) 
+
+class Respuesta3MensajeSistema(MensajeSistema):
+    def __init__(self, clienteId: uuid.UUID = None, url: str = None, palabras: [str] = None):
+        pass
+    
+    def aBytes(self) -> bytes:
+        pass
+    
+
+    def deBytes(self, bytes) -> None:
+        pass
+
+
+    def aRespuestaGateway(self) -> Respuesta5Mensaje:
+        pass
 
 # TODO: implementarlo en lotes (si es considerado necesario)
 class Respuesta5MensajeSistema(MensajeSistema):

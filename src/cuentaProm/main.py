@@ -1,7 +1,7 @@
 import os
 import sys
 import signal
-from mensajesSistema import recvMensajeSistema, FinPromMensajeSistema, CantidadPalabraMensajeSistema, Respuesta5MensajeSistema, FinMensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinPromMensajeSistema, CantidadPalabraMensajeSistema, Respuesta5MensajeSistema, FinMensajeSistema
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
 
 MOMHOST = os.environ["MOMHOST"]

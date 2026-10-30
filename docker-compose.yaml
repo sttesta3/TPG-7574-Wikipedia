@@ -1,4 +1,10 @@
 services:
+  nodo-base:
+    command: ["true"]
+    build:
+      context: ./src/
+      dockerfile: base/Dockerfile
+
   gateway:
     build:
       context: ./src/
@@ -32,7 +38,7 @@ services:
       healthcheck:
         interval: 5s
         retries: 1
-        start_period: 50s
+        start_period: 120s
         test: rabbitmq-diagnostics check_port_connectivity
         timeout: 3s
       ports:
@@ -62,6 +68,8 @@ services:
     build:
       context: ./src/
       dockerfile: clasificador/Dockerfile
+      additional_contexts:
+        nodo-base: service:nodo-base
     container_name: clasificador_0
     depends_on:
         rabbitmq:
@@ -80,6 +88,8 @@ services:
     build:
       context: ./src/
       dockerfile: clasificador/Dockerfile
+      additional_contexts:
+        nodo-base: service:nodo-base
     container_name: clasificador_1
     depends_on:
         rabbitmq:
@@ -98,6 +108,8 @@ services:
     build:
       context: ./src/
       dockerfile: imgDescargador/Dockerfile
+      additional_contexts:
+        nodo-base: service:nodo-base
     container_name: imgDescargador_0
     depends_on:
         rabbitmq:
@@ -117,6 +129,8 @@ services:
     build:
       context: ./src/
       dockerfile: imgDescargador/Dockerfile
+      additional_contexts:
+        nodo-base: service:nodo-base
     container_name: imgDescargador_1
     depends_on:
         rabbitmq:
@@ -136,6 +150,8 @@ services:
     build:
       context: ./src/
       dockerfile: transformador/Dockerfile
+      additional_contexts:
+        nodo-base: service:nodo-base
     container_name: transformador_0
     depends_on:
         rabbitmq:
@@ -158,6 +174,8 @@ services:
     build:
       context: ./src/
       dockerfile: transformador/Dockerfile
+      additional_contexts:
+        nodo-base: service:nodo-base
     container_name: transformador_1
     depends_on:
         rabbitmq:
@@ -180,6 +198,8 @@ services:
     build:
       context: ./src/
       dockerfile: cuentaProm/Dockerfile
+      additional_contexts:
+        nodo-base: service:nodo-base
     container_name: cuentaProm_0
     depends_on:
         rabbitmq:
@@ -201,6 +221,8 @@ services:
     build:
       context: ./src/
       dockerfile: cuentaProm/Dockerfile
+      additional_contexts:
+        nodo-base: service:nodo-base
     container_name: cuentaProm_1
     depends_on:
         rabbitmq:
@@ -222,6 +244,8 @@ services:
     build:
       context: ./src/
       dockerfile: promedio/Dockerfile
+      additional_contexts:
+        nodo-base: service:nodo-base
     container_name: promedio_0
     depends_on:
         rabbitmq:
@@ -244,6 +268,8 @@ services:
     build:
       context: ./src/
       dockerfile: promedio/Dockerfile
+      additional_contexts:
+        nodo-base: service:nodo-base
     container_name: promedio_1
     depends_on:
         rabbitmq:
@@ -266,6 +292,8 @@ services:
     build:
       context: ./src/
       dockerfile: sumTop/Dockerfile
+      additional_contexts:
+        nodo-base: service:nodo-base
     container_name: sum_top_0
     depends_on:
         rabbitmq:
@@ -286,6 +314,8 @@ services:
     build:
       context: ./src/
       dockerfile: sumTop/Dockerfile
+      additional_contexts:
+        nodo-base: service:nodo-base
     container_name: sum_top_1
     depends_on:
         rabbitmq:
@@ -306,6 +336,8 @@ services:
     build:
       context: ./src/
       dockerfile: agregadorTop/Dockerfile
+      additional_contexts:
+        nodo-base: service:nodo-base
     container_name: agregador_top_0
     depends_on:
         rabbitmq:
@@ -318,6 +350,7 @@ services:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLASUMTOP=ColaSumTop
+      - COLARESPUESTAS=Respuestas
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
       - EXCHANGETOPGLOBAL=ExchangeTopGlobal
@@ -329,6 +362,8 @@ services:
     build:
       context: ./src/
       dockerfile: joinTop/Dockerfile
+      additional_contexts:
+        nodo-base: service:nodo-base
     container_name: join_top_0
     depends_on:
         rabbitmq:

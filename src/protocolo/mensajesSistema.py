@@ -1,7 +1,7 @@
 import uuid
 from abc import ABC, abstractmethod
-from mensajesCliente import DataMensaje, FIN_MENSAJE
-from mensajesGateway import Respuesta1Mensaje, Respuesta2Mensaje, Respuesta5Mensaje
+from protocolo.mensajesCliente import DataMensaje, FIN_MENSAJE
+from protocolo.mensajesGateway import Respuesta1Mensaje, Respuesta2Mensaje, Respuesta5Mensaje
 
 RESPUESTA1_MENSAJE = b'\x01'
 RESPUESTA2_MENSAJE = b'\x02'

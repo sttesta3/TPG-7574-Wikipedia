@@ -1,5 +1,4 @@
 import os
-import sys
 import signal
 import traceback
 import threading
@@ -87,17 +86,26 @@ class SumTop:
 
 
     def iniciar(self):
-        threading.Thread(target=self._controlarEof, daemon=True).start()
+        thread_eof = threading.Thread(target=self._controlarEof, daemon=True)
+        thread_eof.start()
         self.colaSumTop.start_consuming(self.procesarMensaje)
+        thread_eof.join()
+        self._close_connections()
+
 
 
     def manejarSigterm(self) -> None:
+        self.colaSumTop.remote_stop()
+        self.exchangeSumTopEof.remote_stop()
+        
+
+    def _close_connections(self):
         self.colaSumTop.close()
         self.exchangeSumTopEof.close()
         self.exchangeSumTopEofSend.close()
         for i in range(TOTALTOPPARCIAL):
             self.excahangeTopParciales[i].close()
-        sys.exit(0)
+
 
 
 def main() -> int:

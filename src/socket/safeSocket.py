@@ -4,15 +4,12 @@ def safeRecv(socket: socket.socket, size):
     bytes = b""
     recived = 0
     while recived < size:
-        try:
-            byte_rec = socket.recv(size - recived)
-            if byte_rec == 0:
-                return b""
+        byte_rec = socket.recv(size - recived)
+        if not byte_rec:
+            raise ConnectionError("La conexion se cerro")
 
-            recived += len(byte_rec)
-            bytes += byte_rec
-        except Exception as e:
-            return b""
+        recived += len(byte_rec)
+        bytes += byte_rec
 
     return bytes
 

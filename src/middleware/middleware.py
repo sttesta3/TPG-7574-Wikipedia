@@ -37,6 +37,11 @@ class MessageMiddlewareQueue():
         except Exception as e:
             raise MessageMiddlewareMessageError(e)
 
+    def remote_stop(self):
+        try:
+            self.connection.add_callback_threadsafe(self.channel.stop_consuming)
+        except pika.exceptions.AMQPError:
+            pass
 
     def stop_consuming(self):
         try:
@@ -97,7 +102,12 @@ class MessageMiddlewareExchange():
         except Exception as e:
             raise MessageMiddlewareMessageError(e)
 
-
+    def remote_stop(self):
+            try:
+                self.connection.add_callback_threadsafe(self.channel.stop_consuming)
+            except pika.exceptions.AMQPError:
+                pass
+        
     def stop_consuming(self):
         try:
             self.channel.stop_consuming()

@@ -202,4 +202,4 @@ def recvMensaje(socket: socket.socket) -> list[DataMensaje]:
     elif type == DATA_MENSAJE:
         return [DataMensaje.obtenerData(socket)]
     else:
-        return None
+        raise ValueError(f"Tipo de mensaje desconocido: {type!r}")

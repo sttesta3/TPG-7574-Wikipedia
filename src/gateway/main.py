@@ -21,11 +21,13 @@ TOTALPROMEOF = int(os.environ["TOTALPROMEOF"])
 TOTALTOPEOF = int(os.environ["TOTALTOPEOF"])
 
 def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
+    logging.info(f"manejando cliente {clienteId}")
     try:
         colaDatos = MessageMiddlewareQueue(MOMHOST, COLADATOS)
-
+        
         eof = False
         while not eof:
+            logging.info("Marcador loop recepcion")
             mensaje = recvMensaje(clientSocket)
             if mensaje is None:
                 eof = True
@@ -33,6 +35,7 @@ def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
             else:
                 logging.info(f"Cliente {clienteId} mensaje {mensaje}")
                 colaDatos.send(LoteDataMensajeSistema(clienteId, mensaje).aBytes())
+                logging.info("Enviado")
     except socket.error:
         logging.info("The connection with the server was lost")
     except Exception as e:
@@ -93,6 +96,7 @@ def main() -> None:
                         clientId = uuid.uuid4()
                         clientes[clientId] = [clientSocket, 0]
 
+                        logging.info(f"Cliente aceptado {clientId} {clientSocket}")
                         processes_pool.apply_async(manejarPeticion, args=(clientId, clientSocket))
                     except socket.error:
                         if sigtermRecivida.value == 0:

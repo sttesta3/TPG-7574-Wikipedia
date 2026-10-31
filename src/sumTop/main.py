@@ -30,6 +30,7 @@ class SumTop:
 
 
     def _procesarData(self, mensaje: PalabrasMensajeSistema) -> None:
+        logging.info(f"Mensaje recibido {mensaje}")
         if mensaje.clienteId not in self.clientes:
             self.clientes[mensaje.clienteId] = {}
             self.clientesLock[mensaje.clienteId] = ClienteLock(TOTALTRANSFORMADORES)

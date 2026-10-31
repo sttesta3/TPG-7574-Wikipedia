@@ -16,24 +16,37 @@ GATEWAYPORT = int(os.environ["GATEWAYPORT"])
 LOTE = int(os.environ["LOTE"])
 
 def enviarParquet(socket: socket) -> None:
+    logging.info("Thread emisor iniciado")
     loteMensaje = LoteMensaje(socket, LOTE)
     for i in range(TOTALDATASETS):
+        logging.info(f"Agrego dataset {i}")
         datasetEn = pd.read_parquet(DATASETPATHEN + str(i).zfill(5) + ".parquet")
         datasetFr = pd.read_parquet(DATASETPATHFR + str(i).zfill(5) + ".parquet")
-
-        dataset = pd.concat([datasetEn, datasetFr])
-
-        for fila in dataset.itertuples():
-            loteMensaje.agregarMensaje(fila)
         
+        logging.info("Post pd.read_parquet")
+        dataset = pd.concat([datasetEn, datasetFr])
+        
+        logging.info("Post pd.concat")
+        cuenta = 0
+        for fila in dataset.itertuples():
+            logging.info(f"Agregando mensaje {cuenta} al lote")
+            loteMensaje.agregarMensaje(fila)
+            logging.info("Mensaje agregado OK")
+            cuenta += 1 
+    
+    logging.info("Por enviar Lote")    
     loteMensaje.send()
+    logging.info("Lote enviado")
     FinMensaje(socket).send()
+    logging.info("EOF enviado")
 
 
 def recibirRespuestas(socket: socket) -> None:
+    logging.info("Thread receptor iniciado")
     eof = False
     while not eof:
         respuesta = recvMensaje(socket)
+        logging.info(f"Recibi respuesta {respuesta}")        
 
         # TODO: tal vez hacerlo mas polimorfico (?
         if isinstance(respuesta, FinMensaje):

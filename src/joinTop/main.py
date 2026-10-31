@@ -66,6 +66,7 @@ class JoinTop:
 
 
 def main() -> int:
+    logging.basicConfig(level=logging.INFO)
     joinTop = JoinTop()
     signal.signal(signal.SIGTERM, lambda signum, frame: joinTop.manejarSigterm())
     joinTop.iniciar()

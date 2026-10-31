@@ -59,6 +59,7 @@ def manejarSigterm(coneccion: socket.socket, ) -> None:
 
 # TODO: quedan los hilos huerfanos si hay sigterm
 def main():
+    logging.basicConfig(level=logging.INFO)
     coneccion = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     coneccion.connect((GATEWAYHOST, GATEWAYPORT))
     signal.signal(signal.SIGTERM, lambda signum, frame: manejarSigterm(coneccion))

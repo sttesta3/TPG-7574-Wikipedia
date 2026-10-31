@@ -72,6 +72,7 @@ class Promedio:
 
 
 def main() -> int:
+    logging.basicConfig(level=logging.INFO)
     promedio = Promedio()
     signal.signal(signal.SIGTERM, lambda signum, frame: promedio.manejarSigterm())
     promedio.iniciar()

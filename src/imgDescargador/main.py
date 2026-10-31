@@ -121,6 +121,7 @@ class ImgDescargador:
 
 
 def main() -> int:
+    logging.basicConfig(level=logging.INFO)
     imgDescargador = ImgDescargador()
     signal.signal(signal.SIGTERM, lambda signum, frame: imgDescargador.manejarSigterm())
     imgDescargador.iniciar()

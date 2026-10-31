@@ -99,6 +99,7 @@ class Clasificador:
 
 
 def main() -> int:
+    logging.basicConfig(level=logging.INFO)
     clasificador = Clasificador()
     signal.signal(signal.SIGTERM, lambda signum, frame: clasificador.manejarSigterm())
     clasificador.iniciar()

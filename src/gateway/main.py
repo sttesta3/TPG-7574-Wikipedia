@@ -75,6 +75,7 @@ def manejarSigterm(clientes: dict, serverSocket: socket.socket, sigtermRecivida)
 
 
 def main() -> None:
+    logging.basicConfig(level=logging.INFO)
     with multiprocessing.Manager() as manager:
         clientes = manager.dict()
         sigtermRecivida = manager.Value("c_short", 0)
@@ -84,6 +85,7 @@ def main() -> None:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as serverSocket:
                 serverSocket.bind(("0.0.0.0", GATEWAYPORT))
                 serverSocket.listen()
+                logging.info(f"Servidor escuchando en 0.0.0.0:{GATEWAYPORT}")
                 signal.signal(signal.SIGTERM, lambda signum, frame: manejarSigterm(clientes, serverSocket, sigtermRecivida))
                 while True:
                     try:

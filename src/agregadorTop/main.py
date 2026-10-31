@@ -103,6 +103,7 @@ class AgregadorTop:
 
 
 def main() -> int:
+    logging.basicConfig(level=logging.INFO)
     agregadorTop = AgregadorTop()
     signal.signal(signal.SIGTERM, lambda signum, frame: agregadorTop.manejarSigterm())
     agregadorTop.iniciar()

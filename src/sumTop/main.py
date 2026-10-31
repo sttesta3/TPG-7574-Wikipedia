@@ -104,6 +104,7 @@ class SumTop:
 
 
 def main() -> int:
+    logging.basicConfig(level=logging.INFO)
     sumTop = SumTop()
     signal.signal(signal.SIGTERM, lambda signum, frame: sumTop.manejarSigterm())
     sumTop.iniciar()

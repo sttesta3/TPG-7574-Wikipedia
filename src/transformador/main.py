@@ -129,6 +129,7 @@ class Transformador:
 
 
 def main() -> int:
+    logging.basicConfig(level=logging.INFO)
     nltk.download('stopwords')
     transformador = Transformador()
     signal.signal(signal.SIGTERM, lambda signum, frame: transformador.manejarSigterm())

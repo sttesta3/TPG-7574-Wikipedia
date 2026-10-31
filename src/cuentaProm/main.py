@@ -61,6 +61,7 @@ class CuentaProm:
 
 
 def main() -> int:
+    logging.basicConfig(level=logging.INFO)
     cuentaProm = CuentaProm()
     signal.signal(signal.SIGTERM, lambda signum, frame: cuentaProm.manejarSigterm())
     cuentaProm.iniciar()

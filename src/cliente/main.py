@@ -32,7 +32,11 @@ def enviarParquet(socket: socket) -> None:
 def recibirRespuestas(socket: socket) -> None:
     eof = False
     while not eof:
-        respuesta = recvMensaje(socket)
+        try:
+            respuesta = recvMensaje(socket)
+        except OSError as e:
+            print(f"Se perdio la conexion con el gateway: {e}")
+            return
 
         # TODO: tal vez hacerlo mas polimorfico (?
         if isinstance(respuesta, FinMensaje):

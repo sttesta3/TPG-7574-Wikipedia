@@ -1,5 +1,4 @@
 import os
-import sys
 import signal
 import aiohttp
 import asyncio
@@ -35,18 +34,29 @@ class ImgDescargador:
             del self.clientes[mensaje.clienteId]
             return 
         
-        imgBytes = b''
-        if mensaje.imgUrl != "":
-            # TODO: podria manejar una sola sesion como variable del ImgDescargador
-            async with aiohttp.ClientSession(headers={'User-Agent':'Tp-Fiuba/0.0 (https://fi.uba.ar/;shenseler@fi.uba.ar)'}) as session:
-                async with session.get(mensaje.imgUrl) as resp:
-                    if resp.status == 200:
-                        imgBytes = await resp.read()
+        try:
+            imgBytes = b''
+            if mensaje.imgUrl != "":
+                # TODO: podria manejar una sola sesion como variable del ImgDescargador
+                async with aiohttp.ClientSession(headers={'User-Agent':'Tp-Fiuba/0.0 (https://fi.uba.ar/;shenseler@fi.uba.ar)'}) as session:
+                    async with session.get(mensaje.imgUrl) as resp:
+                        if resp.status == 200:
+                            imgBytes = await resp.read()
 
-        self.colaRespuestas.send(Respuesta2MensajeSistema(mensaje.clienteId, mensaje.url, mensaje.nombre, imgBytes).aBytes())
-        self.clientes[mensaje.clienteId].nuevaRespuesta()
-        with self.lock:
-            self.maxClientes -= 1
+            self.colaRespuestas.send(Respuesta2MensajeSistema(mensaje.clienteId, mensaje.url, mensaje.nombre, imgBytes).aBytes())
+        finally:
+            # Corre tambien si la descarga falla o se cancela, para no dejar bloqueado al hilo de EOF
+            self.clientes[mensaje.clienteId].nuevaRespuesta()
+            with self.lock:
+                self.maxClientes -= 1
+
+
+    async def _cancelarDescargas(self) -> None:
+        actual = asyncio.current_task()
+        pendientes = [tarea for tarea in asyncio.all_tasks() if tarea is not actual]
+        for tarea in pendientes:
+            tarea.cancel()
+        await asyncio.gather(*pendientes, return_exceptions=True)
 
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
@@ -103,20 +113,33 @@ class ImgDescargador:
 
 
     def iniciar(self):
-        threading.Thread(target=self._iniciarEventLoop, daemon=True).start()
-        threading.Thread(target=self._controlarEof, daemon=True).start()
+        thread_event_loop = threading.Thread(target=self._iniciarEventLoop, daemon=True)
+
+        thread_eof = threading.Thread(target=self._controlarEof, daemon=True)
+
+        thread_event_loop.start()
+        thread_eof.start()
         self.colaImgDescarga.start_consuming(self.procesarMensaje)
+
+        # Primero se cancelan las descargas: el hilo de EOF puede estar esperandolas en cond.wait()
+        asyncio.run_coroutine_threadsafe(self._cancelarDescargas(), self.eventLoop).result(timeout=5)
+        thread_eof.join()
+        self.eventLoop.call_soon_threadsafe(self.eventLoop.stop)
+        thread_event_loop.join()
+        self.eventLoop.close()
+        self._close_connections()
 
 
     def manejarSigterm(self) -> None:
-        #TODO: los threads
+        self.colaImgDescarga.remote_stop()
+        self.exchangeImgEof.remote_stop()
+
+
+    def _close_connections(self):
         self.colaImgDescarga.close()
         self.colaRespuestas.close()
         self.exchangeImgEof.close()
         self.exchangeImgEofSend.close()
-        self.eventLoop.shutdown_asyncgens()
-        self.eventLoop.close()
-        sys.exit(0)
 
 
 def main() -> int:

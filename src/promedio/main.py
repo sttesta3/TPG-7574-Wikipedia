@@ -1,5 +1,4 @@
 import os
-import sys
 import signal
 import traceback
 from middleware import MessageMiddlewareExchange
@@ -61,13 +60,17 @@ class Promedio:
 
     def iniciar(self):
         self.exchangePromedio.start_consuming(self.procesarMensaje)
+        self._close_connections()
 
-    
+
     def manejarSigterm(self) -> None:
+        self.exchangePromedio.remote_stop()
+
+
+    def _close_connections(self):
         self.exchangePromedio.close()
         for i in range(TOTALCUENTAPROM):
             self.exchangeCuentaProm[i].close()
-        sys.exit(0)
 
 
 def main() -> int:

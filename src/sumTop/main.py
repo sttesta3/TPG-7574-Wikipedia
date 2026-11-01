@@ -30,7 +30,7 @@ class SumTop:
 
 
     def _procesarData(self, mensaje: PalabrasMensajeSistema) -> None:
-        logging.debug(f"Mensaje recibido {mensaje}")
+        logging.info(f"Mensaje recibido {mensaje}")
         if mensaje.clienteId not in self.clientes:
             self.clientes[mensaje.clienteId] = {}
             self.clientesLock[mensaje.clienteId] = ClienteLock(TOTALTRANSFORMADORES)
@@ -82,6 +82,7 @@ class SumTop:
                 
             ack()
         except Exception as e:
+            logging.info("Guarda que sali en manejarEOF")
             logging.warning(e)
             nack()
     

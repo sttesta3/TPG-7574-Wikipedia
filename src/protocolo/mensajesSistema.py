@@ -369,7 +369,7 @@ class Respuesta2MensajeSistema(MensajeSistema):
         return Respuesta2Mensaje(self.nombre, self.url, self.imgBytes) 
 
 class Respuesta3MensajeSistema(MensajeSistema):
-    def __init__(self, clienteId: uuid.UUID = None, palabras: [str] = None):
+    def __init__(self, clienteId: uuid.UUID = None, palabras: list[str] = None):
         self.clienteId = clienteId
         self.palabras = palabras
     
@@ -381,7 +381,7 @@ class Respuesta3MensajeSistema(MensajeSistema):
         pass
 
 
-    def aRespuestaGateway(self) -> Respuesta5Mensaje:
+    def aRespuestaGateway(self) -> Respuesta3Mensaje:
         pass
 
 # TODO: implementarlo en lotes (si es considerado necesario)
@@ -477,6 +477,8 @@ def recvMensajeSistema(mensaje: bytes) -> MensajeSistema:
         rta = Respuesta1MensajeSistema() 
     elif type == RESPUESTA2_MENSAJE:
         rta = Respuesta2MensajeSistema()
+    elif type == RESPUESTA3_MENSAJE:
+        rta = Respuesta3MensajeSistema()
     elif type == RESPUESTA4_MENSAJE:
         rta = Respuesta4MensajeSistema()
     elif type == RESPUESTA5_MENSAJE:

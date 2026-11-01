@@ -97,19 +97,19 @@ def main() -> None:
                         clientSocket, clientAddress = serverSocket.accept()
                         if clientAddress[0] == '127.0.0.1':
                             logging.debug("HEALTHCHECK recibido OK. Ignorado")
-                        
-                        clientId = uuid.uuid4()
-                        clientes[clientId] = [clientSocket, 0]
+                        else: 
+                            clientId = uuid.uuid4()
+                            clientes[clientId] = [clientSocket, 0]
                             
-                        logging.info(f"Cliente aceptado {clientId} {clientSocket}")
-                        processes_pool.apply_async(manejarPeticion, args=(clientId, clientSocket))
+                            logging.info(f"Cliente aceptado {clientId} {clientSocket}")
+                            processes_pool.apply_async(manejarPeticion, args=(clientId, clientSocket))
                     except socket.error:
                         if sigtermRecivida.value == 0:
                             return 1
                         else:
                             return 0
                     except Exception as e:
-                        logging.info(e)
+                        logging.warning(e)
                         return 2
     return 0
 

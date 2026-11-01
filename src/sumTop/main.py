@@ -74,14 +74,13 @@ class SumTop:
                         i = int.from_bytes(clave.encode("UTF-8")) % TOTALTOPPARCIAL
                         nodos[i][lenguaje] = nodos[i].get(lenguaje, {}) 
                         nodos[i][lenguaje][clave] = nodos[i][lenguaje].get(clave,valor)
-
                 # Enviar palabras a cada nodo
                 logging.info("2")
                 for i in range(TOTALTOPPARCIAL):
                     logging.info("2.1")
                     for lenguaje, palabras in nodos[i].items():
                         logging.info("2.1.1")
-                        logging.debug(f"MANDO: {nodos[i][palabras]}")
+                        logging.debug(f"MANDO: {nodos[i]}")
                         mensaje = PalabrasMensajeSistema(palabras=palabras, clienteId=mensaje.clienteId, url="", lenguaje=lenguaje)
                         self.excahangeTopParciales[i].send(mensaje.aBytes())
                     self.excahangeTopParciales[i].send(FinMensajeSistema(mensaje.clienteId).aBytes())

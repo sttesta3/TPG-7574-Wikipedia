@@ -57,6 +57,11 @@ def recibirRespuestas(socket: socket) -> None:
         if isinstance(respuesta, Respuesta2Mensaje):
             with open("/output/output2.txt", "a", encoding="utf-8") as f:
                 f.write(respuesta.nombre + " - "+respuesta.url + " - "+ str(respuesta.imgBytes) + "\n")
+
+        if isinstance(respuesta,Respuesta3Mensaje):
+            with open("/output/output3.txt", "a", encoding= "utf-8") as f:
+                for palabra in respuesta.palabras:
+                    f.write(palabra + "\n")        
         if isinstance(respuesta, Respuesta4Mensaje):
             with open("/output/output4.txt", "a", encoding="utf-8") as f:
                 for k,v in respuesta.palabras.items():

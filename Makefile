@@ -2,6 +2,7 @@ SHELL := /bin/bash
 PWD := $(shell pwd)
 
 up:
+	docker compose -f docker-compose.yaml build nodo-base
 	mkdir -p output
 	COMPOSE_HTTP_TIMEOUT=300 docker compose -f docker-compose.yaml up --build --remove-orphans --detach
 	docker compose -f docker-compose.yaml logs --follow
@@ -17,6 +18,7 @@ logs:
 .PHONY: logs
 
 test:
+	docker compose -f docker-compose.yaml build nodo-base
 	mkdir -p output
 	rm ./output/* -f
 	COMPOSE_HTTP_TIMEOUT=300 docker compose -f docker-compose.yaml up --build --remove-orphans --detach

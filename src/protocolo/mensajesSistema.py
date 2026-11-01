@@ -374,17 +374,27 @@ class Respuesta3MensajeSistema(MensajeSistema):
         self.palabras = palabras
     
     def aBytes(self) -> bytes:
-        bytesMensaje = RESPUESTA3_MENSAJE
+        bytes_mensaje = RESPUESTA3_MENSAJE
+        palabras_bytes = ",".join(self.palabras).encode("UTF-8")
+        bytes_mensaje += len(palabras_bytes).to_bytes(4,byteorder="big")
+        bytes_mensaje += palabras_bytes
+        bytes_mensaje += self.clienteId.bytes
 
-        return bytesMensaje
+        return bytes_mensaje
     
 
     def deBytes(self, bytes) -> None:
-        pass
+        palabras_len = int.from_bytes(bytes[0:4],byteorder="big")
+        offset_len_palabras = 4 + palabras_len
+        self.palabras = bytes[4:offset_len_palabras].decode().split(",")
+
+        offset_id_inicio = 4 + palabras_len
+        offset_id_fin = offset_id_inicio + 16
+        self.clienteId = uuid.UUID(bytes=bytes[offset_id_inicio:offset_id_fin])
 
 
     def aRespuestaGateway(self) -> Respuesta3Mensaje:
-        pass
+        return Respuesta3Mensaje(self.palabras)
 
 # TODO: implementarlo en lotes (si es considerado necesario)
 class Respuesta5MensajeSistema(MensajeSistema):

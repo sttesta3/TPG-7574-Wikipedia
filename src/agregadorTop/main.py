@@ -61,7 +61,7 @@ class AgregadorTop:
         for clave, valor in mensaje.palabras.items():
             if self.clientes[mensaje.clienteId][1].add(palabra=clave, cantidad=valor, lenguaje=mensaje.lenguaje):
                 # Palabra duplicada. Implementacion tipo "streaming"
-                self.colaRespuestas.send(Respuesta3MensajeSistema(clienteId=mensaje.clienteId, palabra=clave).aBytes())
+                self.colaRespuestas.send(Respuesta3MensajeSistema(clienteId=mensaje.clienteId, palabras=[clave]).aBytes())
         
     def _top20(self, palabras: dict[str, int]) -> dict[str, int]:
         top = sorted(palabras.items(), key=lambda item: item[1], reverse=True)

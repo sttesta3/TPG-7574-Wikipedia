@@ -94,14 +94,18 @@ class Respuesta2Mensaje(Respuesta):
 
 
 class Respuesta3Mensaje(Respuesta):
-    def __init__(self, palabras: list[str]) -> None:
+    def __init__(self, palabras: list[str]=None) -> None:
         self.palabras = palabras
 
     def aBytes(self) -> bytes:
-        pass
+        bytes_mensaje =  RESPUESTA3_MENSAJE
+        palabras_bytes = ",".join(self.palabras).encode("UTF-8")
+        bytes_mensaje += len(palabras_bytes).to_bytes(4,byteorder="big")
+        bytes_mensaje += palabras_bytes
+        return bytes_mensaje
 
     def deBytes(self, bytes: bytes) -> None:        
-        pass
+        self.palabras = bytes.decode().split(",")
 
 
 class Respuesta4Mensaje(Respuesta):

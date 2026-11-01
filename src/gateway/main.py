@@ -6,7 +6,7 @@ import signal
 import multiprocessing
 from protocolo.mensajesCliente import recvMensaje, FinMensaje
 from protocolo.mensajesGateway import sendRespuesta
-from protocolo.mensajesSistema import FinMensajeSistema, Respuesta2MensajeSistema, LoteDataMensajeSistema, recvMensajeSistema
+from protocolo.mensajesSistema import FinMensajeSistema, LoteDataMensajeSistema, recvMensajeSistema
 from middleware import MessageMiddlewareQueue
 
 GATEWAYHOST = os.environ["GATEWAYHOST"]
@@ -28,21 +28,21 @@ def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
         
         eof = False
         while not eof:
-            logging.info("Marcador loop recepcion")
+            logging.debug("Marcador loop recepcion")
             mensaje = recvMensaje(clientSocket)
             if mensaje is None:
                 eof = True
-                logging.info(f"Cliente {clienteId} envio eof")
+                logging.debug(f"Cliente {clienteId} envio eof")
                 colaDatos.send(FinMensajeSistema(clienteId).aBytes())
-                logging.info(f"EOF cliente {clienteId} enviado OK")
+                logging.debug(f"EOF cliente {clienteId} enviado OK")
             else:
-                logging.info(f"Cliente {clienteId} mensaje {mensaje}")
+                logging.debug(f"Cliente {clienteId} mensaje {mensaje}")
                 colaDatos.send(LoteDataMensajeSistema(clienteId, mensaje).aBytes())
-                logging.info("Enviado")
+                logging.debug("Enviado")
     except socket.error:
-        logging.info("The connection with the server was lost")
+        logging.error("The connection with the server was lost")
     except Exception as e:
-        logging.info(e)
+        logging.warning(e)
     finally:
         colaDatos.close()
 
@@ -58,9 +58,8 @@ def manejarRespuesta(clientes: dict) -> None:
                 cliente = clientes[clienteId]
                 cliente[1] += 1
                 clientes[clienteId] = cliente
-                logging.info(f"LLego EOF {respuesta.clienteId} - {clientes[clienteId][1]}")
+                logging.debug(f"LLego EOF {respuesta.clienteId} - {clientes[clienteId][1]}")
                 if clientes[clienteId][1] == TOTALIMGEOF + TOTALPROMEOF + TOTALTOPEOF:
-                    logging.info("mando")
                     FinMensaje(clienteSocket).send()
                     del clientes[clienteId]
             else:
@@ -95,10 +94,13 @@ def main() -> None:
                 signal.signal(signal.SIGTERM, lambda signum, frame: manejarSigterm(clientes, serverSocket, sigtermRecivida))
                 while True:
                     try:
-                        clientSocket, _ = serverSocket.accept()
+                        clientSocket, clientAddress = serverSocket.accept()
+                        if clientAddress[0] == '127.0.0.1':
+                            logging.debug("HEALTHCHECK recibido OK. Ignorado")
+                        
                         clientId = uuid.uuid4()
                         clientes[clientId] = [clientSocket, 0]
-
+                            
                         logging.info(f"Cliente aceptado {clientId} {clientSocket}")
                         processes_pool.apply_async(manejarPeticion, args=(clientId, clientSocket))
                     except socket.error:

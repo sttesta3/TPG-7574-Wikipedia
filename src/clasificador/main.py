@@ -6,6 +6,7 @@ import threading
 from clienteLock import ClienteLock
 from middleware import MessageMiddlewareQueue,MessageMiddlewareExchange
 from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, LoteDataMensajeSistema, ImgMensajeSistema, Respuesta1MensajeSistema, TransformadorMensajeSistema
+from protocolo.mensajesCliente import LENGUAJEINGLES, LENGUAJEFRANCES
 
 MOMHOST = os.environ["MOMHOST"]
 COLADATOS = os.environ["COLADATOS"]
@@ -13,8 +14,6 @@ COLARESPUESTAS = os.environ["COLARESPUESTAS"]
 COLAIMGDESCARGA = os.environ["COLAIMGDESCARGA"]
 COLATRANSFORMADOR = os.environ["COLATRANSFORMADOR"]
 CLASIFICADOREXCHANGEEOF = os.environ["CLASIFICADOREXCHANGEEOF"]
-
-LENGUAJEINGLES = 1
 
 class Clasificador:
     def __init__(self):

@@ -369,8 +369,9 @@ class Respuesta2MensajeSistema(MensajeSistema):
         return Respuesta2Mensaje(self.nombre, self.url, self.imgBytes) 
 
 class Respuesta3MensajeSistema(MensajeSistema):
-    def __init__(self, clienteId: uuid.UUID = None, url: str = None, palabras: [str] = None):
-        pass
+    def __init__(self, clienteId: uuid.UUID = None, palabras: [str] = None):
+        self.clienteId = clienteId
+        self.palabras = palabras
     
     def aBytes(self) -> bytes:
         pass

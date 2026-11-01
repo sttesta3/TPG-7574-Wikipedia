@@ -11,13 +11,13 @@ def safeRecv(socket: socket.socket, size):
             logging.debug(f"[safe socket][recv] {recived} {bytes}")
 
             if not byte_rec:
-                logging.warn(f"[safe socket][recv] leí cero, devuelvo lo leído")
+                logging.warning(f"[safe socket][recv] leí cero, devuelvo lo leído")
                 return bytes
 
             recived += len(byte_rec)
             bytes += byte_rec
         except Exception as e:
-            logging.warn("[safe socket][recv] Excepcion {e}")
+            logging.warning("[safe socket][recv] Excepcion {e}")
             return b""
     
     logging.debug("[safe socket][recv] FIN")
@@ -33,7 +33,7 @@ def safeSend(socket: socket.socket, bytes):
             logging.debug("[safe socket][send] send")
             bytes_send += sended
         except Exception as e:
-            logging.warn("[safe socket][send] Excepcion {e}")
+            logging.warning("[safe socket][send] Excepcion {e}")
             return 0
 
     return bytes_send

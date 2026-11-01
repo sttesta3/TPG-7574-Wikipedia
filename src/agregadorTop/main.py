@@ -88,8 +88,8 @@ class AgregadorTop:
                 self._procesarData(mensaje)
             ack()
         except Exception as e:
-            logging.info(e)
-            logging.info(traceback.format_exc())
+            logging.warning(e)
+            logging.warning(traceback.format_exc())
             nack()
 
     def iniciar(self):

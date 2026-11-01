@@ -37,6 +37,7 @@ class ImgDescargador:
             return 
         
         imgBytes = b''
+        logging.info(f"Descargando imagen {mensaje.clienteId} {mensaje.url}")
         if mensaje.imgUrl != "":
             # TODO: podria manejar una sola sesion como variable del ImgDescargador
             async with aiohttp.ClientSession(headers={'User-Agent':'Tp-Fiuba/0.0 (https://fi.uba.ar/;shenseler@fi.uba.ar)'}) as session:
@@ -62,7 +63,7 @@ class ImgDescargador:
             else:
                 if mensaje.clienteId not in self.clientes:
                     self.clientes[mensaje.clienteId] = ClienteLock(TOTALCLASIFICADORES)
-                
+
                 self.clientes[mensaje.clienteId].nuevoMensaje()
                 asyncio.run_coroutine_threadsafe(self._procesarData(mensaje), self.eventLoop)
             ack()

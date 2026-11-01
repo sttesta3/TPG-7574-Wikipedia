@@ -94,8 +94,8 @@ class Respuesta2Mensaje(Respuesta):
 
 
 class Respuesta3Mensaje(Respuesta):
-    def __init__(self) -> None:
-        pass
+    def __init__(self, palabras: list[str]) -> None:
+        self.palabras = palabras
 
     def aBytes(self) -> bytes:
         pass

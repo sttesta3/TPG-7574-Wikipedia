@@ -30,7 +30,7 @@ class SumTop:
 
 
     def _procesarData(self, mensaje: PalabrasMensajeSistema) -> None:
-        logging.info(f"Mensaje recibido {mensaje}")
+        logging.debug(f"Mensaje recibido {mensaje}")
         if mensaje.clienteId not in self.clientes:
             self.clientes[mensaje.clienteId] = {}
             self.clientesLock[mensaje.clienteId] = ClienteLock(TOTALTRANSFORMADORES)
@@ -55,8 +55,8 @@ class SumTop:
                 self._procesarData(mensaje)
             ack()
         except Exception as e:
-            logging.info(e)
-            logging.info(traceback.format_exc())
+            logging.warning(e)
+            logging.warning(traceback.format_exc())
             nack()
 
 
@@ -72,7 +72,7 @@ class SumTop:
 
                 for i in range(TOTALTOPPARCIAL):
                     for lenguaje, palabras in nodos[i]:
-                        logging.info(f"MANDO: {nodos[i]}")
+                        logging.debug(f"MANDO: {nodos[i]}")
                         mensaje = PalabrasMensajeSistema(palabras=palabras, clienteId=mensaje.clienteId, url="", lenguaje=lenguaje)
                         self.excahangeTopParciales[i].send(mensaje.aBytes())
                     self.excahangeTopParciales[i].send(FinMensajeSistema(mensaje.clienteId).aBytes())
@@ -82,7 +82,7 @@ class SumTop:
                 
             ack()
         except Exception as e:
-            logging.info(e)
+            logging.warning(e)
             nack()
     
     

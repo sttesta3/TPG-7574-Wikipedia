@@ -6,7 +6,7 @@ import signal
 import threading
 import pandas as pd
 from protocolo.mensajesCliente import LoteMensaje, FinMensaje
-from protocolo.mensajesGateway import recvMensaje, Respuesta1Mensaje, Respuesta2Mensaje, Respuesta5Mensaje
+from protocolo.mensajesGateway import recvMensaje, Respuesta1Mensaje, Respuesta2Mensaje, Respuesta3Mensaje, Respuesta4Mensaje, Respuesta5Mensaje
 
 DATASETPATHEN = os.environ["DATASETPATHEN"]
 DATASETPATHFR = os.environ["DATASETPATHFR"]
@@ -19,26 +19,26 @@ def enviarParquet(socket: socket) -> None:
     logging.info("Thread emisor iniciado")
     loteMensaje = LoteMensaje(socket, LOTE)
     for i in range(TOTALDATASETS):
-        logging.info(f"Agrego dataset {i}")
+        logging.debug(f"Agrego dataset {i}")
         datasetEn = pd.read_parquet(DATASETPATHEN + str(i).zfill(5) + ".parquet")
         datasetFr = pd.read_parquet(DATASETPATHFR + str(i).zfill(5) + ".parquet")
         
-        logging.info("Post pd.read_parquet")
+        logging.debug("Post pd.read_parquet")
         dataset = pd.concat([datasetEn, datasetFr])
         
-        logging.info("Post pd.concat")
+        logging.debug("Post pd.concat")
         cuenta = 0
         for fila in dataset.itertuples():
-            logging.info(f"Agregando mensaje {cuenta} al lote")
+            logging.debug(f"Agregando mensaje {cuenta} al lote")
             loteMensaje.agregarMensaje(fila)
-            logging.info("Mensaje agregado OK")
+            logging.debug("Mensaje agregado OK")
             cuenta += 1 
     
-    logging.info("Por enviar Lote")    
+    logging.debug("Por enviar Lote")    
     loteMensaje.send()
-    logging.info("Lote enviado")
+    logging.debug("Lote enviado")
     FinMensaje(socket).send()
-    logging.info("EOF enviado")
+    logging.debug("EOF enviado")
 
 
 def recibirRespuestas(socket: socket) -> None:

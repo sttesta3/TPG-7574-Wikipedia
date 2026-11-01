@@ -79,7 +79,7 @@ class SumTop:
                 logging.info("2")
                 for i in range(TOTALTOPPARCIAL):
                     logging.info("2.1")
-                    for lenguaje, palabras in nodos[i]:
+                    for lenguaje, palabras in nodos[i].items():
                         logging.info("2.1.1")
                         logging.debug(f"MANDO: {nodos[i]}")
                         mensaje = PalabrasMensajeSistema(palabras=palabras, clienteId=mensaje.clienteId, url="", lenguaje=lenguaje)

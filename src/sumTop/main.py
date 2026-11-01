@@ -65,24 +65,35 @@ class SumTop:
             mensaje = recvMensajeSistema(bytes)
             if self.clientesLock[mensaje.clienteId].llegadaEof():
                 nodos = [{} for _ in range(TOTALTOPPARCIAL)]
+                logging.info("1")
+                # Afinidad palabras de cliente por nodo
                 for lenguaje, palabras in self.clientes[mensaje.clienteId].items():
-                    for clave, valor in palabras:
+                    logging.info("1.1")
+                    for clave, valor in palabras.items():
+                        logging.info("1.1.1")
                         i = int.from_bytes(clave.encode("UTF-8")) % TOTALTOPPARCIAL
-                        nodos[i][lenguaje][clave] = valor
+                        nodos[i][lenguaje] = nodos[i].get(lenguaje, {}) 
+                        nodos[i][lenguaje][clave] = nodos[i][lenguaje].get(clave,valor)
 
+                # Enviar palabras a cada nodo
+                logging.info("2")
                 for i in range(TOTALTOPPARCIAL):
+                    logging.info("2.1")
                     for lenguaje, palabras in nodos[i]:
+                        logging.info("2.1.1")
                         logging.debug(f"MANDO: {nodos[i]}")
                         mensaje = PalabrasMensajeSistema(palabras=palabras, clienteId=mensaje.clienteId, url="", lenguaje=lenguaje)
                         self.excahangeTopParciales[i].send(mensaje.aBytes())
                     self.excahangeTopParciales[i].send(FinMensajeSistema(mensaje.clienteId).aBytes())
 
+                logging.info("3")
                 del self.clientesLock[mensaje.clienteId]
                 del self.clientes[mensaje.clienteId]
                 
             ack()
         except Exception as e:
             logging.info("Guarda que sali en manejarEOF")
+            logging.warning(traceback.format_exc())
             logging.warning(e)
             nack()
     

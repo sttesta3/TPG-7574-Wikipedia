@@ -21,6 +21,7 @@ TOTALPROMEOF = int(os.environ["TOTALPROMEOF"])
 TOTALTOPEOF = int(os.environ["TOTALTOPEOF"])
 
 def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
+    logging.basicConfig(level=logging.INFO)
     logging.info(f"manejando cliente {clienteId}")
     try:
         colaDatos = MessageMiddlewareQueue(MOMHOST, COLADATOS)
@@ -31,7 +32,9 @@ def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
             mensaje = recvMensaje(clientSocket)
             if mensaje is None:
                 eof = True
+                logging.info(f"Cliente {clienteId} envio eof")
                 colaDatos.send(FinMensajeSistema(clienteId).aBytes())
+                logging.info(f"EOF cliente {clienteId} enviado OK")
             else:
                 logging.info(f"Cliente {clienteId} mensaje {mensaje}")
                 colaDatos.send(LoteDataMensajeSistema(clienteId, mensaje).aBytes())

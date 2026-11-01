@@ -34,12 +34,12 @@ class SumTop:
         if mensaje.clienteId not in self.clientes:
             self.clientes[mensaje.clienteId] = {}
             self.clientesLock[mensaje.clienteId] = ClienteLock(TOTALTRANSFORMADORES)
-        if mensaje.language not in self.clientes[mensaje.clienteId]: 
-            self.clientes[mensaje.clienteId][mensaje.language] = {}
+        if mensaje.lenguaje not in self.clientes[mensaje.clienteId]: 
+            self.clientes[mensaje.clienteId][mensaje.lenguaje] = {}
 
         self.clientesLock[mensaje.clienteId].nuevoMensaje()
         for clave, valor in mensaje.palabras.items():
-            self.clientes[mensaje.clienteId][mensaje.language][clave] = self.clientes[mensaje.clienteId][mensaje.language].get(clave, 0) + valor
+            self.clientes[mensaje.clienteId][mensaje.lenguaje][clave] = self.clientes[mensaje.clienteId][mensaje.lenguaje].get(clave, 0) + valor
         self.clientesLock[mensaje.clienteId].nuevaRespuesta()
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:

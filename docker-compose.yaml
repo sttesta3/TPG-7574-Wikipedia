@@ -26,7 +26,7 @@ services:
       - TOTALTOPEOF=1
     healthcheck:
       test: ["CMD", "python3", "-c", "import socket; s=socket.create_connection(('127.0.0.1', 8000), timeout=2); s.close()"]
-      interval: 2s
+      interval: 10s
       timeout: 3s
       retries: 15
       start_period: 5s

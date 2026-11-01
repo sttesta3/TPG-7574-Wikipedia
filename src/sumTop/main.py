@@ -81,7 +81,7 @@ class SumTop:
                     logging.info("2.1")
                     for lenguaje, palabras in nodos[i].items():
                         logging.info("2.1.1")
-                        logging.debug(f"MANDO: {nodos[i]}")
+                        logging.debug(f"MANDO: {nodos[i][palabras]}")
                         mensaje = PalabrasMensajeSistema(palabras=palabras, clienteId=mensaje.clienteId, url="", lenguaje=lenguaje)
                         self.excahangeTopParciales[i].send(mensaje.aBytes())
                     self.excahangeTopParciales[i].send(FinMensajeSistema(mensaje.clienteId).aBytes())

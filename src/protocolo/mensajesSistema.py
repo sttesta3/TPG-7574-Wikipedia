@@ -374,7 +374,9 @@ class Respuesta3MensajeSistema(MensajeSistema):
         self.palabras = palabras
     
     def aBytes(self) -> bytes:
-        pass
+        bytesMensaje = RESPUESTA3_MENSAJE
+
+        return bytesMensaje
     
 
     def deBytes(self, bytes) -> None:

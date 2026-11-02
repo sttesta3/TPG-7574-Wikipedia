@@ -1,8 +1,10 @@
 import os
+import sys
+import logging
 import signal
 import traceback
 from middleware import MessageMiddlewareExchange
-from mensajesSistema import recvMensajeSistema, FinMensajeSistema, CantidadPalabraMensajeSistema, FinPromMensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, CantidadPalabraMensajeSistema, FinPromMensajeSistema
 
 
 MOMHOST = os.environ["MOMHOST"]
@@ -35,8 +37,10 @@ class Promedio:
         self.clientes[str(mensaje.clienteId)][2] += 1
 
         if self.clientes[str(mensaje.clienteId)][2] == TOTALTRANSFORMADORES:
-
+            promedio_float = self.clientes[str(mensaje.clienteId)][0] / self.clientes[str(mensaje.clienteId)][1]
             promedio = self.clientes[str(mensaje.clienteId)][0] // self.clientes[str(mensaje.clienteId)][1] 
+            logging.info(f"Promedio flotante: {promedio_float}")
+            logging.info(f"Promedio : {promedio}") 
             
             nodo = mensaje.clienteId.int % TOTALCUENTAPROM
             self.exchangeCuentaProm[nodo].send(FinPromMensajeSistema(mensaje.clienteId, promedio).aBytes())
@@ -53,8 +57,8 @@ class Promedio:
                 self._procesarData(mensaje)
             ack()
         except Exception as e:
-            print(e)
-            print(traceback.format_exc())
+            logging.info(e)
+            logging.info(traceback.format_exc())
             nack()
 
 
@@ -74,6 +78,7 @@ class Promedio:
 
 
 def main() -> int:
+    logging.basicConfig(level=logging.INFO)
     promedio = Promedio()
     signal.signal(signal.SIGTERM, lambda signum, frame: promedio.manejarSigterm())
     promedio.iniciar()

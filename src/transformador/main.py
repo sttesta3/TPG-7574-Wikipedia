@@ -1,11 +1,13 @@
 import os
 import re
+import logging
+import sys
 import nltk
 import signal
 import threading
 import traceback
 from nltk.corpus import stopwords
-from mensajesSistema import recvMensajeSistema, FinMensajeSistema, TransformadorMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, TransformadorMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
 from clienteLock import ClienteLock
 
@@ -82,8 +84,8 @@ class Transformador:
                 self._procesarData(mensaje)
             ack()
         except Exception as e:
-            print(e)
-            print(traceback.format_exc())
+            logging.info(e)
+            logging.info(traceback.format_exc())
             nack()
 
 
@@ -100,7 +102,7 @@ class Transformador:
                 del self.clientes[mensaje.clienteId]
             ack()
         except Exception as e:
-            print(e)
+            logging.info(e)
             nack()
 
     
@@ -134,6 +136,7 @@ class Transformador:
 
 
 def main() -> int:
+    logging.basicConfig(level=logging.INFO)
     nltk.download('stopwords')
     transformador = Transformador()
     signal.signal(signal.SIGTERM, lambda signum, frame: transformador.manejarSigterm())

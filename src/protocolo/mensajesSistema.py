@@ -1,7 +1,7 @@
 import uuid
 from abc import ABC, abstractmethod
-from mensajesCliente import DataMensaje, FIN_MENSAJE
-from mensajesGateway import Respuesta1Mensaje, Respuesta2Mensaje, Respuesta4Mensaje, Respuesta5Mensaje
+from protocolo.mensajesCliente import DataMensaje, FIN_MENSAJE
+from protocolo.mensajesGateway import Respuesta1Mensaje, Respuesta2Mensaje, Respuesta3Mensaje,Respuesta4Mensaje, Respuesta5Mensaje
 
 RESPUESTA1_MENSAJE = b'\x01'
 RESPUESTA2_MENSAJE = b'\x02'
@@ -339,6 +339,62 @@ class Respuesta2MensajeSistema(MensajeSistema):
     def aRespuestaGateway(self) -> Respuesta2Mensaje:
         return Respuesta2Mensaje(self.nombre, self.url, self.imgBytes) 
 
+class Respuesta2MensajeSistema(MensajeSistema):
+    def __init__(self, clienteId: uuid.UUID = None, url: str = None, nombre: str = None, imgBytes: bytes = None):
+        self.clienteId = clienteId
+        self.url = url
+        self.nombre = nombre
+        self.imgBytes = imgBytes
+
+
+    def aBytes(self) -> bytes:
+        bytesMensaje = RESPUESTA2_MENSAJE
+        bytesMensaje += (Respuesta2Mensaje(self.nombre, self.url, self.imgBytes).aBytes())[1:]
+        bytesMensaje += self.clienteId.bytes
+
+        return bytesMensaje
+
+
+    def deBytes(self, bytes: bytes) -> None:
+        rtaMsg = Respuesta2Mensaje()
+        rtaMsg.deBytes(bytes[4:len(bytes)-16])
+        self.nombre = rtaMsg.nombre
+        self.imgBytes = rtaMsg.imgBytes
+        self.url = rtaMsg.url
+
+        self.clienteId = uuid.UUID(bytes=bytes[len(bytes)-16:])
+
+
+    def aRespuestaGateway(self) -> Respuesta2Mensaje:
+        return Respuesta2Mensaje(self.nombre, self.url, self.imgBytes) 
+
+class Respuesta3MensajeSistema(MensajeSistema):
+    def __init__(self, clienteId: uuid.UUID = None, palabras: list[str] = None):
+        self.clienteId = clienteId
+        self.palabras = palabras
+    
+    def aBytes(self) -> bytes:
+        bytes_mensaje = RESPUESTA3_MENSAJE
+        palabras_bytes = ",".join(self.palabras).encode("UTF-8")
+        bytes_mensaje += len(palabras_bytes).to_bytes(4,byteorder="big")
+        bytes_mensaje += palabras_bytes
+        bytes_mensaje += self.clienteId.bytes
+
+        return bytes_mensaje
+    
+
+    def deBytes(self, bytes) -> None:
+        palabras_len = int.from_bytes(bytes[0:4],byteorder="big")
+        offset_len_palabras = 4 + palabras_len
+        self.palabras = bytes[4:offset_len_palabras].decode().split(",")
+
+        offset_id_inicio = 4 + palabras_len
+        offset_id_fin = offset_id_inicio + 16
+        self.clienteId = uuid.UUID(bytes=bytes[offset_id_inicio:offset_id_fin])
+
+
+    def aRespuestaGateway(self) -> Respuesta3Mensaje:
+        return Respuesta3Mensaje(self.palabras)
 
 # TODO: implementarlo en lotes (si es considerado necesario)
 class Respuesta5MensajeSistema(MensajeSistema):
@@ -433,6 +489,8 @@ def recvMensajeSistema(mensaje: bytes) -> MensajeSistema:
         rta = Respuesta1MensajeSistema() 
     elif type == RESPUESTA2_MENSAJE:
         rta = Respuesta2MensajeSistema()
+    elif type == RESPUESTA3_MENSAJE:
+        rta = Respuesta3MensajeSistema()
     elif type == RESPUESTA4_MENSAJE:
         rta = Respuesta4MensajeSistema()
     elif type == RESPUESTA5_MENSAJE:

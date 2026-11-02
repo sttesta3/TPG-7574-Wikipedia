@@ -1,12 +1,14 @@
 import os
+import sys
+import logging
 import signal
 import aiohttp
 import asyncio
 import traceback
 import threading
 from clienteLock import ClienteLock
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, ImgMensajeSistema, Respuesta2MensajeSistema
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-from mensajesSistema import recvMensajeSistema, FinMensajeSistema, ImgMensajeSistema, Respuesta2MensajeSistema
 
 MOMHOST = os.environ["MOMHOST"]
 COLAIMGDESCARGA = os.environ["COLAIMGDESCARGA"]
@@ -71,12 +73,12 @@ class ImgDescargador:
             else:
                 if mensaje.clienteId not in self.clientes:
                     self.clientes[mensaje.clienteId] = ClienteLock(TOTALCLASIFICADORES)
-                
+
                 self.clientes[mensaje.clienteId].nuevoMensaje()
                 asyncio.run_coroutine_threadsafe(self._procesarData(mensaje), self.eventLoop)
             ack()
         except Exception as e:
-            print(e)
+            logging.info(e)
             ack()
 
 
@@ -100,8 +102,8 @@ class ImgDescargador:
                 
                 ack()
             except Exception as e:
-                print(e)
-                print(traceback.format_exc())
+                logging.info(e)
+                logging.info(traceback.format_exc())
                 nack()
 
         self.exchangeImgEof.start_consuming(manejarEof)
@@ -143,6 +145,7 @@ class ImgDescargador:
 
 
 def main() -> int:
+    logging.basicConfig(level=logging.INFO)
     imgDescargador = ImgDescargador()
     signal.signal(signal.SIGTERM, lambda signum, frame: imgDescargador.manejarSigterm())
     imgDescargador.iniciar()

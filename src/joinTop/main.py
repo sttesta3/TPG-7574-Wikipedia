@@ -1,8 +1,10 @@
 import os
+import sys
+import logging
 import signal
 import traceback
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-from mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasMensajeSistema, Respuesta4MensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasMensajeSistema, Respuesta4MensajeSistema
 
 
 MOMHOST = os.environ["MOMHOST"]
@@ -21,6 +23,7 @@ class JoinTop:
 
 
     def _procesarData(self, mensaje: PalabrasMensajeSistema) -> None:
+        logging.info(f"[join] Recibi {mensaje.clienteId} top parcial {mensaje.palabras}")
         if mensaje.clienteId not in self.clientes:
             self.clientes[mensaje.clienteId] = [0, {}]
 
@@ -31,6 +34,7 @@ class JoinTop:
         return dict(top[:20])
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
+        logging.info(f"[join] Recibi {mensaje.clienteId} EOF")
         self.clientes[mensaje.clienteId][0] += 1
 
         if self.clientes[mensaje.clienteId][0] == TOTALTOPPARCIAL:
@@ -48,8 +52,8 @@ class JoinTop:
                 self._procesarData(mensaje)
             ack()
         except Exception as e:
-            print(e)
-            print(traceback.format_exc())
+            logging.info(e)
+            logging.info(traceback.format_exc())
             nack()
 
 
@@ -68,6 +72,7 @@ class JoinTop:
 
 
 def main() -> int:
+    logging.basicConfig(level=logging.INFO)
     joinTop = JoinTop()
     signal.signal(signal.SIGTERM, lambda signum, frame: joinTop.manejarSigterm())
     joinTop.iniciar()

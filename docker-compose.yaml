@@ -1,4 +1,10 @@
 services:
+  nodo-base:
+      build:
+        context: ./src/
+        dockerfile: base/Dockerfile
+      image: nodo-base:latest
+
   gateway:
     build:
       context: ./src/
@@ -34,8 +40,8 @@ services:
       - RABBITMQ_LOG_LEVELS=error
       healthcheck:
         interval: 5s
-        retries: 1
-        start_period: 50s
+        retries: 3
+        start_period: 120s
         test: rabbitmq-diagnostics check_port_connectivity
         timeout: 3s
       ports:
@@ -72,6 +78,8 @@ services:
           condition: service_healthy
         gateway:
           condition: service_started
+        nodo-base:
+          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
@@ -91,6 +99,8 @@ services:
           condition: service_healthy
         gateway:
           condition: service_started
+        nodo-base:
+          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
@@ -109,6 +119,8 @@ services:
         rabbitmq:
           condition: service_healthy
         gateway:
+          condition: service_started
+        nodo-base:
           condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
@@ -131,6 +143,8 @@ services:
           condition: service_started
         clasificador_0:
           condition: service_started
+        nodo-base:
+          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
@@ -152,6 +166,8 @@ services:
           condition: service_started
         clasificador_0:
           condition: service_started
+        nodo-base:
+          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
@@ -172,6 +188,8 @@ services:
         gateway:
           condition: service_started
         clasificador_0:
+          condition: service_started
+        nodo-base:
           condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
@@ -196,6 +214,8 @@ services:
         gateway:
           condition: service_started
         clasificador_0:
+          condition: service_started
+        nodo-base:
           condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
@@ -223,6 +243,8 @@ services:
           condition: service_started
         transformador_0:
           condition: service_started
+        nodo-base:
+          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
@@ -244,6 +266,8 @@ services:
           condition: service_started
         transformador_0:
           condition: service_started
+        nodo-base:
+          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
@@ -264,6 +288,8 @@ services:
         clasificador_0:
           condition: service_started
         transformador_0:
+          condition: service_started
+        nodo-base:
           condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
@@ -288,6 +314,8 @@ services:
           condition: service_started
         transformador_0:
           condition: service_started
+        nodo-base:
+          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
@@ -308,6 +336,8 @@ services:
         gateway:
           condition: service_started
         clasificador_0:
+          condition: service_started
+        nodo-base:
           condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
@@ -330,6 +360,8 @@ services:
           condition: service_started
         clasificador_0:
           condition: service_started
+        nodo-base:
+          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
@@ -351,10 +383,13 @@ services:
           condition: service_started
         clasificador_0:
           condition: service_started
+        nodo-base:
+          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLASUMTOP=ColaSumTop
+      - COLARESPUESTAS=Respuestas
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
       - EXCHANGETOPGLOBAL=ExchangeTopGlobal
@@ -374,10 +409,13 @@ services:
           condition: service_started
         clasificador_0:
           condition: service_started
+        nodo-base:
+          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLASUMTOP=ColaSumTop
+      - COLARESPUESTAS=Respuestas
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
       - EXCHANGETOPGLOBAL=ExchangeTopGlobal
@@ -396,6 +434,8 @@ services:
         gateway:
           condition: service_started
         clasificador_0:
+          condition: service_started
+        nodo-base:
           condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
@@ -416,6 +456,8 @@ services:
         gateway:
           condition: service_started
         clasificador_0:
+          condition: service_started
+        nodo-base:
           condition: service_started
     environment:
       - PYTHONUNBUFFERED=1

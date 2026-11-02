@@ -14,6 +14,7 @@ TOTALDATASETS = int(os.environ["TOTALDATASETS"])
 GATEWAYHOST = os.environ["GATEWAYHOST"]
 GATEWAYPORT = int(os.environ["GATEWAYPORT"])
 LOTE = int(os.environ["LOTE"])
+ID = os.environ["ID"]
 
 def enviarParquet(socket: socket) -> None:
     logging.info("Thread emisor iniciado")
@@ -56,22 +57,22 @@ def recibirRespuestas(socket: socket) -> None:
         if isinstance(respuesta, FinMensaje):
             eof = True
         if isinstance(respuesta, Respuesta1Mensaje):
-            with open("/output/output1.txt", "a", encoding="utf-8") as f:
+            with open("/output/output1_"+ID +".txt", "a", encoding="utf-8") as f:
                 f.write(respuesta.url + " - "+ str(respuesta.fecha) + "\n")
         if isinstance(respuesta, Respuesta2Mensaje):
-            with open("/output/output2.txt", "a", encoding="utf-8") as f:
+            with open("/output/output2_"+ID +".txt", "a", encoding="utf-8") as f:
                 f.write(respuesta.nombre + " - "+respuesta.url + " - "+ str(respuesta.imgBytes) + "\n")
 
         if isinstance(respuesta,Respuesta3Mensaje):
-            with open("/output/output3.txt", "a", encoding= "utf-8") as f:
+            with open("/output/output3_"+ID +".txt", "a", encoding= "utf-8") as f:
                 for palabra in respuesta.palabras:
                     f.write(palabra + "\n")        
         if isinstance(respuesta, Respuesta4Mensaje):
-            with open("/output/output4.txt", "a", encoding="utf-8") as f:
+            with open("/output/output4_"+ID +".txt", "a", encoding="utf-8") as f:
                 for k,v in respuesta.palabras.items():
                     f.write(k +" - " +str(v) + "\n")
         if isinstance(respuesta, Respuesta5Mensaje):
-            with open("/output/output5.txt", "a", encoding="utf-8") as f:
+            with open("/output/output5_"+ID +".txt", "a", encoding="utf-8") as f:
                 f.write(respuesta.url + " - "+ str(respuesta.cantidad)+ "\n")
   
 

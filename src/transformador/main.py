@@ -59,8 +59,7 @@ class Transformador:
             self.clientes[mensaje.clienteId] = ClienteLock(TOTALCLASIFICADORES)
        
         palabras = self._resumenAPalabras(mensaje.resumen)
-        if len(palabras) == 1:
-            logging.debug(f"{mensaje.url}, {mensaje.resumen}, {palabras}")
+        
         if len(palabras) > 0: 
             self.clientes[mensaje.clienteId].nuevoMensaje()
             try:

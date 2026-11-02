@@ -37,8 +37,10 @@ class Promedio:
         self.clientes[str(mensaje.clienteId)][2] += 1
 
         if self.clientes[str(mensaje.clienteId)][2] == TOTALTRANSFORMADORES:
-
+            promedio_float = self.clientes[str(mensaje.clienteId)][0] / self.clientes[str(mensaje.clienteId)][1]
             promedio = self.clientes[str(mensaje.clienteId)][0] // self.clientes[str(mensaje.clienteId)][1] 
+            logging.info(f"Promedio flotante: {promedio_float}")
+            logging.info(f"Promedio : {promedio}") 
             
             nodo = mensaje.clienteId.int % TOTALCUENTAPROM
             self.exchangeCuentaProm[nodo].send(FinPromMensajeSistema(mensaje.clienteId, promedio).aBytes())

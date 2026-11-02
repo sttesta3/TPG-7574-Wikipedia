@@ -46,7 +46,7 @@ def recibirRespuestas(socket: socket) -> None:
     eof = False
     while not eof:
         respuesta = recvMensaje(socket)
-        logging.info(f"Recibi respuesta {respuesta}")        
+        logging.debug(f"Recibi respuesta {respuesta}")        
 
         # TODO: tal vez hacerlo mas polimorfico (?
         if isinstance(respuesta, FinMensaje):

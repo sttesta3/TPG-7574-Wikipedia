@@ -17,14 +17,11 @@ LOTE = int(os.environ["LOTE"])
 ID = os.environ["ID"]
 
 def enviarParquet(socket: socket) -> None:
-    logging.info("Thread emisor iniciado")
     loteMensaje = LoteMensaje(socket, LOTE)
     for i in range(TOTALDATASETS):
-        logging.debug(f"Agrego dataset {i}")
         datasetEn = pd.read_parquet(DATASETPATHEN + str(i).zfill(5) + ".parquet")
         datasetFr = pd.read_parquet(DATASETPATHFR + str(i).zfill(5) + ".parquet")
         
-        logging.debug("Post pd.read_parquet")
         dataset = pd.concat([datasetEn, datasetFr])
         
         logging.debug("Post pd.concat")

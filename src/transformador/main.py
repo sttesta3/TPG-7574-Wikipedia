@@ -59,7 +59,7 @@ class Transformador:
             self.clientes[mensaje.clienteId] = ClienteLock(TOTALCLASIFICADORES)
        
         palabras = self._resumenAPalabras(mensaje.resumen)
-        
+
         if len(palabras) > 0: 
             self.clientes[mensaje.clienteId].nuevoMensaje()
             try:
@@ -72,8 +72,6 @@ class Transformador:
                     self.exchangeCuentaProm[nodo].send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
             finally:
                 self.clientes[mensaje.clienteId].nuevaRespuesta()
-        else:
-            logging.info(f"Abstract vacio {mensaje.clienteId} {mensaje.url}")
 
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:

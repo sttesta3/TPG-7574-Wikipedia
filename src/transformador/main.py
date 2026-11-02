@@ -49,7 +49,7 @@ class Transformador:
         palabrasSinStop = {}
         palabras = re.findall(WORD_REGEX, resumen.lower())
         for palabra in palabras:
-            if palabra not in self.stopWords and not re.fullmatch(NUMBER_REGEX, palabra):
+            if palabra not in self.stopWords and not re.fullmatch(NUMBER_REGEX, palabra) and palabra != 'nan':
                 palabrasSinStop[palabra] = 1
         return palabrasSinStop
 
@@ -57,19 +57,21 @@ class Transformador:
     def _procesarData(self, mensaje: TransformadorMensajeSistema) -> None:
         if mensaje.clienteId not in self.clientes:
             self.clientes[mensaje.clienteId] = ClienteLock(TOTALCLASIFICADORES)
-        
-        self.clientes[mensaje.clienteId].nuevoMensaje()
-        try:
-            palabras = self._resumenAPalabras(mensaje.resumen)
-            self.colaSumTop.send(PalabrasMensajeSistema(mensaje.clienteId, mensaje.url, mensaje.lenguaje, palabras).aBytes())
-            if mensaje.fecha <= 2020:
-                nodo = mensaje.clienteId.int % TOTALPROMEDIO
-                self.exchangePromedio[nodo].send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
-            else:
-                nodo = mensaje.clienteId.int % TOTALCUENTAPROM
-                self.exchangeCuentaProm[nodo].send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
-        finally:
-            self.clientes[mensaje.clienteId].nuevaRespuesta()
+       
+        palabras = self._resumenAPalabras(mensaje.resumen)
+
+        if len(palabras) > 0: 
+            self.clientes[mensaje.clienteId].nuevoMensaje()
+            try:
+                self.colaSumTop.send(PalabrasMensajeSistema(mensaje.clienteId, mensaje.url, mensaje.lenguaje, palabras).aBytes())
+                if mensaje.fecha <= 2020:
+                    nodo = mensaje.clienteId.int % TOTALPROMEDIO
+                    self.exchangePromedio[nodo].send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
+                else:
+                    nodo = mensaje.clienteId.int % TOTALCUENTAPROM
+                    self.exchangeCuentaProm[nodo].send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
+            finally:
+                self.clientes[mensaje.clienteId].nuevaRespuesta()
 
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:

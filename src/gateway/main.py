@@ -28,17 +28,12 @@ def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
         
         eof = False
         while not eof:
-            logging.debug("Marcador loop recepcion")
             mensaje = recvMensaje(clientSocket)
             if mensaje is None:
                 eof = True
-                logging.debug(f"Cliente {clienteId} envio eof")
                 colaDatos.send(FinMensajeSistema(clienteId).aBytes())
-                logging.debug(f"EOF cliente {clienteId} enviado OK")
             else:
-                logging.debug(f"Cliente {clienteId} mensaje {mensaje}")
                 colaDatos.send(LoteDataMensajeSistema(clienteId, mensaje).aBytes())
-                logging.debug("Enviado")
     except socket.error:
         logging.error("The connection with the server was lost")
     except Exception as e:
@@ -58,7 +53,6 @@ def manejarRespuesta(clientes: dict) -> None:
                 cliente = clientes[clienteId]
                 cliente[1] += 1
                 clientes[clienteId] = cliente
-                logging.debug(f"LLego EOF {respuesta.clienteId} - {clientes[clienteId][1]}")
                 if clientes[clienteId][1] == TOTALIMGEOF + TOTALPROMEOF + TOTALTOPEOF:
                     FinMensaje(clienteSocket).send()
                     del clientes[clienteId]
@@ -90,18 +84,16 @@ def main() -> None:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as serverSocket:
                 serverSocket.bind(("0.0.0.0", GATEWAYPORT))
                 serverSocket.listen()
-                logging.info(f"Servidor escuchando en 0.0.0.0:{GATEWAYPORT}")
                 signal.signal(signal.SIGTERM, lambda signum, frame: manejarSigterm(clientes, serverSocket, sigtermRecivida))
                 while True:
                     try:
                         clientSocket, clientAddress = serverSocket.accept()
                         if clientAddress[0] == '127.0.0.1':
-                            logging.debug("HEALTHCHECK recibido OK. Ignorado")
+                            continue
                         else: 
                             clientId = uuid.uuid4()
                             clientes[clientId] = [clientSocket, 0]
                             
-                            logging.info(f"Cliente aceptado {clientId} {clientSocket}")
                             processes_pool.apply_async(manejarPeticion, args=(clientId, clientSocket))
                     except socket.error:
                         if sigtermRecivida.value == 0:

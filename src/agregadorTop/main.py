@@ -70,7 +70,6 @@ class AgregadorTop:
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
         self.clientes[mensaje.clienteId][0] += 1
         if self.clientes[mensaje.clienteId][0] == TOTALSUMTOP:
-#            logging.info(self._top20(self.clientes[mensaje.clienteId][1]))
 
             nodo = mensaje.clienteId.int % TOTALTOPGLOBAL
             self.exchangeTopGlobal[nodo].send(PalabrasMensajeSistema(clienteId=mensaje.clienteId, palabras=self._top20(self.clientes[mensaje.clienteId][1].mergeTop()), url="", lenguaje=0).aBytes())    

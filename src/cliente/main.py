@@ -45,8 +45,12 @@ def recibirRespuestas(socket: socket) -> None:
     logging.info("Thread receptor iniciado")
     eof = False
     while not eof:
-        respuesta = recvMensaje(socket)
-        logging.debug(f"Recibi respuesta {respuesta}")        
+        try:
+            respuesta = recvMensaje(socket)
+            logging.debug(f"Recibi respuesta {respuesta}")
+        except OSError as e:
+            print(f"Se perdio la conexion con el gateway: {e}")
+            return
 
         # TODO: tal vez hacerlo mas polimorfico (?
         if isinstance(respuesta, FinMensaje):

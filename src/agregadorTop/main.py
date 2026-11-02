@@ -94,9 +94,14 @@ class AgregadorTop:
 
     def iniciar(self):
         self.exchangeTopParcial.start_consuming(self.procesarMensaje)
+        self._close_connections()
 
 
     def manejarSigterm(self) -> None:
+        self.exchangeTopParcial.remote_stop()
+
+
+    def _close_connections(self):
         self.exchangeTopParcial.close()
         for i in range(TOTALTOPGLOBAL):
             self.exchangeTopGlobal[i].close()

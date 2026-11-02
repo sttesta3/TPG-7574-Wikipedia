@@ -52,12 +52,16 @@ class CuentaProm:
 
     def iniciar(self):
         self.exchangeProm.start_consuming(self.procesarMensaje)
+        self._close_connections()
 
 
     def manejarSigterm(self) -> None:
+        self.exchangeProm.remote_stop()
+
+
+    def _close_connections(self):
         self.exchangeProm.close()
         self.colaRespuestas.close()
-        sys.exit(0)
 
 
 def main() -> int:

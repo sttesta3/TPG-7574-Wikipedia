@@ -59,17 +59,17 @@ class Transformador:
             self.clientes[mensaje.clienteId] = ClienteLock(TOTALCLASIFICADORES)
         
         self.clientes[mensaje.clienteId].nuevoMensaje()
-
-        palabras = self._resumenAPalabras(mensaje.resumen)
-        self.colaSumTop.send(PalabrasMensajeSistema(mensaje.clienteId, mensaje.url, mensaje.lenguaje, palabras).aBytes())
-        if mensaje.fecha <= 2020:
-            nodo = mensaje.clienteId.int % TOTALPROMEDIO
-            self.exchangePromedio[nodo].send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
-        else:
-            nodo = mensaje.clienteId.int % TOTALCUENTAPROM
-            self.exchangeCuentaProm[nodo].send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
-
-        self.clientes[mensaje.clienteId].nuevaRespuesta()
+        try:
+            palabras = self._resumenAPalabras(mensaje.resumen)
+            self.colaSumTop.send(PalabrasMensajeSistema(mensaje.clienteId, mensaje.url, mensaje.lenguaje, palabras).aBytes())
+            if mensaje.fecha <= 2020:
+                nodo = mensaje.clienteId.int % TOTALPROMEDIO
+                self.exchangePromedio[nodo].send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
+            else:
+                nodo = mensaje.clienteId.int % TOTALCUENTAPROM
+                self.exchangeCuentaProm[nodo].send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
+        finally:
+            self.clientes[mensaje.clienteId].nuevaRespuesta()
 
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
@@ -111,12 +111,13 @@ class Transformador:
 
 
     def iniciar(self):
-        threading.Thread(target=self._controlarEof, daemon=True).start()
+        thread_eof = threading.Thread(target=self._controlarEof, daemon=True)
+        thread_eof.start()
         self.colaTransformador.start_consuming(self.procesarMensaje)
+        thread_eof.join()
+        self._close_connections()
 
-
-    def manejarSigterm(self) -> None:
-        # Manejar el thread
+    def _close_connections(self):
         self.colaTransformador.close()
         self.colaSumTop.close()
         self.colaEOFSend.close()
@@ -125,7 +126,13 @@ class Transformador:
             self.exchangeCuentaProm[i].close()
         for i in range(TOTALPROMEDIO):
             self.exchangePromedio[i].close()
-        sys.exit(0)
+
+
+    def manejarSigterm(self) -> None:
+        self.colaEOF.remote_stop()
+        self.colaTransformador.remote_stop()
+        
+        
 
 
 def main() -> int:

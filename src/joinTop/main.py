@@ -59,12 +59,16 @@ class JoinTop:
 
     def iniciar(self):
         self.exchangeTopGlobal.start_consuming(self.procesarMensaje)
+        self._close_connections()
 
 
     def manejarSigterm(self) -> None:
+        self.exchangeTopGlobal.remote_stop()
+
+
+    def _close_connections(self):
         self.colaRespuestas.close()
         self.exchangeTopGlobal.close()
-        sys.exit(0)
 
 
 def main() -> int:

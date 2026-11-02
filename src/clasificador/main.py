@@ -33,15 +33,15 @@ class Clasificador:
             self.clientes[loteMensaje.clienteId] = ClienteLock()
 
         self.clientes[loteMensaje.clienteId].nuevoMensaje()
-         
-        for mensaje in loteMensaje.lote:
-            if mensaje.lenguaje == LENGUAJEINGLES and mensaje.fecha <= 2020:
-                self.colaRespuestas.send(Respuesta1MensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.fecha).aBytes())
-            if mensaje.fecha <= 2020 and mensaje.biografia == 1:
-                self.colaImgDescarga.send(ImgMensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.nombre, mensaje.imgUrl).aBytes())
-            self.colaTransformador.send(TransformadorMensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.fecha, mensaje.resumen, mensaje.lenguaje).aBytes())
-
-        self.clientes[loteMensaje.clienteId].nuevaRespuesta()
+        try:
+            for mensaje in loteMensaje.lote:
+                if mensaje.lenguaje == LENGUAJEINGLES and mensaje.fecha <= 2020:
+                    self.colaRespuestas.send(Respuesta1MensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.fecha).aBytes())
+                if mensaje.fecha <= 2020 and mensaje.biografia == 1:
+                    self.colaImgDescarga.send(ImgMensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.nombre, mensaje.imgUrl).aBytes())
+                self.colaTransformador.send(TransformadorMensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.fecha, mensaje.resumen, mensaje.lenguaje).aBytes())
+        finally:
+            self.clientes[loteMensaje.clienteId].nuevaRespuesta()
             
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
@@ -82,19 +82,26 @@ class Clasificador:
 
 
     def iniciar(self):
-        threading.Thread(target=self._controlarEof, daemon=True).start()
+        thread_eof = threading.Thread(target=self._controlarEof, daemon=True)
+        thread_eof.start()
         self.colaDatos.start_consuming(self.procesarMensaje)
+        thread_eof.join()
+        self._close_connections()
 
 
     def manejarSigterm(self) -> None:
-        # TODO: aca faltaria ver que hacer con el thread q queda dando vueltas
+        self.colaEOF.remote_stop()
+        self.colaDatos.remote_stop() #mando la señal para que el hilo que maneja corte el channel esto vuelve a lo
+                                     #que va despues de invocar al hilo en iniciar
+
+    def _close_connections(self):
         self.colaDatos.close()
         self.colaRespuestas.close()
         self.colaImgDescarga.close()
         self.colaTransformador.close()
         self.colaEOFSend.close()
         self.colaEOF.close()
-        sys.exit(0)
+
 
 
 def main() -> int:

@@ -49,9 +49,14 @@ class Transformador:
         palabrasSinStop = {}
         palabras = re.findall(WORD_REGEX, resumen.lower())
         for palabra in palabras:
-            if palabra not in self.stopWords and not re.fullmatch(NUMBER_REGEX, palabra) and palabra != 'nan':
+            if palabra not in self.stopWords and not re.fullmatch(NUMBER_REGEX, palabra):
                 palabrasSinStop[palabra] = 1
-        return palabrasSinStop
+        
+        # Filtro contra abstracts vacios (si el abstract es una unica palabra y es 'nan', entonces es vacio)
+        if len(palabrasSinStop) == 1 and 'nan' in palabrasSinStop:
+            return {}
+        else 
+            return palabrasSinStop
 
 
     def _procesarData(self, mensaje: TransformadorMensajeSistema) -> None:

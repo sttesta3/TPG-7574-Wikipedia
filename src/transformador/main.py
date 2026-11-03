@@ -55,7 +55,7 @@ class Transformador:
         # Filtro contra abstracts vacios (si el abstract es una unica palabra y es 'nan', entonces es vacio)
         if len(palabrasSinStop) == 1 and 'nan' in palabrasSinStop:
             return {}
-        else 
+        else:
             return palabrasSinStop
 
 

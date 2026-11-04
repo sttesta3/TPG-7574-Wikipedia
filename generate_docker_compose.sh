@@ -1,0 +1,150 @@
+#!/bin/bash
+
+if [[ $# -ne 11 ]]; then
+	echo "Usage: $0 <nombre-compose> <clientes> <lote> <clasif> <imgDesc> <transfor> <prom> <contProm> <sumTop> <agrTop> <joinTop>"
+	exit 1
+fi 
+
+for arg in "${@:2}"; do
+        if [[ ! $arg =~ ^[0-9]+$ ]]; then
+                echo "Todos los argumentos deben ser numéricos y positivos"
+                exit 1
+        elif [[ $arg -lt 1 ]]; then
+                echo "Todos los argumentos deben ser mayores o iguales a 1"
+                exit 1
+        fi
+done
+
+archivo_salida=$1
+clientes=$2
+lote=$3
+cant_clasif=$4
+cant_descarg=$5
+cant_transf=$6
+cant_promedio=$7
+cant_contador_promedio=$8
+cant_sum_top=$9
+cant_agr_top=${10}
+cant_join_top=${11}
+
+echo "services:
+  nodo-base:
+      build:
+        context: ./src/
+        dockerfile: base/Dockerfile
+      image: nodo-base:latest
+
+  gateway:
+    build:
+      context: ./src/
+      dockerfile: gateway/Dockerfile
+    container_name: gateway
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    environment:
+      - PYTHONUNBUFFERED=1
+      - GATEWAYHOST=gateway
+      - GATEWAYPORT=8000
+      - MOMHOST=rabbitmq
+      - COLADATOS=EntradaDatos
+      - COLARESPUESTAS=Respuestas
+      - LOTE=$lote
+      - TOTALIMGEOF=$cant_descarg
+      - TOTALPROMEOF=$cant_promedio
+      - TOTALTOPEOF=$cant_sum_top
+    healthcheck:
+      test: ['CMD', 'python3', '-c', 'import socket; s=socket.create_connection(('127.0.0.1', 8000), timeout=2); s.close()']
+      interval: 2s
+      timeout: 3s
+      retries: 15
+      start_period: 5s
+
+  rabbitmq:
+      build:
+        context: ./src/middleware
+        dockerfile: Dockerfile
+      container_name: rabbitmq
+      environment:
+      - RABBITMQ_LOG_LEVELS=error
+      healthcheck:
+        interval: 5s
+        retries: 3
+        start_period: 120s
+        test: rabbitmq-diagnostics check_port_connectivity
+        timeout: 3s
+      ports:
+      - 5672:5672
+      - 15672:15672" > $archivo_salida
+
+for ((i=0; i<$clientes; i++)); do echo "
+  cliente_$i:
+    build:
+      context: ./src/
+      dockerfile: cliente/Dockerfile
+    container_name: cliente_$i
+    depends_on:
+      gateway:
+        condition: service_healthy
+    environment:
+    - DATASETPATHEN=/datasets/enwiki_namespace_0_
+    - DATASETPATHFR=/datasets/frwiki_namespace_0_
+    - TOTALDATASETS=$((i+1))
+    - GATEWAYHOST=gateway
+    - GATEWAYPORT=8000
+    - LOTE=$lote
+    - PYTHONUNBUFFERED=1
+    volumes:
+    - ./datasets:/datasets
+    - ./output:/output" >> $archivo_salida 
+done
+
+for ((i=0; i<$cant_clasif; i++)); do echo "
+  clasificador_$i:
+    build:
+      context: ./src/
+      dockerfile: clasificador/Dockerfile
+    container_name: clasificador_$i
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        nodo-base:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLADATOS=EntradaDatos
+      - COLARESPUESTAS=Respuestas
+      - COLAIMGDESCARGA=ImgDescarga
+      - COLATRANSFORMADOR=ColaTransformador
+      - CLASIFICADOREXCHANGEEOF=ClasificadorExchangeEof" >> $archivo_salida
+done
+
+for ((i=0; i<$cant_descarg; i++)); do echo "
+  img_descargador_$i:
+    build:
+      context: ./src/
+      dockerfile: imgDescargador/Dockerfile
+    container_name: imgDescargador_$i
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        nodo-base:
+          condition: service_started" >> $archivo_salida
+	for ((j=0; j<$cant_clasif; j++)); do echo "        clasificador_$j:
+          condition: service_started" >> $archivo_salida
+	done
+	echo "    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLARESPUESTAS=Respuestas
+      - COLAIMGDESCARGA=ImgDescarga
+      - EXCHANGEIMGEOF=ExchangeImgEof
+      - TOTALCLASIFICADORES=$cant_clasif
+      - MAXCLIENTES=10 " >> $archivo_salida
+done
+

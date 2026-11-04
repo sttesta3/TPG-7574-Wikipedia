@@ -27,15 +27,19 @@ cant_sum_top=$9
 cant_agr_top=${10}
 cant_join_top=${11}
 
+CLASIFICADOR="clasificador"
+TRANSFORMADOR="transformador"
+
 definicion_base() {
 	local nombre=$1
 	local indice=$2
+	local carpeta=$3
 	echo "
-  ${nombre}_$i:
+  ${nombre}_$indice:
     build:
       context: ./src/
-      dockerfile: $nombre/Dockerfile
-    container_name: ${nombre}_$i
+      dockerfile: $carpeta/Dockerfile
+    container_name: ${nombre}_$indice
     depends_on:" >> $archivo_salida
 }
 
@@ -83,7 +87,7 @@ echo "services:
       - TOTALPROMEOF=$cant_promedio
       - TOTALTOPEOF=$cant_sum_top
     healthcheck:
-      test: ['CMD', 'python3', '-c', 'import socket; s=socket.create_connection(('127.0.0.1', 8000), timeout=2); s.close()']
+      test: ['CMD', 'python3', '-c', \"import socket; s=socket.create_connection(('127.0.0.1', 8000), timeout=2); s.close()\"]
       interval: 2s
       timeout: 3s
       retries: 15
@@ -107,13 +111,13 @@ echo "services:
       - 15672:15672" > $archivo_salida
 
 for ((i=0; i<$clientes; i++)); do 
-	definicion_base "cliente" $i 
+	definicion_base "cliente" $i "cliente"
 	echo "      gateway:
         condition: service_healthy
     environment:
     - DATASETPATHEN=/datasets/enwiki_namespace_0_
     - DATASETPATHFR=/datasets/frwiki_namespace_0_
-    - TOTALDATASETS=$((i+1))
+    - TOTALDATASETS=5
     - GATEWAYHOST=gateway
     - GATEWAYPORT=8000
     - LOTE=$lote
@@ -124,7 +128,7 @@ for ((i=0; i<$clientes; i++)); do
 done
 
 for ((i=0; i<$cant_clasif; i++)); do 
-	definicion_base "clasificador" $i 
+	definicion_base $CLASIFICADOR $i $CLASIFICADOR
 	agregar_dependencias_comunes
 	echo "    environment:
       - PYTHONUNBUFFERED=1
@@ -137,9 +141,9 @@ for ((i=0; i<$cant_clasif; i++)); do
 done
 
 for ((i=0; i<$cant_descarg; i++)); do 
-	definicion_base "imgDescargador" $i
+	definicion_base "img_descargador" $i "imgDescargador" 
 	agregar_dependencias_comunes
-	agregar_dependencia "clasif" $cant_clasif
+	agregar_dependencia $CLASIFICADOR $cant_clasif
 	echo "    environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
@@ -151,16 +155,16 @@ for ((i=0; i<$cant_descarg; i++)); do
 done
 
 for ((i=0; i<$cant_transf; i++)); do 
-	definicion_base "transformador" $i
+	definicion_base $TRANSFORMADOR $i $TRANSFORMADOR
 	agregar_dependencias_comunes
-	agregar_dependencia "clasif" $cant_clasif	
- 	echo "   environment:
+	agregar_dependencia $CLASIFICADOR $cant_clasif	
+ 	echo "    environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLATRANSFORMADOR=ColaTransformador
       - COLASUMTOP=ColaSumTop
       - EXCHANGEPROMEDIO=ExchangePromedio
-      - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - COLACUENTAPROM=ColaCuentaProm
       - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
       - TOTALCUENTAPROM=$cant_cuenta_promedio
       - TOTALPROMEDIO=$cant_promedio
@@ -168,37 +172,37 @@ for ((i=0; i<$cant_transf; i++)); do
 done 
 
 for ((i=0; i<$cant_promedio; i++)); do 
-	definicion_base "promedio" $i
+	definicion_base "promedio" $i "promedio" 
 	agregar_dependencias_comunes
-        agregar_dependencia "clasif" $cant_clasif
- 	agregar_dependencia "transf" $cant_transf
+        agregar_dependencia $CLASIFICADOR $cant_clasif
+ 	agregar_dependencia $TRANSFORMADOR $cant_transf
 	echo "    environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
-      - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - COLACUENTAPROM=ColaCuentaProm
       - EXCHANGEPROMEDIO=ExchangePromedio
-      - TOTALCUENTAPROM=$cant_cuenta_primedio
+      - TOTALCUENTAPROM=$cant_cuenta_promedio
       - TOTALTRANSFORMADORES=$cant_transf
       - ID=$i" >> $archivo_salida
 done 
 
 for ((i=0; i<$cant_cuenta_promedio; i++)); do 
-	definicion_base "cuentaProm" $i 
+	definicion_base "cuenta_prom" $i "cuentaProm" 
 	agregar_dependencias_comunes
-        agregar_dependencia "clasif" $cant_clasif
-        agregar_dependencia "transf" $cant_transf
+        agregar_dependencia $CLASIFICADOR $cant_clasif
+        agregar_dependencia $TRANSFORMADOR $cant_transf
 	echo "    environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
-      - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - COLACUENTAPROM=ColaCuentaProm
       - COLARESPUESTAS=Respuestas
       - ID=$i" >> $archivo_salida	
 done 
 
 for ((i=0; i<$cant_sum_top; i++)); do
-	definicion_base "sumTop" $i
+	definicion_base "sum_top" $i "sumTop" 
 	agregar_dependencias_comunes
-	agregar_dependencia "clasif" $cant_clasif
+	agregar_dependencia $CLASIFICADOR $cant_clasif
 	echo "    environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
@@ -210,9 +214,9 @@ for ((i=0; i<$cant_sum_top; i++)); do
 done
 
 for ((i=0; i<$cant_agr_top; i++)); do
-	definicion_base "agregadorTop" $i
+	definicion_base "agregador_top" $i "agregadorTop" 
 	agregar_dependencias_comunes
-	agregar_dependencia "clasif" $cant_clasif
+	agregar_dependencia $CLASIFICADOR $cant_clasif
 	echo "    environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
@@ -227,9 +231,9 @@ for ((i=0; i<$cant_agr_top; i++)); do
 done 
 
 for ((i=0; i<$cant_join_top; i++)); do
-	definicion_base "joinTop" $i
+	definicion_base "join_top" $i "joinTop"
 	agregar_dependencias_comunes
-	agregar_dependencia "clasif" $cant_clasif
+	agregar_dependencia $CLASIFICADOR $cant_clasif
 	echo "    environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
@@ -238,4 +242,3 @@ for ((i=0; i<$cant_join_top; i++)); do
       - TOTALTOPPARCIAL=$cant_agr_top
       - ID=$i" >> $archivo_salida
 done
-

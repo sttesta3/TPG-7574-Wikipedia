@@ -5,7 +5,7 @@ import signal
 import threading
 from clienteLock import ClienteLock
 from middleware import MessageMiddlewareQueue,MessageMiddlewareExchange
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, LoteDataMensajeSistema, ImgMensajeSistema, Respuesta1MensajeSistema, TransformadorMensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, LoteDataMensajeSistema, ImgMensajeSistema, Respuesta1MensajeSistema, TransformadorMensajeSistema, TransformadorLoteMensajeSistema
 from protocolo.mensajesCliente import LENGUAJEINGLES, LENGUAJEFRANCES
 
 MOMHOST = os.environ["MOMHOST"]
@@ -34,12 +34,17 @@ class Clasificador:
 
         self.clientes[loteMensaje.clienteId].nuevoMensaje()
         try:
+            
+            transformadorMensajes = []
             for mensaje in loteMensaje.lote:
                 if mensaje.lenguaje == LENGUAJEINGLES and mensaje.fecha <= 2020:
                     self.colaRespuestas.send(Respuesta1MensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.fecha).aBytes())
                 if mensaje.fecha <= 2020 and mensaje.biografia == 1:
                     self.colaImgDescarga.send(ImgMensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.nombre, mensaje.imgUrl).aBytes())
-                self.colaTransformador.send(TransformadorMensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.fecha, mensaje.resumen, mensaje.lenguaje).aBytes())
+                
+                transformadorMensajes.append(TransformadorMensajeSistema(mensaje.url, mensaje.fecha, mensaje.resumen, mensaje.lenguaje))
+
+            self.colaTransformador.send(TransformadorLoteMensajeSistema(loteMensaje.clienteId, transformadorMensajes).aBytes())
         finally:
             self.clientes[loteMensaje.clienteId].nuevaRespuesta()
             

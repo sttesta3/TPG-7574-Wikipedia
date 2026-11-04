@@ -7,7 +7,7 @@ import signal
 import threading
 import traceback
 from nltk.corpus import stopwords
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, TransformadorMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, TransformadorLoteMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
 from clienteLock import ClienteLock
 
@@ -55,23 +55,24 @@ class Transformador:
             return palabrasSinStop
 
 
-    def _procesarData(self, mensaje: TransformadorMensajeSistema) -> None:
-        if mensaje.clienteId not in self.clientes:
-            self.clientes[mensaje.clienteId] = ClienteLock(TOTALCLASIFICADORES)
-       
-        palabras = self._resumenAPalabras(mensaje.resumen)
+    def _procesarData(self, mensajeLote: TransformadorLoteMensajeSistema) -> None:
+        if mensajeLote.clienteId not in self.clientes:
+            self.clientes[mensajeLote.clienteId] = ClienteLock(TOTALCLASIFICADORES)
 
-        if len(palabras) > 0: 
-            self.clientes[mensaje.clienteId].nuevoMensaje()
-            try:
-                self.colaSumTop.send(PalabrasMensajeSistema(mensaje.clienteId, mensaje.url, mensaje.lenguaje, palabras).aBytes())
-                if mensaje.fecha <= 2020:
-                    nodo = mensaje.clienteId.int % TOTALPROMEDIO
-                    self.exchangePromedio[nodo].send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
-                else:
-                    self.colaCuentaProm.send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
-            finally:
-                self.clientes[mensaje.clienteId].nuevaRespuesta()
+        for mensaje in mensajeLote.mensajes:
+            palabras = self._resumenAPalabras(mensaje.resumen)
+
+            if len(palabras) > 0: 
+                self.clientes[mensajeLote.clienteId].nuevoMensaje()
+                try:
+                    self.colaSumTop.send(PalabrasMensajeSistema(mensajeLote.clienteId, mensaje.url, mensaje.lenguaje, palabras).aBytes())
+                    if mensaje.fecha <= 2020:
+                        nodo = mensajeLote.clienteId.int % TOTALPROMEDIO
+                        self.exchangePromedio[nodo].send(CantidadPalabraMensajeSistema(mensajeLote.clienteId, mensaje.url, len(palabras)).aBytes())
+                    else:
+                        self.colaCuentaProm.send(CantidadPalabraMensajeSistema(mensajeLote.clienteId, mensaje.url, len(palabras)).aBytes())
+                finally:
+                    self.clientes[mensajeLote.clienteId].nuevaRespuesta()
 
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
@@ -88,7 +89,7 @@ class Transformador:
         except Exception as e:
             logging.info(e)
             logging.info(traceback.format_exc())
-            nack()
+            ack()
 
 
     def _manejarEof(self, bytes, ack, nack):

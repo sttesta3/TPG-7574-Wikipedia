@@ -15,6 +15,7 @@ EXCHANGETOPGLOBAL = os.environ["EXCHANGETOPGLOBAL"]
 TOTALSUMTOP = int(os.environ["TOTALSUMTOP"])
 TOTALTOPGLOBAL = int(os.environ["TOTALTOPGLOBAL"])
 TOP_SIZE=20
+LOTE = 100
 ID = os.environ["ID"]
 
 
@@ -57,12 +58,19 @@ class AgregadorTop:
     def _procesarData(self, mensaje: PalabrasMensajeSistema) -> None:
         if mensaje.clienteId not in self.clientes:
             self.clientes[mensaje.clienteId] = [0, PalabrasPorIdioma()]
-            
+
+        duplicadas = []
         for clave, valor in mensaje.palabras.items():
             if self.clientes[mensaje.clienteId][1].add(palabra=clave, cantidad=valor, lenguaje=mensaje.lenguaje):
-                # Palabra duplicada. Implementacion tipo "streaming"
-                self.colaRespuestas.send(Respuesta3MensajeSistema(clienteId=mensaje.clienteId, palabras=[clave]).aBytes())
-        
+                # Palabra duplicada. 
+                duplicadas.append(clave)
+                if len(duplicadas) == LOTE:
+                    self.colaRespuestas.send(Respuesta3MensajeSistema(clienteId=mensaje.clienteId, palabras=duplicadas).aBytes())
+                    duplicadas = []
+        if len(duplicadas) > 0:
+            self.colaRespuestas.send(Respuesta3MensajeSistema(clienteId=mensaje.clienteId, palabras=duplicadas).aBytes())
+
+
     def _top20(self, palabras: dict[str, int]) -> dict[str, int]:
         top = sorted(palabras.items(), key=lambda item: item[1], reverse=True)
         return dict(top[:TOP_SIZE])

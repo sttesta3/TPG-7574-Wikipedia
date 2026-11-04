@@ -11,7 +11,7 @@ MOMHOST = os.environ["MOMHOST"]
 COLARESPUESTAS = os.environ["COLARESPUESTAS"]
 COLACUENTAPROM = os.environ["COLACUENTAPROM"]
 ID = os.environ["ID"]
-LOTE = 50
+LOTE = 100
 
 
 class CuentaProm:

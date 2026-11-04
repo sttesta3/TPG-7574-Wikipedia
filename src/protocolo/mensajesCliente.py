@@ -149,7 +149,7 @@ class LoteMensaje():
 
     def aBytes(self) -> bytes:
         bytesMensaje = LOTE_MENSAJE
-        bytesMensaje += len(self.lote).to_bytes(2, byteorder="big")
+        bytesMensaje += len(self.lote).to_bytes(4, byteorder="big")
         
         dataMensajeBytes = b''
         for mensaje in self.lote:
@@ -173,9 +173,9 @@ class LoteMensaje():
 
 
     def obtenerLote(self) -> list[DataMensaje]:
-        loteInfo = safeRecv(self.socket, 6)
-        loteLen = int.from_bytes(loteInfo[0:2], byteorder="big")
-        loteSize = int.from_bytes(loteInfo[2:6], byteorder="big")
+        loteInfo = safeRecv(self.socket, 8)
+        loteLen = int.from_bytes(loteInfo[0:4], byteorder="big")
+        loteSize = int.from_bytes(loteInfo[4:8], byteorder="big")
 
         bytes = safeRecv(self.socket, loteSize)
         self.deBytes(bytes, loteLen)

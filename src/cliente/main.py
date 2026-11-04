@@ -4,7 +4,7 @@ import logging
 import socket
 import signal
 import threading
-import pandas as pd
+import time
 import pyarrow.parquet as pq
 from protocolo.mensajesCliente import LoteMensaje, FinMensaje
 from protocolo.mensajesGateway import recvMensaje, Respuesta1Mensaje, Respuesta2Mensaje, Respuesta3Mensaje, Respuesta4Mensaje, Respuesta5Mensaje
@@ -18,6 +18,7 @@ LOTE = int(os.environ["LOTE"])
 ID = os.environ["ID"]
 
 def enviarParquet(socket: socket) -> None:
+    inicio = time.time()
     loteMensaje = LoteMensaje(socket, LOTE)
     for i in range(TOTALDATASETS):
 
@@ -42,8 +43,13 @@ def enviarParquet(socket: socket) -> None:
     loteMensaje.send()
     FinMensaje(socket).send()
 
+    fin = time.time()
+    print(f"Tiempo de envio de mensajes: {(fin - inicio)/60:.2f} minutos")
+
 
 def recibirRespuestas(socket: socket) -> None:
+    print(f"inicioo {time.time()}")
+    inicio = time.time()
     eof = False
     while not eof:
         try:
@@ -60,6 +66,10 @@ def recibirRespuestas(socket: socket) -> None:
 
         if isinstance(respuesta, FinMensaje):
             eof = True
+            print(f"fin {time.time()}")
+            fin = time.time()
+            
+            print(f"Tiempo de envio de mensajes: {(fin - inicio)/60:.2f} minutos")
         if isinstance(respuesta, Respuesta1Mensaje):
             archivos[0].write(respuesta.url + " - "+ str(respuesta.fecha) + "\n")
         if isinstance(respuesta, Respuesta2Mensaje):

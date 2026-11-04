@@ -18,7 +18,6 @@ EXCHANGEPROMEDIO = os.environ["EXCHANGEPROMEDIO"]
 EXCHANGECUENTAPROM = os.environ["EXCHANGECUENTAPROM"]
 EXCHANGETRANSFORMADOREOF = os.environ["EXCHANGETRANSFORMADOREOF"]
 TOTALPROMEDIO = int(os.environ["TOTALPROMEDIO"])
-TOTALCUENTAPROM = int(os.environ["TOTALCUENTAPROM"])
 TOTALCLASIFICADORES = int(os.environ["TOTALCLASIFICADORES"])
 
 WORD_REGEX = r'\b\w+\b'
@@ -30,14 +29,11 @@ class Transformador:
         self.stopWords = set(stopwords.words('english')) | set(stopwords.words('french'))
         self.colaTransformador = MessageMiddlewareQueue(MOMHOST, COLATRANSFORMADOR)
         self.colaSumTop = MessageMiddlewareQueue(MOMHOST, COLASUMTOP)
+        self.colaCuentaProm = MessageMiddlewareQueue(MOMHOST, EXCHANGECUENTAPROM)
         self.exchangePromedio = []
-        self.exchangeCuentaProm = []
 
         for i in range(TOTALPROMEDIO):
             self.exchangePromedio.append(MessageMiddlewareExchange(MOMHOST, EXCHANGEPROMEDIO, [EXCHANGEPROMEDIO + "_" + str(i)]))
-
-        for i in range(TOTALCUENTAPROM):
-            self.exchangeCuentaProm.append(MessageMiddlewareExchange(MOMHOST, EXCHANGECUENTAPROM, [EXCHANGECUENTAPROM + "_" + str(i)]))
 
         self.colaEOF = MessageMiddlewareExchange(MOMHOST, EXCHANGETRANSFORMADOREOF, [EXCHANGETRANSFORMADOREOF])
         self.colaEOFSend = MessageMiddlewareExchange(MOMHOST, EXCHANGETRANSFORMADOREOF, [EXCHANGETRANSFORMADOREOF])
@@ -73,8 +69,7 @@ class Transformador:
                     nodo = mensaje.clienteId.int % TOTALPROMEDIO
                     self.exchangePromedio[nodo].send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
                 else:
-                    nodo = mensaje.clienteId.int % TOTALCUENTAPROM
-                    self.exchangeCuentaProm[nodo].send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
+                    self.colaCuentaProm.send(CantidadPalabraMensajeSistema(mensaje.clienteId, mensaje.url, len(palabras)).aBytes())
             finally:
                 self.clientes[mensaje.clienteId].nuevaRespuesta()
 
@@ -129,8 +124,7 @@ class Transformador:
         self.colaSumTop.close()
         self.colaEOFSend.close()
         self.colaEOF.close()
-        for i in range(TOTALCUENTAPROM):
-            self.exchangeCuentaProm[i].close()
+        self.colaCuentaProm.close()
         for i in range(TOTALPROMEDIO):
             self.exchangePromedio[i].close()
 

@@ -5,6 +5,7 @@ import socket
 import signal
 import threading
 import pandas as pd
+import pyarrow.parquet as pq
 from protocolo.mensajesCliente import LoteMensaje, FinMensaje
 from protocolo.mensajesGateway import recvMensaje, Respuesta1Mensaje, Respuesta2Mensaje, Respuesta3Mensaje, Respuesta4Mensaje, Respuesta5Mensaje
 
@@ -19,58 +20,59 @@ ID = os.environ["ID"]
 def enviarParquet(socket: socket) -> None:
     loteMensaje = LoteMensaje(socket, LOTE)
     for i in range(TOTALDATASETS):
-        datasetEn = pd.read_parquet(DATASETPATHEN + str(i).zfill(5) + ".parquet")
-        datasetFr = pd.read_parquet(DATASETPATHFR + str(i).zfill(5) + ".parquet")
+
+        archivo = pq.ParquetFile(DATASETPATHEN + str(i).zfill(5) + ".parquet")
+
+        for batch in archivo.iter_batches(batch_size=10000):
+            dataset = batch.to_pandas()
+
+            for fila in dataset.itertuples(index=False):
+                loteMensaje.agregarMensaje(fila)
+            del dataset
         
-        dataset = pd.concat([datasetEn, datasetFr])
-        
-        logging.debug("Post pd.concat")
-        cuenta = 0
-        for fila in dataset.itertuples():
-            logging.debug(f"Agregando mensaje {cuenta} al lote")
-            loteMensaje.agregarMensaje(fila)
-            logging.debug("Mensaje agregado OK")
-            cuenta += 1 
-    
-    logging.debug("Por enviar Lote")    
+        archivo = pq.ParquetFile(DATASETPATHFR + str(i).zfill(5) + ".parquet")
+
+        for batch in archivo.iter_batches(batch_size=10000):
+            dataset = batch.to_pandas()
+
+            for fila in dataset.itertuples(index=False):
+                loteMensaje.agregarMensaje(fila)
+            del dataset
+
     loteMensaje.send()
-    logging.debug("Lote enviado")
     FinMensaje(socket).send()
-    logging.debug("EOF enviado")
 
 
 def recibirRespuestas(socket: socket) -> None:
-    logging.info("Thread receptor iniciado")
     eof = False
     while not eof:
         try:
             respuesta = recvMensaje(socket)
-            logging.debug(f"Recibi respuesta {respuesta}")
         except OSError as e:
             print(f"Se perdio la conexion con el gateway: {e}")
             return
+        
+        archivos = [open(f"/output/output1_{ID}.txt", "a", encoding="utf-8"),
+            open(f"/output/output2_{ID}.txt", "a", encoding="utf-8"),
+            open(f"/output/output3_{ID}.txt", "a", encoding="utf-8"),
+            open(f"/output/output4_{ID}.txt", "a", encoding="utf-8"),
+            open(f"/output/output5_{ID}.txt", "a", encoding="utf-8")]
 
-        # TODO: tal vez hacerlo mas polimorfico (?
         if isinstance(respuesta, FinMensaje):
             eof = True
         if isinstance(respuesta, Respuesta1Mensaje):
-            with open("/output/output1_"+ID +".txt", "a", encoding="utf-8") as f:
-                f.write(respuesta.url + " - "+ str(respuesta.fecha) + "\n")
+            archivos[0].write(respuesta.url + " - "+ str(respuesta.fecha) + "\n")
         if isinstance(respuesta, Respuesta2Mensaje):
-            with open("/output/output2_"+ID +".txt", "a", encoding="utf-8") as f:
-                f.write(respuesta.nombre + " - "+respuesta.url + " - "+ str(respuesta.imgBytes) + "\n")
-
+            archivos[1].write(respuesta.nombre + " - "+respuesta.url + " - "+ str(respuesta.imgBytes) + "\n")
         if isinstance(respuesta,Respuesta3Mensaje):
-            with open("/output/output3_"+ID +".txt", "a", encoding= "utf-8") as f:
-                for palabra in respuesta.palabras:
-                    f.write(palabra + "\n")        
+            for palabra in respuesta.palabras:
+                archivos[2].write(palabra + "\n")        
         if isinstance(respuesta, Respuesta4Mensaje):
-            with open("/output/output4_"+ID +".txt", "a", encoding="utf-8") as f:
-                for k,v in respuesta.palabras.items():
-                    f.write(k +" - " +str(v) + "\n")
+            for k,v in respuesta.palabras.items():
+                archivos[3].write(k +" - " +str(v) + "\n")
         if isinstance(respuesta, Respuesta5Mensaje):
-            with open("/output/output5_"+ID +".txt", "a", encoding="utf-8") as f:
-                f.write(respuesta.url + " - "+ str(respuesta.cantidad)+ "\n")
+            for k,v in respuesta.data.items():
+                archivos[4].write(k + " - "+ str(v)+ "\n")
   
 
 def manejarSigterm(coneccion: socket.socket, ) -> None:

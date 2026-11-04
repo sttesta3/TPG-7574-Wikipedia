@@ -59,32 +59,11 @@ services:
     environment:
     - DATASETPATHEN=/datasets/enwiki_namespace_0_
     - DATASETPATHFR=/datasets/frwiki_namespace_0_
-    - TOTALDATASETS=1
+    - TOTALDATASETS=5
     - GATEWAYHOST=gateway
     - GATEWAYPORT=8000
-    - LOTE=10
+    - LOTE=1
     - ID=0
-    - PYTHONUNBUFFERED=1
-    volumes:
-    - ./datasets:/datasets
-    - ./output:/output
-
-  cliente_1:
-    build:
-      context: ./src/
-      dockerfile: cliente/Dockerfile
-    container_name: cliente_1
-    depends_on:
-      gateway:
-        condition: service_healthy
-    environment:
-    - DATASETPATHEN=/datasets/enwiki_namespace_0_
-    - DATASETPATHFR=/datasets/frwiki_namespace_0_
-    - TOTALDATASETS=1
-    - GATEWAYHOST=gateway
-    - GATEWAYPORT=8000
-    - LOTE=10
-    - ID=1
     - PYTHONUNBUFFERED=1
     volumes:
     - ./datasets:/datasets

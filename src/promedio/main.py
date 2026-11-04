@@ -3,7 +3,7 @@ import sys
 import logging
 import signal
 import traceback
-from middleware import MessageMiddlewareExchange
+from middleware import MessageMiddlewareExchange, MessageMiddlewareQueue
 from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, CantidadPalabraMensajeSistema, FinPromMensajeSistema
 
 
@@ -19,10 +19,7 @@ class Promedio:
     def __init__(self):
         self.clientes = {}
         self.exchangePromedio = MessageMiddlewareExchange(MOMHOST, EXCHANGEPROMEDIO, [EXCHANGEPROMEDIO + "_" + ID])
-        self.exchangeCuentaProm = []
-        for i in range(TOTALCUENTAPROM):
-            self.exchangeCuentaProm.append(MessageMiddlewareExchange(MOMHOST, EXCHANGECUENTAPROM, [EXCHANGECUENTAPROM + "_" + str(i)]))
-
+        self.colaCuentaProm = MessageMiddlewareQueue(MOMHOST, EXCHANGECUENTAPROM)
 
     def _procesarData(self, mensaje: CantidadPalabraMensajeSistema) -> None:
         clienteId = str(mensaje.clienteId)
@@ -44,8 +41,7 @@ class Promedio:
             logging.info(f"Promedio flotante: {promedio_float}")
             logging.info(f"Promedio : {promedio}") 
             
-            nodo = mensaje.clienteId.int % TOTALCUENTAPROM
-            self.exchangeCuentaProm[nodo].send(FinPromMensajeSistema(mensaje.clienteId, promedio).aBytes())
+            self.colaCuentaProm.send(FinPromMensajeSistema(mensaje.clienteId, promedio).aBytes())
 
             del self.clientes[str(mensaje.clienteId)]
         
@@ -53,7 +49,7 @@ class Promedio:
     def procesarMensaje(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
-            if isinstance(mensaje, FinMensajeSistema): # TODO: esta bien esto?
+            if isinstance(mensaje, FinMensajeSistema):
                 self._procesarEOF(mensaje)
             else:
                 self._procesarData(mensaje)
@@ -75,8 +71,7 @@ class Promedio:
 
     def _close_connections(self):
         self.exchangePromedio.close()
-        for i in range(TOTALCUENTAPROM):
-            self.exchangeCuentaProm[i].close()
+        self.colaCuentaProm.close()
 
 
 def main() -> int:

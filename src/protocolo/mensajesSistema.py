@@ -339,34 +339,6 @@ class Respuesta2MensajeSistema(MensajeSistema):
     def aRespuestaGateway(self) -> Respuesta2Mensaje:
         return Respuesta2Mensaje(self.nombre, self.url, self.imgBytes) 
 
-class Respuesta2MensajeSistema(MensajeSistema):
-    def __init__(self, clienteId: uuid.UUID = None, url: str = None, nombre: str = None, imgBytes: bytes = None):
-        self.clienteId = clienteId
-        self.url = url
-        self.nombre = nombre
-        self.imgBytes = imgBytes
-
-
-    def aBytes(self) -> bytes:
-        bytesMensaje = RESPUESTA2_MENSAJE
-        bytesMensaje += (Respuesta2Mensaje(self.nombre, self.url, self.imgBytes).aBytes())[1:]
-        bytesMensaje += self.clienteId.bytes
-
-        return bytesMensaje
-
-
-    def deBytes(self, bytes: bytes) -> None:
-        rtaMsg = Respuesta2Mensaje()
-        rtaMsg.deBytes(bytes[4:len(bytes)-16])
-        self.nombre = rtaMsg.nombre
-        self.imgBytes = rtaMsg.imgBytes
-        self.url = rtaMsg.url
-
-        self.clienteId = uuid.UUID(bytes=bytes[len(bytes)-16:])
-
-
-    def aRespuestaGateway(self) -> Respuesta2Mensaje:
-        return Respuesta2Mensaje(self.nombre, self.url, self.imgBytes) 
 
 class Respuesta3MensajeSistema(MensajeSistema):
     def __init__(self, clienteId: uuid.UUID = None, palabras: list[str] = None):
@@ -395,33 +367,6 @@ class Respuesta3MensajeSistema(MensajeSistema):
 
     def aRespuestaGateway(self) -> Respuesta3Mensaje:
         return Respuesta3Mensaje(self.palabras)
-
-# TODO: implementarlo en lotes (si es considerado necesario)
-class Respuesta5MensajeSistema(MensajeSistema):
-    def __init__(self, clienteId: uuid.UUID = None, url: str = None, cantidad: int = None):
-        self.clienteId  = clienteId
-        self.url = url
-        self.cantidad = cantidad
-
-    
-    def aBytes(self) -> bytes:
-        bytesMensaje = RESPUESTA5_MENSAJE
-        bytesMensaje += (Respuesta5Mensaje(self.url, self.cantidad).aBytes())[1:]
-        bytesMensaje += self.clienteId.bytes
-
-        return bytesMensaje
-    
-
-    def deBytes(self, bytes) -> None:
-        rtamsg = Respuesta5Mensaje()
-        rtamsg.deBytes(bytes[4:len(bytes)-16])
-        self.url = rtamsg.url
-        self.cantidad = rtamsg.cantidad
-        self.clienteId = uuid.UUID(bytes=bytes[len(bytes)-16:])
-
-
-    def aRespuestaGateway(self) -> Respuesta5Mensaje:
-        return Respuesta5Mensaje(self.url, self.cantidad)
 
 
 class Respuesta4MensajeSistema(MensajeSistema):
@@ -465,6 +410,31 @@ class Respuesta4MensajeSistema(MensajeSistema):
 
     def aRespuestaGateway(self) -> Respuesta4Mensaje:
         return Respuesta4Mensaje(self.palabras)
+
+# TODO: implementarlo en lotes (si es considerado necesario)
+class Respuesta5MensajeSistema(MensajeSistema):
+    def __init__(self, clienteId: uuid.UUID = None, data: dict[str, int] = None):
+        self.clienteId  = clienteId
+        self.data = data
+
+    
+    def aBytes(self) -> bytes:
+        bytesMensaje = RESPUESTA5_MENSAJE
+        bytesMensaje += (Respuesta5Mensaje(self.data).aBytes())[1:]
+        bytesMensaje += self.clienteId.bytes
+
+        return bytesMensaje
+    
+
+    def deBytes(self, bytes) -> None:
+        rtamsg = Respuesta5Mensaje()
+        rtamsg.deBytes(bytes[4:len(bytes)-16])
+        self.data = rtamsg.data
+        self.clienteId = uuid.UUID(bytes=bytes[len(bytes)-16:])
+
+
+    def aRespuestaGateway(self) -> Respuesta5Mensaje:
+        return Respuesta5Mensaje(self.data)
 
 
 def recvMensajeSistema(mensaje: bytes) -> MensajeSistema:

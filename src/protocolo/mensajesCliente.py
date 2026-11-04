@@ -1,6 +1,5 @@
 import ast
 import socket
-import logging
 from safeSocket import safeSend, safeRecv
 from collections import namedtuple
 
@@ -142,15 +141,11 @@ class LoteMensaje():
 
 
     def agregarMensaje(self, fila: namedtuple) -> None:
-        logging.debug("Agregando mensaje")
         self.lote.append(DataMensaje(fila))
         
-        logging.debug("Agregado")
         if len(self.lote) == self.tamañoLote:
             self.send()
             self.lote = []
-            logging.debug("Reiniciado")
-
 
     def aBytes(self) -> bytes:
         bytesMensaje = LOTE_MENSAJE
@@ -193,9 +188,7 @@ class LoteMensaje():
             return
 
         mensaje = self.aBytes()
-        logging.debug("Por enviar mensaje")
         safeSend(self.socket, mensaje)
-        logging.debug("Enviado")
 
 
 def recvMensaje(socket: socket.socket) -> list[DataMensaje]:

@@ -14,8 +14,8 @@ from clienteLock import ClienteLock
 MOMHOST = os.environ["MOMHOST"]
 COLATRANSFORMADOR = os.environ["COLATRANSFORMADOR"]
 COLASUMTOP = os.environ["COLASUMTOP"]
+COLACUENTAPROM = os.environ["COLACUENTAPROM"]
 EXCHANGEPROMEDIO = os.environ["EXCHANGEPROMEDIO"]
-EXCHANGECUENTAPROM = os.environ["EXCHANGECUENTAPROM"]
 EXCHANGETRANSFORMADOREOF = os.environ["EXCHANGETRANSFORMADOREOF"]
 TOTALPROMEDIO = int(os.environ["TOTALPROMEDIO"])
 TOTALCLASIFICADORES = int(os.environ["TOTALCLASIFICADORES"])
@@ -29,7 +29,7 @@ class Transformador:
         self.stopWords = set(stopwords.words('english')) | set(stopwords.words('french'))
         self.colaTransformador = MessageMiddlewareQueue(MOMHOST, COLATRANSFORMADOR)
         self.colaSumTop = MessageMiddlewareQueue(MOMHOST, COLASUMTOP)
-        self.colaCuentaProm = MessageMiddlewareQueue(MOMHOST, EXCHANGECUENTAPROM)
+        self.colaCuentaProm = MessageMiddlewareQueue(MOMHOST, COLACUENTAPROM)
         self.exchangePromedio = []
 
         for i in range(TOTALPROMEDIO):

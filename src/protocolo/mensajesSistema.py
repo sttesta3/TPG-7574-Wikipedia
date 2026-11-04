@@ -411,7 +411,6 @@ class Respuesta4MensajeSistema(MensajeSistema):
     def aRespuestaGateway(self) -> Respuesta4Mensaje:
         return Respuesta4Mensaje(self.palabras)
 
-# TODO: implementarlo en lotes (si es considerado necesario)
 class Respuesta5MensajeSistema(MensajeSistema):
     def __init__(self, clienteId: uuid.UUID = None, data: dict[str, int] = None):
         self.clienteId  = clienteId

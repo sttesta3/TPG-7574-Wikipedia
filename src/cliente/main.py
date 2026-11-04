@@ -49,7 +49,7 @@ def recibirRespuestas(socket: socket) -> None:
         try:
             respuesta = recvMensaje(socket)
         except OSError as e:
-            print(f"Se perdio la conexion con el gateway: {e}")
+            logging.error(f"Se perdio la conexion con el gateway: {e}")
             return
         
         archivos = [open(f"/output/output1_{ID}.txt", "a", encoding="utf-8"),

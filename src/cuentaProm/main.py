@@ -9,7 +9,7 @@ from protocolo.mensajesSistema import recvMensajeSistema, FinPromMensajeSistema,
 
 MOMHOST = os.environ["MOMHOST"]
 COLARESPUESTAS = os.environ["COLARESPUESTAS"]
-EXCHANGECUENTAPROM = os.environ["EXCHANGECUENTAPROM"]
+COLACUENTAPROM = os.environ["COLACUENTAPROM"]
 ID = os.environ["ID"]
 LOTE = 50
 
@@ -17,7 +17,7 @@ LOTE = 50
 class CuentaProm:
     def __init__(self):
         self.colaRespuestas = MessageMiddlewareQueue(MOMHOST, COLARESPUESTAS)
-        self.exchangeProm = MessageMiddlewareQueue(MOMHOST, EXCHANGECUENTAPROM)
+        self.exchangeProm = MessageMiddlewareQueue(MOMHOST, COLACUENTAPROM)
         self.exchangeEof = MessageMiddlewareExchange(MOMHOST, "EOFS", ["EOFAS"])
         self.exchangeSendEof = MessageMiddlewareExchange(MOMHOST, "EOFS", ["EOFAS"])
 
@@ -56,8 +56,7 @@ class CuentaProm:
     def _manejarEof(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
-
-            if self.clientes[str(mensaje.clienteId)].llegadaEof():
+            if self.cliente[str(mensaje.clienteId)].llegadaEof():
                 with open(str(mensaje.clienteId), "r", encoding="utf-8") as f:
                     data = {}
                     for linea in f.readlines():
@@ -70,9 +69,8 @@ class CuentaProm:
                     if len(data) > 0:
                         self.colaRespuestas.send(Respuesta5MensajeSistema(mensaje.clienteId, data).aBytes())
                 self.colaRespuestas.send(FinMensajeSistema(mensaje.clienteId).aBytes())
-                
                 os.remove(str(mensaje.clienteId))
-                del self.clientes[str(mensaje.clienteId)]
+                del self.cliente[str(mensaje.clienteId)]
 
             ack()
         except Exception as e:
@@ -86,8 +84,10 @@ class CuentaProm:
 
     def iniciar(self):
         thread_eof = threading.Thread(target=self._controlarEof, daemon=True)
+        thread_eof.start()
         self.exchangeProm.start_consuming(self.procesarMensaje)
         self._close_connections()
+        thread_eof.join()
 
 
     def manejarSigterm(self) -> None:

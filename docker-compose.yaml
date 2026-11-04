@@ -23,7 +23,7 @@ services:
       - LOTE=10
       - TOTALIMGEOF=2
       - TOTALPROMEOF=1
-      - TOTALTOPEOF=1
+      - TOTALTOPEOF=2
     healthcheck:
       test: ["CMD", "python3", "-c", "import socket; s=socket.create_connection(('127.0.0.1', 8000), timeout=2); s.close()"]
       interval: 2s
@@ -59,7 +59,7 @@ services:
     environment:
     - DATASETPATHEN=/datasets/enwiki_namespace_0_
     - DATASETPATHFR=/datasets/frwiki_namespace_0_
-    - TOTALDATASETS=5
+    - TOTALDATASETS=1
     - GATEWAYHOST=gateway
     - GATEWAYPORT=8000
     - LOTE=1
@@ -198,7 +198,7 @@ services:
       - COLATRANSFORMADOR=ColaTransformador
       - COLASUMTOP=ColaSumTop
       - EXCHANGEPROMEDIO=ExchangePromedio
-      - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - COLACUENTAPROM=ColaCuentaProm
       - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
       - TOTALCUENTAPROM=2
       - TOTALPROMEDIO=2
@@ -224,7 +224,7 @@ services:
       - COLATRANSFORMADOR=ColaTransformador
       - COLASUMTOP=ColaSumTop
       - EXCHANGEPROMEDIO=ExchangePromedio
-      - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - COLACUENTAPROM=ColaCuentaProm
       - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
       - TOTALCUENTAPROM=2
       - TOTALPROMEDIO=2
@@ -249,7 +249,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
-      - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - COLACUENTAPROM=ColaCuentaProm
       - COLARESPUESTAS=Respuestas
       - ID=0
 
@@ -272,7 +272,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
-      - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - COLACUENTAPROM=ColaCuentaProm
       - COLARESPUESTAS=Respuestas
       - ID=1
 
@@ -295,7 +295,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
-      - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - COLACUENTAPROM=ColaCuentaProm
       - EXCHANGEPROMEDIO=ExchangePromedio
       - TOTALCUENTAPROM=1
       - TOTALTRANSFORMADORES=2
@@ -320,7 +320,7 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
-      - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - COLACUENTAPROM=ColaCuentaProm
       - EXCHANGEPROMEDIO=ExchangePromedio
       - TOTALCUENTAPROM=2
       - TOTALTRANSFORMADORES=2

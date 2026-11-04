@@ -81,7 +81,7 @@ class DataMensaje():
         totalLeido = 0
         urlLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
         
-        self.url = bytes[totalLeido+4:totalLeido+urlLen].decode()
+        self.url = bytes[totalLeido+4:totalLeido+urlLen+4].decode()
         totalLeido += (urlLen + 4)
 
         resumenLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")

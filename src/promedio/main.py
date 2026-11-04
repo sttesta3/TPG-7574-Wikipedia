@@ -9,7 +9,7 @@ from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, Can
 
 MOMHOST = os.environ["MOMHOST"]
 EXCHANGEPROMEDIO = os.environ["EXCHANGEPROMEDIO"]
-EXCHANGECUENTAPROM = os.environ["EXCHANGECUENTAPROM"]
+COLACUENTAPROM = os.environ["COLACUENTAPROM"]
 TOTALCUENTAPROM = int(os.environ["TOTALCUENTAPROM"])
 TOTALTRANSFORMADORES = int(os.environ["TOTALTRANSFORMADORES"])
 ID = os.environ["ID"]
@@ -19,7 +19,7 @@ class Promedio:
     def __init__(self):
         self.clientes = {}
         self.exchangePromedio = MessageMiddlewareExchange(MOMHOST, EXCHANGEPROMEDIO, [EXCHANGEPROMEDIO + "_" + ID])
-        self.colaCuentaProm = MessageMiddlewareQueue(MOMHOST, EXCHANGECUENTAPROM)
+        self.colaCuentaProm = MessageMiddlewareQueue(MOMHOST, COLACUENTAPROM)
 
     def _procesarData(self, mensaje: CantidadPalabraMensajeSistema) -> None:
         clienteId = str(mensaje.clienteId)

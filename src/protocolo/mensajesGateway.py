@@ -136,7 +136,7 @@ class Respuesta4Mensaje(Respuesta):
 
 
 class Respuesta5Mensaje(Respuesta):
-    def __init__(self, data: dict[str, int]) -> None:
+    def __init__(self, data: dict[str, int] = None) -> None:
         self.data = data
 
 
@@ -155,7 +155,7 @@ class Respuesta5Mensaje(Respuesta):
             
             tamañoMensaje += (len(urlBytes) + 8)
 
-        bytesMensaje += tamañoMensaje.to_bytes(4, byteorder="big")
+        bytesMensaje += (tamañoMensaje + 4).to_bytes(4, byteorder="big")
         bytesMensaje += len(self.data).to_bytes(4, byteorder="big")
         bytesMensaje += bytes
 

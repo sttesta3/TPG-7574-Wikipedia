@@ -53,6 +53,7 @@ def manejarRespuesta(clientes: dict) -> None:
                 cliente = clientes[clienteId]
                 cliente[1] += 1
                 clientes[clienteId] = cliente
+                
                 if clientes[clienteId][1] == TOTALIMGEOF + TOTALPROMEOF + TOTALTOPEOF:
                     FinMensaje(clienteSocket).send()
                     del clientes[clienteId]
@@ -60,7 +61,7 @@ def manejarRespuesta(clientes: dict) -> None:
                 sendRespuesta(clienteSocket, respuesta.aRespuestaGateway())
             ack()
         except Exception as e:
-            logging.info(e)
+            logging.error(e)
             nack()
         
     colaRespuestas.start_consuming(_consumirRespuesta)

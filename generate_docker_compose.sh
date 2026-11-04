@@ -22,10 +22,24 @@ cant_clasif=$4
 cant_descarg=$5
 cant_transf=$6
 cant_promedio=$7
-cant_contador_promedio=$8
+cant_cuenta_promedio=$8
 cant_sum_top=$9
 cant_agr_top=${10}
 cant_join_top=${11}
+
+definicion_base() {
+	local nombre=$1
+	local indice=$2
+		
+}
+
+agregar_dependencia() {
+        local nombre=$1
+        local cant=$2
+ 	for ((j=0; j<$cant; j++)); do echo "        ${nombre}_$j:
+          condition: service_started" >> $archivo_salida
+	done
+}
 
 echo "services:
   nodo-base:
@@ -123,7 +137,7 @@ for ((i=0; i<$cant_clasif; i++)); do echo "
 done
 
 for ((i=0; i<$cant_descarg; i++)); do echo "
-  img_descargador_$i:
+  imgDescargador_$i:
     build:
       context: ./src/
       dockerfile: imgDescargador/Dockerfile
@@ -135,9 +149,7 @@ for ((i=0; i<$cant_descarg; i++)); do echo "
           condition: service_started
         nodo-base:
           condition: service_started" >> $archivo_salida
-	for ((j=0; j<$cant_clasif; j++)); do echo "        clasificador_$j:
-          condition: service_started" >> $archivo_salida
-	done
+	agregar_dependencia "clasif" $cant_clasif 
 	echo "    environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
@@ -147,4 +159,60 @@ for ((i=0; i<$cant_descarg; i++)); do echo "
       - TOTALCLASIFICADORES=$cant_clasif
       - MAXCLIENTES=10 " >> $archivo_salida
 done
+
+for ((i=0; i<$cant_transf; i++)); do echo "
+  transformador_$i:
+    build:
+      context: ./src/
+      dockerfile: transformador/Dockerfile
+    container_name: transformador_$i
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        nodo-base:
+          condition: service_started" >> $archivo_salida
+        agregar_dependencia 'clasif' $cant_clasif
+ 	echo "   environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLATRANSFORMADOR=ColaTransformador
+      - COLASUMTOP=ColaSumTop
+      - EXCHANGEPROMEDIO=ExchangePromedio
+      - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
+      - TOTALCUENTAPROM=$cant_cuenta_promedio
+      - TOTALPROMEDIO=$cant_promedio
+      - TOTALCLASIFICADORES=$cant_clasif" >> $archivo_salida
+done 
+
+for ((i=0; i<$cant_promedio; i++)); do echo "
+  promedio_$i:
+    build:
+      context: ./src/
+      dockerfile: promedio/Dockerfile
+    container_name: promedio_$i
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        nodo_base:
+          condition: service_started" >> $archivo_salida
+        agregar_dependencia "clasif" $cant_clasif
+ 	agregar_dependencia "transf" $cant_transf
+	echo"    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - EXCHANGEPROMEDIO=ExchangePromedio
+      - TOTALCUENTAPROM=$cant_cuenta_primedio
+      - TOTALTRANSFORMADORES=$cant_transf
+      - ID=$i" >> $archivo_salida
+done 
+
+for ((i=0; i<$cant_promedio; i++)); do echo "
+" >> $archivo_salida
+done 
 

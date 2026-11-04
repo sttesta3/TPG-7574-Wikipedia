@@ -28,7 +28,7 @@ test:
 	exit $$EXIT_CODE
 .PHONY: test
 
-build:
+scenario:
 	@read -p "Nombre del archivo de salida (ej. docker-compose-scenarioX.yaml): " archivo; \
 	read -p "Cantidad de clientes: " cliente; \
 	read -p "Cantidad de lote: " lote; \
@@ -45,7 +45,6 @@ build:
 
 switch:
 	@read -p "Ingresar nombre de archivo a utilizar: " option;       \
-	cp ./scenarios/$${option}.yaml docker-compose.yaml
-.PHONY: switch
+	cp ./$${option} docker-compose.yaml
 
-build:
+.PHONY: switch

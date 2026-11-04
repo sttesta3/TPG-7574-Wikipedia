@@ -28,3 +28,24 @@ test:
 	exit $$EXIT_CODE
 .PHONY: test
 
+build:
+	@read -p "Nombre del archivo de salida (ej. docker-compose-scenarioX.yaml): " archivo; \
+	read -p "Cantidad de clientes: " cliente; \
+	read -p "Cantidad de lote: " lote; \
+	read -p "Cantidad de clasificadores: " clasif; \
+	read -p "Cantidad de descargadores de imágenes: " imgDesc; \
+	read -p "Cantidad de transformadores (transfor): " transfor; \
+	read -p "Cantidad de promedio: " prom; \
+	read -p "Cantidad de cuenta promedio: " contProm; \
+	read -p "Cantidad de sum top: " sumTop; \
+	read -p "Cantidad de agregador top : " agrTop; \
+	read -p "Cantidad de join top : " joinTop; \
+	bash generate_docker_compose.sh "$$archivo" "$$cliente" "$$lote" "$$clasif" "$$imgDesc" "$$transfor" "$$prom" "$$contProm" "$$sumTop" "$$agrTop" "$$joinTop"
+.PHONY: build
+
+switch:
+	@read -p "Ingresar nombre de archivo a utilizar: " option;       \
+	cp ./scenarios/$${option}.yaml docker-compose.yaml
+.PHONY: switch
+
+build:

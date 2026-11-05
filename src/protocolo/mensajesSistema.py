@@ -28,18 +28,20 @@ class MensajeSistema(ABC):
 
 
 class FinMensajeSistema(MensajeSistema):
-    def __init__(self, clienteId: uuid.UUID = None) -> None:
+    def __init__(self, clienteId: uuid.UUID = None, totalMsg: int = 1) -> None:
         self.clienteId = clienteId
-    
+        self.totalMsg = totalMsg    
 
     def aBytes(self) -> bytes:
         mensajeBytes = FIN_MENSAJE
+        mensajeBytes += self.totalMsg.to_bytes(4, byteorder="big")
         mensajeBytes += self.clienteId.bytes
         return mensajeBytes
     
 
     def deBytes(self, bytes):
-        self.clienteId = uuid.UUID(bytes = bytes)
+        self.totalMsg = int.from_bytes(bytes[0:4], byteorder="big")
+        self.clienteId = uuid.UUID(bytes = bytes[4:20])
 
 
 class LoteDataMensajeSistema(MensajeSistema):

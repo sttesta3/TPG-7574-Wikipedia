@@ -22,7 +22,7 @@ class MessageMiddlewareQueue():
         self.connection = pika.BlockingConnection(pika.ConnectionParameters(host, heartbeat=0))
         self.queue_name = queue_name
         self.channel = self.connection.channel()
-        self.channel.basic_qos(prefetch_count=10)
+        self.channel.basic_qos(prefetch_count=1)
         self.channel.queue_declare(queue=queue_name, durable=True)
 
 
@@ -95,7 +95,7 @@ class MessageMiddlewareExchange():
             def callback(ch, method, _, body):
                 on_message_callback(body, lambda: ch.basic_ack(delivery_tag=method.delivery_tag), lambda: ch.basic_nack(delivery_tag=method.delivery_tag, requeue=True))
            
-            self.channel.basic_qos(prefetch_count=10)
+            self.channel.basic_qos(prefetch_count=1)
             self.channel.basic_consume(queue=queue_name, on_message_callback=callback, auto_ack=False)
             self.channel.start_consuming()
 

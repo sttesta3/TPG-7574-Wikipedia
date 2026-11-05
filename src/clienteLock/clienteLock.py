@@ -1,16 +1,11 @@
 import threading
 
 class ClienteLock():
-    def __init__(self, totalEof: int = 1) -> None:
+    def __init__(self, totalEof: int = 1, totalMsg: int = 1) -> None:
         self.cond = threading.Condition()
         self.eof = 0
-        self.respuestas = 0
+        self.respuestas = totalMsg
         self.totalEof = totalEof
-
-
-    def nuevoMensaje(self) -> None:
-        with self.cond:
-            self.respuestas += 1
 
 
     def nuevaRespuesta(self):

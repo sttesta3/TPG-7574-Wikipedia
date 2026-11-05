@@ -6,7 +6,7 @@ import traceback
 import threading
 from clienteLock import ClienteLock
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasMensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, PalabrasMensajeSistema
 
 MOMHOST = os.environ["MOMHOST"]
 COLASUMTOP = os.environ["COLASUMTOP"]
@@ -29,18 +29,23 @@ class SumTop:
         self.clientesLock = {}
 
 
-    def _procesarData(self, mensaje: PalabrasMensajeSistema) -> None:
-        logging.debug(f"Mensaje recibido {mensaje}")
-        if mensaje.clienteId not in self.clientes:
-            self.clientes[mensaje.clienteId] = {}
-            self.clientesLock[mensaje.clienteId] = ClienteLock(TOTALTRANSFORMADORES)
-        if mensaje.lenguaje not in self.clientes[mensaje.clienteId]: 
-            self.clientes[mensaje.clienteId][mensaje.lenguaje] = {}
+    def _procesarData(self, mensajes: PalabrasLoteMensajeSistema) -> None:
+        clienteId = mensajes.clienteId
+        if clienteId not in self.clientes:
+            self.clientes[clienteId] = {}
+            self.clientesLock[clienteId] = ClienteLock(TOTALTRANSFORMADORES)
 
-        self.clientesLock[mensaje.clienteId].nuevoMensaje()
-        for clave, valor in mensaje.palabras.items():
-            self.clientes[mensaje.clienteId][mensaje.lenguaje][clave] = self.clientes[mensaje.clienteId][mensaje.lenguaje].get(clave, 0) + valor
-        self.clientesLock[mensaje.clienteId].nuevaRespuesta()
+        self.clientesLock[clienteId].nuevoMensaje()
+        
+        for mensaje in mensajes.mensajes:
+            if mensaje.lenguaje not in self.clientes[clienteId]: 
+                self.clientes[clienteId][mensaje.lenguaje] = {}
+
+            for clave, valor in mensaje.palabras.items():
+                self.clientes[clienteId][mensaje.lenguaje][clave] = self.clientes[clienteId][mensaje.lenguaje].get(clave, 0) + valor
+            
+        self.clientesLock[clienteId].nuevaRespuesta()
+
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
         self.exchangeSumTopEofSend.send(mensaje.aBytes())
@@ -81,7 +86,7 @@ class SumTop:
                     for lenguaje, palabras in nodos[i].items():
                         logging.debug("2.1.1")
                         logging.debug(f"MANDO: {nodos[i]}")
-                        mensaje = PalabrasMensajeSistema(palabras=palabras, clienteId=mensaje.clienteId, url="", lenguaje=lenguaje)
+                        mensaje = PalabrasLoteMensajeSistema(clienteId=mensaje.clienteId, mensajes=[PalabrasMensajeSistema(palabras=palabras, url="", lenguaje=lenguaje)])
                         self.excahangeTopParciales[i].send(mensaje.aBytes())
                     self.excahangeTopParciales[i].send(FinMensajeSistema(mensaje.clienteId).aBytes())
 

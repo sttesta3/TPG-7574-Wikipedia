@@ -4,7 +4,7 @@ import logging
 import signal
 import traceback
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasMensajeSistema, Respuesta3MensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, Respuesta3MensajeSistema
 
 
 MOMHOST = os.environ["MOMHOST"]
@@ -55,20 +55,22 @@ class AgregadorTop:
         self.clientes = {}
 
 
-    def _procesarData(self, mensaje: PalabrasMensajeSistema) -> None:
-        if mensaje.clienteId not in self.clientes:
-            self.clientes[mensaje.clienteId] = [0, PalabrasPorIdioma()]
+    def _procesarData(self, mensajes: PalabrasLoteMensajeSistema) -> None:
+        mensaje = mensajes.mensajes[0]
+        clienteId = mensajes.clienteId
+        if clienteId not in self.clientes:
+            self.clientes[clienteId] = [0, PalabrasPorIdioma()]
 
         duplicadas = []
         for clave, valor in mensaje.palabras.items():
-            if self.clientes[mensaje.clienteId][1].add(palabra=clave, cantidad=valor, lenguaje=mensaje.lenguaje):
+            if self.clientes[clienteId][1].add(palabra=clave, cantidad=valor, lenguaje=mensaje.lenguaje):
                 # Palabra duplicada. 
                 duplicadas.append(clave)
                 if len(duplicadas) == LOTE:
-                    self.colaRespuestas.send(Respuesta3MensajeSistema(clienteId=mensaje.clienteId, palabras=duplicadas).aBytes())
+                    self.colaRespuestas.send(Respuesta3MensajeSistema(clienteId=clienteId, palabras=duplicadas).aBytes())
                     duplicadas = []
         if len(duplicadas) > 0:
-            self.colaRespuestas.send(Respuesta3MensajeSistema(clienteId=mensaje.clienteId, palabras=duplicadas).aBytes())
+            self.colaRespuestas.send(Respuesta3MensajeSistema(clienteId=clienteId, palabras=duplicadas).aBytes())
 
 
     def _top20(self, palabras: dict[str, int]) -> dict[str, int]:
@@ -80,7 +82,7 @@ class AgregadorTop:
         if self.clientes[mensaje.clienteId][0] == TOTALSUMTOP:
 
             nodo = mensaje.clienteId.int % TOTALTOPGLOBAL
-            self.exchangeTopGlobal[nodo].send(PalabrasMensajeSistema(clienteId=mensaje.clienteId, palabras=self._top20(self.clientes[mensaje.clienteId][1].mergeTop()), url="", lenguaje=0).aBytes())    
+            #self.exchangeTopGlobal[nodo].send(PalabrasMensajeSistema(clienteId=mensaje.clienteId, palabras=self._top20(self.clientes[mensaje.clienteId][1].mergeTop()), url="", lenguaje=0).aBytes())    
             self.exchangeTopGlobal[nodo].send(FinMensajeSistema(mensaje.clienteId).aBytes())
             
             del self.clientes[mensaje.clienteId]

@@ -56,6 +56,7 @@ def manejarRespuesta(clientes: dict) -> None:
                 clientes[clienteId] = cliente
                 if clientes[clienteId][1] == TOTALIMGEOF + TOTALPROMEOF + TOTALTOPEOF:
                     FinMensaje(clienteSocket).send()
+                    print("llego eofs")
                     del clientes[clienteId]
             else:
                 sendRespuesta(clienteSocket, respuesta.aRespuestaGateway())

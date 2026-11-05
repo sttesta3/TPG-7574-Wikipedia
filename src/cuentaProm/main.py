@@ -5,7 +5,7 @@ import logging
 import threading
 from clienteLock import ClienteLock
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-from protocolo.mensajesSistema import recvMensajeSistema, FinPromMensajeSistema, CantidadPalabraMensajeSistema, Respuesta5MensajeSistema, FinMensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinPromMensajeSistema, CantidadPalabrasLoteMensajeSistema, Respuesta5MensajeSistema, FinMensajeSistema
 
 MOMHOST = os.environ["MOMHOST"]
 COLARESPUESTAS = os.environ["COLARESPUESTAS"]
@@ -23,8 +23,8 @@ class CuentaProm:
 
         self.cliente = {}
 
-    def _procesarData(self, mensaje: CantidadPalabraMensajeSistema) -> None:
-        clientId = str(mensaje.clienteId)
+    def _procesarData(self, mensajes: CantidadPalabrasLoteMensajeSistema) -> None:
+        clientId = str(mensajes.clienteId)
 
         if clientId not in self.cliente:
             self.cliente[clientId] = ClienteLock()
@@ -32,7 +32,8 @@ class CuentaProm:
         self.cliente[clientId].nuevoMensaje()
 
         with open(clientId, "a", encoding="utf-8") as f:
-            f.write(f"{mensaje.url};;;;;{mensaje.cantidad}\n")
+            for mensaje in mensajes.mensajes:
+                f.write(f"{mensaje.url};;;;;{mensaje.cantidad}\n")
 
         self.cliente[clientId].nuevaRespuesta()
 
@@ -69,6 +70,7 @@ class CuentaProm:
                     if len(data) > 0:
                         self.colaRespuestas.send(Respuesta5MensajeSistema(mensaje.clienteId, data).aBytes())
                 self.colaRespuestas.send(FinMensajeSistema(mensaje.clienteId).aBytes())
+                print("EOF")
                 os.remove(str(mensaje.clienteId))
                 del self.cliente[str(mensaje.clienteId)]
 

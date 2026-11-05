@@ -4,7 +4,7 @@ import logging
 import signal
 import traceback
 from middleware import MessageMiddlewareExchange, MessageMiddlewareQueue
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, CantidadPalabraMensajeSistema, FinPromMensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, CantidadPalabrasLoteMensajeSistema, FinPromMensajeSistema
 
 
 MOMHOST = os.environ["MOMHOST"]
@@ -21,11 +21,12 @@ class Promedio:
         self.exchangePromedio = MessageMiddlewareExchange(MOMHOST, EXCHANGEPROMEDIO, [EXCHANGEPROMEDIO + "_" + ID])
         self.colaCuentaProm = MessageMiddlewareQueue(MOMHOST, COLACUENTAPROM)
 
-    def _procesarData(self, mensaje: CantidadPalabraMensajeSistema) -> None:
-        clienteId = str(mensaje.clienteId)
+    def _procesarData(self, mensajes: CantidadPalabrasLoteMensajeSistema) -> None:
+        clienteId = str(mensajes.clienteId)
         if clienteId not in self.clientes:
-            self.clientes[clienteId] = [mensaje.cantidad, 1, 0]
-        else:
+            self.clientes[clienteId] = [0, 1, 0]
+
+        for mensaje in mensajes.mensajes:
             self.clientes[clienteId][0] += mensaje.cantidad
             self.clientes[clienteId][1] += 1
 

@@ -9,34 +9,29 @@ LENGUAJEFRANCES = 2
 FIN_MENSAJE =  b'\x00'
 DATA_MENSAJE =  b'\x01'
 LOTE_MENSAJE = b'\x02'
-
+import re
 # Esta seccion tarda 28 segundo en una ejecucion 
 def _seccionATexto(documento: str) -> tuple[str, bool]:
-    texto = []
     bio = False
+    texto = ""
 
     try:
-        for seccion in ast.literal_eval(documento):
-            nombre = seccion["name"].lower()
-
-            if nombre in {"biography", "biographie"}:
-                bio = True
-
-            texto.extend(
-                parrafo["value"]
-                for parrafo in seccion["has_parts"]
-                if parrafo["type"] == "paragraph"
-            )
-
+        texto = "".join(re.findall(r'"type"\s*:\s*"paragraph"\s*,\s*"value"\s*:\s*"((?:\\.|[^"\\])*)"', documento)) 
     except Exception:
         pass
 
-    return "".join(texto), bio
+    try:
+        if len(re.findall(r'"type"\s*:\s*"section"\s*,\s*"name"\s*:\s*"biograph(?:y|ie)"', documento)) > 1:
+            bio = True
+    except Exception:
+            pass
+
+
+    return texto, bio
 
 import time
 class DataMensaje():
     def __init__(self, fila: namedtuple = None) -> None:
-        inicio = time.time()
         if fila is None:
             return
         self.url = fila.url
@@ -48,8 +43,6 @@ class DataMensaje():
         self.seccion = texto
         self.nombre = fila.name
         self.biografia = 1 if bio else 0
-        fin = time.time()
-        print(f"Texto a seccion: {(fin - inicio)} segundos")
 
 
     def aBytes(self) -> bytes:

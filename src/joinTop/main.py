@@ -4,7 +4,7 @@ import logging
 import signal
 import traceback
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasMensajeSistema, Respuesta4MensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, Respuesta4MensajeSistema
 
 
 MOMHOST = os.environ["MOMHOST"]
@@ -22,12 +22,15 @@ class JoinTop:
         self.clientes = {}
 
 
-    def _procesarData(self, mensaje: PalabrasMensajeSistema) -> None:
-        logging.info(f"[join] Recibi {mensaje.clienteId} top parcial {mensaje.palabras}")
-        if mensaje.clienteId not in self.clientes:
-            self.clientes[mensaje.clienteId] = [0, {}]
+    def _procesarData(self, mensajes: PalabrasLoteMensajeSistema) -> None:
+        mensaje = mensajes.mensajes
+        clienteId = mensajes.clienteId
 
-        self.clientes[mensaje.clienteId][1] = self.clientes[mensaje.clienteId][1] | mensaje.palabras
+        logging.info(f"[join] Recibi {clienteId} top parcial {mensaje.palabras}")
+        if clienteId not in self.clientes:
+            self.clientes[clienteId] = [0, {}]
+
+        self.clientes[clienteId][1] = self.clientes[clienteId][1] | mensaje.palabras
 
     def _top20(self, palabras: dict[str, int]) -> dict[str, int]:
         top = sorted(palabras.items(), key=lambda item: item[1], reverse=True)
@@ -40,6 +43,7 @@ class JoinTop:
         if self.clientes[mensaje.clienteId][0] == TOTALTOPPARCIAL:
             self.colaRespuestas.send(Respuesta4MensajeSistema(mensaje.clienteId, self._top20(self.clientes[mensaje.clienteId][1])).aBytes())
             self.colaRespuestas.send(mensaje.aBytes())
+            print("EOF")
             del self.clientes[mensaje.clienteId]
 
 

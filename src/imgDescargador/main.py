@@ -33,13 +33,13 @@ class ImgDescargador:
     async def _procesarData(self, mensaje: ImgMensajeSistema, eof: bool = False ) -> None:
         if eof:
             self.colaRespuestas.send(FinMensajeSistema(mensaje.clienteId).aBytes())
+            print("EOF")
             del self.clientes[mensaje.clienteId]
             return 
         
         try:
             imgBytes = b''
             if mensaje.imgUrl != "":
-                # TODO: podria manejar una sola sesion como variable del ImgDescargador
                 async with aiohttp.ClientSession(headers={'User-Agent':'Tp-Fiuba/0.0 (https://fi.uba.ar/;shenseler@fi.uba.ar)'}) as session:
                     async with session.get(mensaje.imgUrl) as resp:
                         if resp.status == 200:
@@ -62,6 +62,7 @@ class ImgDescargador:
 
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
+        print("recibo EOF")
         self.exchangeImgEofSend.send(mensaje.aBytes())
         
 

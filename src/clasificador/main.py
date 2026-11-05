@@ -71,6 +71,7 @@ class Clasificador:
             mensaje = recvMensajeSistema(bytes)
 
             if self.clientes[mensaje.clienteId].llegadaEof():
+                print("MANDO EOF")
                 self.colaImgDescarga.send(mensaje.aBytes())
                 self.colaTransformador.send(mensaje.aBytes())
                 

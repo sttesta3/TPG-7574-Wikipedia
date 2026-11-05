@@ -132,7 +132,6 @@ class FinMensaje():
     def send(self) -> None:
         safeSend(self.socket, FIN_MENSAJE)
 
-
 class LoteMensaje():
     def __init__(self, socket: socket = None, tamañoLote: int = None) -> None:
         self.tamañoLote = tamañoLote
@@ -140,9 +139,8 @@ class LoteMensaje():
         self.socket = socket
 
 
-    def agregarMensaje(self, fila: namedtuple) -> None:
-        self.lote.append(DataMensaje(fila))
-        
+    def agregarMensaje(self, mensajes: list) -> None:
+        self.lote.extend(mensajes)
         if len(self.lote) == self.tamañoLote:
             self.send()
             self.lote.clear()

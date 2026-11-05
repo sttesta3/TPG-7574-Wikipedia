@@ -18,46 +18,59 @@ GATEWAYPORT = int(os.environ["GATEWAYPORT"])
 LOTE = int(os.environ["LOTE"])
 ID = os.environ["ID"]
 
+
 def enviarParquet(socket: socket) -> None:
-    inicio = time.time()
-    loteMensaje = LoteMensaje(socket, LOTE)
-    
-    j = 0
-    for i in range(TOTALDATASETSEN):
+    try:
+        inicio = time.time()
+        loteMensaje = LoteMensaje(socket, LOTE)
+        
+        j = 0
+        for i in range(TOTALDATASETSEN):
 
-        archivo = pq.ParquetFile(DATASETPATHEN + str(i).zfill(5) + ".parquet")
+            with pq.ParquetFile(DATASETPATHEN + str(i).zfill(5) + ".parquet") as archivo:
+                for batch in archivo.iter_batches(batch_size=10000):
+                    dataset = batch.to_pandas()
+                    for fila in dataset.itertuples(index=False):
+                        loteMensaje.agregarMensaje(fila)
+                    del dataset
+                    del batch
+            
 
-        for batch in archivo.iter_batches(batch_size=20000):
-            dataset = batch.to_pandas()
+            if j < TOTALDATASETSFR:
+                with pq.ParquetFile(DATASETPATHFR + str(i).zfill(5) + ".parquet") as archivo:
+                    for batch in archivo.iter_batches(batch_size=10000):
+                        dataset = batch.to_pandas()
 
-            for fila in dataset.itertuples(index=False):
-                loteMensaje.agregarMensaje(fila)
-            del dataset
+                        for fila in dataset.itertuples(index=False):
+                            loteMensaje.agregarMensaje(fila)
+                        del dataset
+                        del batch
 
-        if j < TOTALDATASETSFR:
-            archivo = pq.ParquetFile(DATASETPATHFR + str(i).zfill(5) + ".parquet")
+                    j += 1
 
-            for batch in archivo.iter_batches(batch_size=20000):
-                dataset = batch.to_pandas()
+            print(f"vamos por EN {i} - FR {j} en {(time.time() - inicio)/60:.2f}")
 
-                for fila in dataset.itertuples(index=False):
-                    loteMensaje.agregarMensaje(fila)
-                del dataset
-            j += 1
+        loteMensaje.send()
+        FinMensaje(socket).send()
 
-        print(f"vamos por EN {i} - FR {j} en {(time.time() - inicio)/60:.2f}")
+        fin = time.time()
+        print(f"Tiempo de envio de mensajes: {(fin - inicio)/60:.2f} minutos")
 
-    loteMensaje.send()
-    FinMensaje(socket).send()
-
-    fin = time.time()
-    print(f"Tiempo de envio de mensajes: {(fin - inicio)/60:.2f} minutos")
+    except Exception as e:
+        print(e)
 
 
 def recibirRespuestas(socket: socket) -> None:
-    print(f"inicioo {time.time()}")
     inicio = time.time()
     eof = False
+    archivos = [
+        open(f"/output/output1_{ID}.txt", "a", encoding="utf-8"),
+        open(f"/output/output2_{ID}.txt", "a", encoding="utf-8"),
+        open(f"/output/output3_{ID}.txt", "a", encoding="utf-8"),
+        open(f"/output/output4_{ID}.txt", "a", encoding="utf-8"),
+        open(f"/output/output5_{ID}.txt", "a", encoding="utf-8")
+    ]
+    
     while not eof:
         try:
             respuesta = recvMensaje(socket)
@@ -65,17 +78,14 @@ def recibirRespuestas(socket: socket) -> None:
             logging.error(f"Se perdio la conexion con el gateway: {e}")
             return
         
-        archivos = [open(f"/output/output1_{ID}.txt", "a", encoding="utf-8"),
-            open(f"/output/output2_{ID}.txt", "a", encoding="utf-8"),
-            open(f"/output/output3_{ID}.txt", "a", encoding="utf-8"),
-            open(f"/output/output4_{ID}.txt", "a", encoding="utf-8"),
-            open(f"/output/output5_{ID}.txt", "a", encoding="utf-8")]
 
         if isinstance(respuesta, FinMensaje):
             eof = True
+            for archivo in archivos:
+                archivo.close()
+            
             print(f"fin {time.time()}")
             fin = time.time()
-            
             print(f"Tiempo de envio de mensajes: {(fin - inicio)/60:.2f} minutos")
         if isinstance(respuesta, Respuesta1Mensaje):
             archivos[0].write(respuesta.url + " - "+ str(respuesta.fecha) + "\n")

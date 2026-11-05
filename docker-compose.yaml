@@ -59,8 +59,8 @@ services:
     environment:
     - DATASETPATHEN=/datasets/enwiki_namespace_0_
     - DATASETPATHFR=/datasets/frwiki_namespace_0_
-    - TOTALDATASETSEN=265
-    - TOTALDATASETSFR=103
+    - TOTALDATASETSEN=5
+    - TOTALDATASETSFR=5
     - GATEWAYHOST=gateway
     - GATEWAYPORT=8000
     - LOTE=400
@@ -69,6 +69,7 @@ services:
     volumes:
     - ./datasets:/datasets
     - ./output:/output
+
 
   clasificador_0:
     build:

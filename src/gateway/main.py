@@ -37,6 +37,7 @@ def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
     except socket.error:
         logging.error("The connection with the server was lost")
     except Exception as e:
+        print(e)
         logging.warning(e)
     finally:
         colaDatos.close()

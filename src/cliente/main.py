@@ -33,7 +33,6 @@ def enviarParquet(socket: socket) -> None:
                     for fila in dataset.itertuples(index=False):
                         loteMensaje.agregarMensaje(fila)
                     del dataset
-                    del batch
             
 
             if j < TOTALDATASETSFR:
@@ -44,7 +43,6 @@ def enviarParquet(socket: socket) -> None:
                         for fila in dataset.itertuples(index=False):
                             loteMensaje.agregarMensaje(fila)
                         del dataset
-                        del batch
 
                     j += 1
 

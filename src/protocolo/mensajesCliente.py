@@ -10,24 +10,33 @@ FIN_MENSAJE =  b'\x00'
 DATA_MENSAJE =  b'\x01'
 LOTE_MENSAJE = b'\x02'
 
+# Esta seccion tarda 28 segundo en una ejecucion 
 def _seccionATexto(documento: str) -> tuple[str, bool]:
+    texto = []
     bio = False
-    textoSeccion = ""
+
     try:
         for seccion in ast.literal_eval(documento):
-            for parrafo in seccion["has_parts"]:
-                if parrafo["type"] == "paragraph":
-                    textoSeccion += parrafo["value"] 
-            if seccion["name"].lower() == "biography" or seccion["name"].lower() == "biographie": 
+            nombre = seccion["name"].lower()
+
+            if nombre in {"biography", "biographie"}:
                 bio = True
+
+            texto.extend(
+                parrafo["value"]
+                for parrafo in seccion["has_parts"]
+                if parrafo["type"] == "paragraph"
+            )
+
     except Exception:
         pass
 
-    return (textoSeccion, bio)
+    return "".join(texto), bio
 
-
+import time
 class DataMensaje():
     def __init__(self, fila: namedtuple = None) -> None:
+        inicio = time.time()
         if fila is None:
             return
         self.url = fila.url
@@ -39,6 +48,8 @@ class DataMensaje():
         self.seccion = texto
         self.nombre = fila.name
         self.biografia = 1 if bio else 0
+        fin = time.time()
+        print(f"Texto a seccion: {(fin - inicio)} segundos")
 
 
     def aBytes(self) -> bytes:
@@ -139,11 +150,12 @@ class LoteMensaje():
         self.socket = socket
 
 
-    def agregarMensaje(self, mensajes: list) -> None:
-        self.lote.extend(mensajes)
+    def agregarMensaje(self, mensajes: namedtuple) -> None:
+        self.lote.append(DataMensaje(mensajes))
         if len(self.lote) == self.tamañoLote:
             self.send()
             self.lote.clear()
+
 
     def aBytes(self) -> bytes:
         bytesMensaje = LOTE_MENSAJE

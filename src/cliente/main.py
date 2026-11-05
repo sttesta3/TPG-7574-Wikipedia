@@ -11,7 +11,8 @@ from protocolo.mensajesGateway import recvMensaje, Respuesta1Mensaje, Respuesta2
 
 DATASETPATHEN = os.environ["DATASETPATHEN"]
 DATASETPATHFR = os.environ["DATASETPATHFR"]
-TOTALDATASETS = int(os.environ["TOTALDATASETS"])
+TOTALDATASETSFR = int(os.environ["TOTALDATASETSFR"])
+TOTALDATASETSEN = int(os.environ["TOTALDATASETSEN"])
 GATEWAYHOST = os.environ["GATEWAYHOST"]
 GATEWAYPORT = int(os.environ["GATEWAYPORT"])
 LOTE = int(os.environ["LOTE"])
@@ -20,25 +21,31 @@ ID = os.environ["ID"]
 def enviarParquet(socket: socket) -> None:
     inicio = time.time()
     loteMensaje = LoteMensaje(socket, LOTE)
-    for i in range(TOTALDATASETS):
+    
+    j = 0
+    for i in range(TOTALDATASETSEN):
 
         archivo = pq.ParquetFile(DATASETPATHEN + str(i).zfill(5) + ".parquet")
 
-        for batch in archivo.iter_batches(batch_size=10000):
+        for batch in archivo.iter_batches(batch_size=20000):
             dataset = batch.to_pandas()
 
             for fila in dataset.itertuples(index=False):
                 loteMensaje.agregarMensaje(fila)
             del dataset
-        
-        archivo = pq.ParquetFile(DATASETPATHFR + str(i).zfill(5) + ".parquet")
 
-        for batch in archivo.iter_batches(batch_size=10000):
-            dataset = batch.to_pandas()
+        if j < TOTALDATASETSFR:
+            archivo = pq.ParquetFile(DATASETPATHFR + str(i).zfill(5) + ".parquet")
 
-            for fila in dataset.itertuples(index=False):
-                loteMensaje.agregarMensaje(fila)
-            del dataset
+            for batch in archivo.iter_batches(batch_size=20000):
+                dataset = batch.to_pandas()
+
+                for fila in dataset.itertuples(index=False):
+                    loteMensaje.agregarMensaje(fila)
+                del dataset
+            j += 1
+
+        print(f"vamos por EN {i} - FR {j} en {(time.time() - inicio)/60:.2f}")
 
     loteMensaje.send()
     FinMensaje(socket).send()

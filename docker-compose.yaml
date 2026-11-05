@@ -59,10 +59,11 @@ services:
     environment:
     - DATASETPATHEN=/datasets/enwiki_namespace_0_
     - DATASETPATHFR=/datasets/frwiki_namespace_0_
-    - TOTALDATASETS=5
+    - TOTALDATASETSEN=265
+    - TOTALDATASETSFR=103
     - GATEWAYHOST=gateway
     - GATEWAYPORT=8000
-    - LOTE=200
+    - LOTE=400
     - ID=0
     - PYTHONUNBUFFERED=1
     volumes:

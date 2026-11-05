@@ -145,7 +145,7 @@ class LoteMensaje():
         
         if len(self.lote) == self.tamañoLote:
             self.send()
-            self.lote = []
+            self.lote.clear()
 
     def aBytes(self) -> bytes:
         bytesMensaje = LOTE_MENSAJE

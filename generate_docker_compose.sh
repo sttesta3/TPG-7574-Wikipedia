@@ -84,8 +84,8 @@ echo "services:
       - COLARESPUESTAS=Respuestas
       - LOTE=$lote
       - TOTALIMGEOF=$cant_descarg
-      - TOTALPROMEOF=$cant_promedio
-      - TOTALTOPEOF=$cant_sum_top
+      - TOTALPROMEOF=1
+      - TOTALTOPEOF=1
     healthcheck:
       test: ['CMD', 'python3', '-c', \"import socket; s=socket.create_connection(('127.0.0.1', 8000), timeout=2); s.close()\"]
       interval: 2s
@@ -117,10 +117,11 @@ for ((i=0; i<$clientes; i++)); do
     environment:
     - DATASETPATHEN=/datasets/enwiki_namespace_0_
     - DATASETPATHFR=/datasets/frwiki_namespace_0_
-    - TOTALDATASETS=$((i+1))
+    - TOTALDATASETS=${TOTALDATASETS:-$(( i % 5 + 1 ))}
     - GATEWAYHOST=gateway
     - GATEWAYPORT=8000
     - LOTE=$lote
+    - ID=$i
     - PYTHONUNBUFFERED=1
     volumes:
     - ./datasets:/datasets

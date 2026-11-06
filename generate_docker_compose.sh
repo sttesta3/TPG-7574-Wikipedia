@@ -122,6 +122,7 @@ for ((i=0; i<$clientes; i++)); do
     - GATEWAYPORT=8000
     - LOTE=$lote
     - PYTHONUNBUFFERED=1
+    - ID=$i
     volumes:
     - ./datasets:/datasets
     - ./output:/output" >> $archivo_salida 

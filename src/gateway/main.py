@@ -27,12 +27,14 @@ def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
         colaDatos = MessageMiddlewareQueue(MOMHOST, COLADATOS)
         
         eof = False
+        contador_mensajes = 0
         while not eof:
             mensaje = recvMensaje(clientSocket)
             if mensaje is None:
                 eof = True
                 colaDatos.send(FinMensajeSistema(clienteId).aBytes())
             else:
+                contador_mensajes += 1 
                 colaDatos.send(LoteDataMensajeSistema(clienteId, mensaje).aBytes())
     except socket.error:
         logging.error("The connection with the server was lost")
@@ -54,7 +56,7 @@ def manejarRespuesta(clientes: dict) -> None:
                 cliente = clientes[clienteId]
                 cliente[1] += 1
                 clientes[clienteId] = cliente
-                if clientes[clienteId][1] ==  TOTALPROMEOF + TOTALTOPEOF:
+                if clientes[clienteId][1] ==  TOTALPROMEOF + TOTALTOPEOF + TOTALIMGEOF:
                     FinMensaje(clienteSocket).send()
                     print("llego eofs")
                     del clientes[clienteId]

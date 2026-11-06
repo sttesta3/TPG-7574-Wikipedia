@@ -24,3 +24,7 @@ class ClienteLock():
                     self.cond.wait()
                 llego = True
         return llego
+
+    def nuevoMensaje(self, cant: int = 1) -> None:
+        with self.cond:
+            self.respuestas += cant

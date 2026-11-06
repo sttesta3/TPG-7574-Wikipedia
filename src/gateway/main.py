@@ -31,6 +31,7 @@ def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
         while not eof:
             mensaje = recvMensaje(clientSocket)
             if mensaje is None:
+                logging.info(f"EOF de {clienteId}")
                 eof = True
                 colaDatos.send(FinMensajeSistema(clienteId).aBytes())
             else:
@@ -52,6 +53,8 @@ def manejarRespuesta(clientes: dict) -> None:
             respuesta = recvMensajeSistema(message)
             clienteId = respuesta.clienteId
             clienteSocket = clientes[clienteId][0]
+            
+            logging.info(f"Respuesta {clienteId}")
             if isinstance(respuesta, FinMensajeSistema):
                 cliente = clientes[clienteId]
                 cliente[1] += 1

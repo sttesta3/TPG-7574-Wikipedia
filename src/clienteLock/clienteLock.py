@@ -1,7 +1,7 @@
 import threading
 
 class ClienteLock():
-    def __init__(self, totalEof: int = 1, totalMsg: int = 1) -> None:
+    def __init__(self, totalEof: int = 1, totalMsg: int = 0) -> None:
         self.cond = threading.Condition()
         self.eof = 0
         self.respuestas = totalMsg
@@ -21,8 +21,10 @@ class ClienteLock():
             self.eof += 1
             if self.eof == self.totalEof:
                 while self.respuestas > 0:
+                    print(f"[ClienteLock] A dormir {self.respuestas}") 
                     self.cond.wait()
                 llego = True
+            print("[ClienteLock] Sali")
         return llego
 
     def nuevoMensaje(self, cant: int = 1) -> None:

@@ -70,7 +70,7 @@ class SumTop:
             mensaje = recvMensajeSistema(bytes)
             if self.clientesLock[mensaje.clienteId].llegadaEof():
                 nodos = [{} for _ in range(TOTALTOPPARCIAL)]
-                logging.debug("1")
+                logging.info("1")
                 # Afinidad palabras de cliente por nodo
                 for lenguaje, palabras in self.clientes[mensaje.clienteId].items():
                     logging.debug("1.1")

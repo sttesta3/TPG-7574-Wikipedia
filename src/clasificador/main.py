@@ -34,7 +34,7 @@ class Clasificador:
 
         self.clientes[loteMensaje.clienteId].nuevoMensaje()
         try:
-            
+            logging.info(f"Recibo mensaje de {loteMensaje.clienteId}")            
             transformadorMensajes = []
             for mensaje in loteMensaje.lote:
                 if mensaje.lenguaje == LENGUAJEINGLES and mensaje.fecha <= 2020:
@@ -84,7 +84,7 @@ class Clasificador:
 
     
     def _controlarEof(self):
-        self.colaEOF.start_consuming(self._manejarEof)
+        self.colaEOFSend.start_consuming(self._manejarEof)
 
 
     def iniciar(self):

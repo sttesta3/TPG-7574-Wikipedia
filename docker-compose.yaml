@@ -20,10 +20,10 @@ services:
       - MOMHOST=rabbitmq
       - COLADATOS=EntradaDatos
       - COLARESPUESTAS=Respuestas
-      - LOTE=200
-      - TOTALIMGEOF=4
-      - TOTALPROMEOF=4
-      - TOTALTOPEOF=1
+      - LOTE=256
+      - TOTALIMGEOF=2
+      - TOTALPROMEOF=3
+      - TOTALTOPEOF=3
     healthcheck:
       test: ['CMD', 'python3', '-c', "import socket; s=socket.create_connection(('127.0.0.1', 8000), timeout=2); s.close()"]
       interval: 2s
@@ -63,14 +63,12 @@ services:
     - TOTALDATASETSFR=1
     - GATEWAYHOST=gateway
     - GATEWAYPORT=8000
-    - LOTE=400
-    - ID=0
+    - LOTE=256
     - PYTHONUNBUFFERED=1
+    - ID=0
     volumes:
     - ./datasets:/datasets
     - ./output:/output
-
-
 
   clasificador_0:
     build:
@@ -135,27 +133,6 @@ services:
       - COLATRANSFORMADOR=ColaTransformador
       - CLASIFICADOREXCHANGEEOF=ClasificadorExchangeEof
 
-  clasificador_3:
-    build:
-      context: ./src/
-      dockerfile: clasificador/Dockerfile
-    container_name: clasificador_3
-    depends_on:
-        rabbitmq:
-          condition: service_healthy
-        gateway:
-          condition: service_started
-        nodo-base:
-          condition: service_started
-    environment:
-      - PYTHONUNBUFFERED=1
-      - MOMHOST=rabbitmq
-      - COLADATOS=EntradaDatos
-      - COLARESPUESTAS=Respuestas
-      - COLAIMGDESCARGA=ImgDescarga
-      - COLATRANSFORMADOR=ColaTransformador
-      - CLASIFICADOREXCHANGEEOF=ClasificadorExchangeEof
-
   img_descargador_0:
     build:
       context: ./src/
@@ -174,15 +151,13 @@ services:
           condition: service_started
         clasificador_2:
           condition: service_started
-        clasificador_3:
-          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLARESPUESTAS=Respuestas
       - COLAIMGDESCARGA=ImgDescarga
       - EXCHANGEIMGEOF=ExchangeImgEof
-      - TOTALCLASIFICADORES=4
+      - TOTALCLASIFICADORES=3
       - MAXCLIENTES=10 
 
   img_descargador_1:
@@ -203,73 +178,13 @@ services:
           condition: service_started
         clasificador_2:
           condition: service_started
-        clasificador_3:
-          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLARESPUESTAS=Respuestas
       - COLAIMGDESCARGA=ImgDescarga
       - EXCHANGEIMGEOF=ExchangeImgEof
-      - TOTALCLASIFICADORES=4
-      - MAXCLIENTES=10 
-
-  img_descargador_2:
-    build:
-      context: ./src/
-      dockerfile: imgDescargador/Dockerfile
-    container_name: img_descargador_2
-    depends_on:
-        rabbitmq:
-          condition: service_healthy
-        gateway:
-          condition: service_started
-        nodo-base:
-          condition: service_started
-        clasificador_0:
-          condition: service_started
-        clasificador_1:
-          condition: service_started
-        clasificador_2:
-          condition: service_started
-        clasificador_3:
-          condition: service_started
-    environment:
-      - PYTHONUNBUFFERED=1
-      - MOMHOST=rabbitmq
-      - COLARESPUESTAS=Respuestas
-      - COLAIMGDESCARGA=ImgDescarga
-      - EXCHANGEIMGEOF=ExchangeImgEof
-      - TOTALCLASIFICADORES=4
-      - MAXCLIENTES=10 
-
-  img_descargador_3:
-    build:
-      context: ./src/
-      dockerfile: imgDescargador/Dockerfile
-    container_name: img_descargador_3
-    depends_on:
-        rabbitmq:
-          condition: service_healthy
-        gateway:
-          condition: service_started
-        nodo-base:
-          condition: service_started
-        clasificador_0:
-          condition: service_started
-        clasificador_1:
-          condition: service_started
-        clasificador_2:
-          condition: service_started
-        clasificador_3:
-          condition: service_started
-    environment:
-      - PYTHONUNBUFFERED=1
-      - MOMHOST=rabbitmq
-      - COLARESPUESTAS=Respuestas
-      - COLAIMGDESCARGA=ImgDescarga
-      - EXCHANGEIMGEOF=ExchangeImgEof
-      - TOTALCLASIFICADORES=4
+      - TOTALCLASIFICADORES=3
       - MAXCLIENTES=10 
 
   transformador_0:
@@ -290,19 +205,17 @@ services:
           condition: service_started
         clasificador_2:
           condition: service_started
-        clasificador_3:
-          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLATRANSFORMADOR=ColaTransformador
       - COLASUMTOP=ColaSumTop
       - EXCHANGEPROMEDIO=ExchangePromedio
-      - COLACUENTAPROM=ColaCuentaProm
+      - EXCHANGECUENTAPROM=ExchangeCuentaProm
       - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
-      - TOTALCUENTAPROM=4
-      - TOTALPROMEDIO=2
-      - TOTALCLASIFICADORES=4
+      - TOTALCUENTAPROM=3
+      - TOTALPROMEDIO=3
+      - TOTALCLASIFICADORES=3
 
   transformador_1:
     build:
@@ -322,19 +235,17 @@ services:
           condition: service_started
         clasificador_2:
           condition: service_started
-        clasificador_3:
-          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLATRANSFORMADOR=ColaTransformador
       - COLASUMTOP=ColaSumTop
       - EXCHANGEPROMEDIO=ExchangePromedio
-      - COLACUENTAPROM=ColaCuentaProm
+      - EXCHANGECUENTAPROM=ExchangeCuentaProm
       - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
-      - TOTALCUENTAPROM=4
-      - TOTALPROMEDIO=2
-      - TOTALCLASIFICADORES=4
+      - TOTALCUENTAPROM=3
+      - TOTALPROMEDIO=3
+      - TOTALCLASIFICADORES=3
 
   transformador_2:
     build:
@@ -354,51 +265,17 @@ services:
           condition: service_started
         clasificador_2:
           condition: service_started
-        clasificador_3:
-          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLATRANSFORMADOR=ColaTransformador
       - COLASUMTOP=ColaSumTop
       - EXCHANGEPROMEDIO=ExchangePromedio
-      - COLACUENTAPROM=ColaCuentaProm
+      - EXCHANGECUENTAPROM=ExchangeCuentaProm
       - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
-      - TOTALCUENTAPROM=4
-      - TOTALPROMEDIO=2
-      - TOTALCLASIFICADORES=4
-
-  transformador_3:
-    build:
-      context: ./src/
-      dockerfile: transformador/Dockerfile
-    container_name: transformador_3
-    depends_on:
-        rabbitmq:
-          condition: service_healthy
-        gateway:
-          condition: service_started
-        nodo-base:
-          condition: service_started
-        clasificador_0:
-          condition: service_started
-        clasificador_1:
-          condition: service_started
-        clasificador_2:
-          condition: service_started
-        clasificador_3:
-          condition: service_started
-    environment:
-      - PYTHONUNBUFFERED=1
-      - MOMHOST=rabbitmq
-      - COLATRANSFORMADOR=ColaTransformador
-      - COLASUMTOP=ColaSumTop
-      - EXCHANGEPROMEDIO=ExchangePromedio
-      - COLACUENTAPROM=ColaCuentaProm
-      - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
-      - TOTALCUENTAPROM=4
-      - TOTALPROMEDIO=2
-      - TOTALCLASIFICADORES=4
+      - TOTALCUENTAPROM=3
+      - TOTALPROMEDIO=3
+      - TOTALCLASIFICADORES=3
 
   promedio_0:
     build:
@@ -418,19 +295,20 @@ services:
           condition: service_started
         clasificador_2:
           condition: service_started
-        clasificador_3:
-          condition: service_started
         transformador_0:
           condition: service_started
         transformador_1:
           condition: service_started
+        transformador_2:
+          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
+      - EXCHANGECUENTAPROM=ExchangeCuentaProm
       - COLACUENTAPROM=ColaCuentaProm
       - EXCHANGEPROMEDIO=ExchangePromedio
-      - TOTALCUENTAPROM=4
-      - TOTALTRANSFORMADORES=4
+      - TOTALCUENTAPROM=3
+      - TOTALTRANSFORMADORES=3
       - ID=0
 
   promedio_1:
@@ -451,20 +329,55 @@ services:
           condition: service_started
         clasificador_2:
           condition: service_started
-        clasificador_3:
+        transformador_0:
+          condition: service_started
+        transformador_1:
+          condition: service_started
+        transformador_2:
+          condition: service_started
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - COLACUENTAPROM=ColaCuentaProm
+      - EXCHANGEPROMEDIO=ExchangePromedio
+      - TOTALCUENTAPROM=3
+      - TOTALTRANSFORMADORES=3
+      - ID=1
+
+  promedio_2:
+    build:
+      context: ./src/
+      dockerfile: promedio/Dockerfile
+    container_name: promedio_2
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        nodo-base:
+          condition: service_started
+        clasificador_0:
+          condition: service_started
+        clasificador_1:
+          condition: service_started
+        clasificador_2:
           condition: service_started
         transformador_0:
           condition: service_started
         transformador_1:
           condition: service_started
+        transformador_2:
+          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLACUENTAPROM=ColaCuentaProm
+      - EXCHANGECUENTAPROM=ExchangeCuentaProm
       - EXCHANGEPROMEDIO=ExchangePromedio
-      - TOTALCUENTAPROM=4
-      - TOTALTRANSFORMADORES=4
-      - ID=1
+      - TOTALCUENTAPROM=3
+      - TOTALTRANSFORMADORES=3
+      - ID=2
 
   cuenta_prom_0:
     build:
@@ -484,16 +397,17 @@ services:
           condition: service_started
         clasificador_2:
           condition: service_started
-        clasificador_3:
-          condition: service_started
         transformador_0:
           condition: service_started
         transformador_1:
+          condition: service_started
+        transformador_2:
           condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLACUENTAPROM=ColaCuentaProm
+      - EXCHANGECUENTAPROM=ExchangeCuentaProm
       - COLARESPUESTAS=Respuestas
       - ID=0
 
@@ -515,16 +429,17 @@ services:
           condition: service_started
         clasificador_2:
           condition: service_started
-        clasificador_3:
-          condition: service_started
         transformador_0:
           condition: service_started
         transformador_1:
+          condition: service_started
+        transformador_2:
           condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLACUENTAPROM=ColaCuentaProm
+      - EXCHANGECUENTAPROM=ExchangeCuentaProm
       - COLARESPUESTAS=Respuestas
       - ID=1
 
@@ -546,49 +461,19 @@ services:
           condition: service_started
         clasificador_2:
           condition: service_started
-        clasificador_3:
-          condition: service_started
         transformador_0:
           condition: service_started
         transformador_1:
+          condition: service_started
+        transformador_2:
           condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLACUENTAPROM=ColaCuentaProm
+      - EXCHANGECUENTAPROM=ExchangeCuentaProm
       - COLARESPUESTAS=Respuestas
       - ID=2
-
-  cuenta_prom_3:
-    build:
-      context: ./src/
-      dockerfile: cuentaProm/Dockerfile
-    container_name: cuenta_prom_3
-    depends_on:
-        rabbitmq:
-          condition: service_healthy
-        gateway:
-          condition: service_started
-        nodo-base:
-          condition: service_started
-        clasificador_0:
-          condition: service_started
-        clasificador_1:
-          condition: service_started
-        clasificador_2:
-          condition: service_started
-        clasificador_3:
-          condition: service_started
-        transformador_0:
-          condition: service_started
-        transformador_1:
-          condition: service_started
-    environment:
-      - PYTHONUNBUFFERED=1
-      - MOMHOST=rabbitmq
-      - COLACUENTAPROM=ColaCuentaProm
-      - COLARESPUESTAS=Respuestas
-      - ID=3
 
   sum_top_0:
     build:
@@ -608,16 +493,14 @@ services:
           condition: service_started
         clasificador_2:
           condition: service_started
-        clasificador_3:
-          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLASUMTOP=ColaSumTop
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
-      - TOTALTOPPARCIAL=4
-      - TOTALTRANSFORMADORES=4
+      - TOTALTOPPARCIAL=3
+      - TOTALTRANSFORMADORES=3
 
   sum_top_1:
     build:
@@ -637,16 +520,14 @@ services:
           condition: service_started
         clasificador_2:
           condition: service_started
-        clasificador_3:
-          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLASUMTOP=ColaSumTop
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
-      - TOTALTOPPARCIAL=4
-      - TOTALTRANSFORMADORES=4
+      - TOTALTOPPARCIAL=3
+      - TOTALTRANSFORMADORES=3
 
   sum_top_2:
     build:
@@ -666,45 +547,14 @@ services:
           condition: service_started
         clasificador_2:
           condition: service_started
-        clasificador_3:
-          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLASUMTOP=ColaSumTop
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
-      - TOTALTOPPARCIAL=4
-      - TOTALTRANSFORMADORES=4
-
-  sum_top_3:
-    build:
-      context: ./src/
-      dockerfile: sumTop/Dockerfile
-    container_name: sum_top_3
-    depends_on:
-        rabbitmq:
-          condition: service_healthy
-        gateway:
-          condition: service_started
-        nodo-base:
-          condition: service_started
-        clasificador_0:
-          condition: service_started
-        clasificador_1:
-          condition: service_started
-        clasificador_2:
-          condition: service_started
-        clasificador_3:
-          condition: service_started
-    environment:
-      - PYTHONUNBUFFERED=1
-      - MOMHOST=rabbitmq
-      - COLASUMTOP=ColaSumTop
-      - EXCHANGESUMTOPEOF=ExchangeSumTopEof
-      - EXCHANGETOPPARCIAL=ExchangeTopParcial
-      - TOTALTOPPARCIAL=4
-      - TOTALTRANSFORMADORES=4
+      - TOTALTOPPARCIAL=3
+      - TOTALTRANSFORMADORES=3
 
   agregador_top_0:
     build:
@@ -724,8 +574,6 @@ services:
           condition: service_started
         clasificador_2:
           condition: service_started
-        clasificador_3:
-          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
@@ -734,8 +582,8 @@ services:
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
       - EXCHANGETOPGLOBAL=ExchangeTopGlobal
-      - TOTALTOPGLOBAL=2
-      - TOTALSUMTOP=4
+      - TOTALTOPGLOBAL=3
+      - TOTALSUMTOP=3
       - ID=0
 
   agregador_top_1:
@@ -756,8 +604,6 @@ services:
           condition: service_started
         clasificador_2:
           condition: service_started
-        clasificador_3:
-          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
@@ -766,8 +612,8 @@ services:
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
       - EXCHANGETOPGLOBAL=ExchangeTopGlobal
-      - TOTALTOPGLOBAL=2
-      - TOTALSUMTOP=4
+      - TOTALTOPGLOBAL=3
+      - TOTALSUMTOP=3
       - ID=1
 
   agregador_top_2:
@@ -788,8 +634,6 @@ services:
           condition: service_started
         clasificador_2:
           condition: service_started
-        clasificador_3:
-          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
@@ -798,41 +642,9 @@ services:
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
       - EXCHANGETOPGLOBAL=ExchangeTopGlobal
-      - TOTALTOPGLOBAL=2
-      - TOTALSUMTOP=4
+      - TOTALTOPGLOBAL=3
+      - TOTALSUMTOP=3
       - ID=2
-
-  agregador_top_3:
-    build:
-      context: ./src/
-      dockerfile: agregadorTop/Dockerfile
-    container_name: agregador_top_3
-    depends_on:
-        rabbitmq:
-          condition: service_healthy
-        gateway:
-          condition: service_started
-        nodo-base:
-          condition: service_started
-        clasificador_0:
-          condition: service_started
-        clasificador_1:
-          condition: service_started
-        clasificador_2:
-          condition: service_started
-        clasificador_3:
-          condition: service_started
-    environment:
-      - PYTHONUNBUFFERED=1
-      - MOMHOST=rabbitmq
-      - COLASUMTOP=ColaSumTop
-      - COLARESPUESTAS=Respuestas
-      - EXCHANGESUMTOPEOF=ExchangeSumTopEof
-      - EXCHANGETOPPARCIAL=ExchangeTopParcial
-      - EXCHANGETOPGLOBAL=ExchangeTopGlobal
-      - TOTALTOPGLOBAL=2
-      - TOTALSUMTOP=4
-      - ID=3
 
   join_top_0:
     build:
@@ -852,14 +664,12 @@ services:
           condition: service_started
         clasificador_2:
           condition: service_started
-        clasificador_3:
-          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLARESPUESTAS=Respuestas
       - EXCHANGETOPGLOBAL=ExchangeTopGlobal
-      - TOTALTOPPARCIAL=4
+      - TOTALTOPPARCIAL=3
       - ID=0
 
   join_top_1:
@@ -880,12 +690,36 @@ services:
           condition: service_started
         clasificador_2:
           condition: service_started
-        clasificador_3:
+    environment:
+      - PYTHONUNBUFFERED=1
+      - MOMHOST=rabbitmq
+      - COLARESPUESTAS=Respuestas
+      - EXCHANGETOPGLOBAL=ExchangeTopGlobal
+      - TOTALTOPPARCIAL=3
+      - ID=1
+
+  join_top_2:
+    build:
+      context: ./src/
+      dockerfile: joinTop/Dockerfile
+    container_name: join_top_2
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        nodo-base:
+          condition: service_started
+        clasificador_0:
+          condition: service_started
+        clasificador_1:
+          condition: service_started
+        clasificador_2:
           condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLARESPUESTAS=Respuestas
       - EXCHANGETOPGLOBAL=ExchangeTopGlobal
-      - TOTALTOPPARCIAL=4
-      - ID=1
+      - TOTALTOPPARCIAL=3
+      - ID=2

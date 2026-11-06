@@ -45,7 +45,7 @@ build:
 
 switch:
 	@read -p "Ingresar nombre de archivo a utilizar: " option;       \
-	cp ./scenarios/$${option}.yaml docker-compose.yaml
+	cp ./$${option} docker-compose.yaml
 .PHONY: switch
 
 build:

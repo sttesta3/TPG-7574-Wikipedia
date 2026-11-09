@@ -1,5 +1,4 @@
 import os
-import sys
 import logging
 import signal
 import threading
@@ -47,7 +46,7 @@ class Clasificador:
                 self.clientes[loteMensaje.clienteId][MENSAJES_IMG_ENVIADOS] += 1            
                 
             transformadorMensajes.append(TransformadorMensajeSistema(mensaje.url, mensaje.fecha, mensaje.resumen, mensaje.lenguaje))
-            self.clientes[loteMensaje.clienteId][MENSAJES_RECIBIDOS].nuevoMensaje()            
+        self.clientes[loteMensaje.clienteId][MENSAJES_RECIBIDOS].nuevoMensaje()            
 
         self.colaTransformador.send(TransformadorLoteMensajeSistema(loteMensaje.clienteId, transformadorMensajes).aBytes())
 

@@ -7,7 +7,7 @@ import signal
 import threading
 import traceback
 from nltk.corpus import stopwords
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, TransformadorLoteMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema, PalabrasLoteMensajeSistema, CantidadPalabrasLoteMensajeSistema
+from protocolo.mensajesSistema import CantidadMensajes, recvMensajeSistema, FinMensajeSistema, TransformadorLoteMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema, PalabrasLoteMensajeSistema, CantidadPalabrasLoteMensajeSistema
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
 from clienteLock import ClienteLock
 
@@ -16,9 +16,12 @@ COLATRANSFORMADOR = os.environ["COLATRANSFORMADOR"]
 COLASUMTOP = os.environ["COLASUMTOP"]
 COLACUENTAPROM = os.environ["COLACUENTAPROM"]
 EXCHANGEPROMEDIO = os.environ["EXCHANGEPROMEDIO"]
-EXCHANGETRANSFORMADOREOF = os.environ["EXCHANGETRANSFORMADOREOF"]
 TOTALPROMEDIO = int(os.environ["TOTALPROMEDIO"])
 TOTALCLASIFICADORES = int(os.environ["TOTALCLASIFICADORES"])
+
+EXCHANGETRANSFORMADOREOF = os.environ["EXCHANGETRANSFORMADOREOF"]
+COLASINCRONIZADOR = os.environ["COLASINCRONIZADOR"]
+
 
 WORD_REGEX = r'\b\w+\b'
 NUMBER_REGEX = r'[+-]?((\d+\.?\d*)|(\.\d+))'
@@ -27,6 +30,8 @@ NUMBER_REGEX = r'[+-]?((\d+\.?\d*)|(\.\d+))'
 class Transformador:
     def __init__(self):
         self.stopWords = set(stopwords.words('english')) | set(stopwords.words('french'))
+
+
         self.colaTransformador = MessageMiddlewareQueue(MOMHOST, COLATRANSFORMADOR)
         self.colaSumTop = MessageMiddlewareQueue(MOMHOST, COLASUMTOP)
         self.colaCuentaProm = MessageMiddlewareQueue(MOMHOST, COLACUENTAPROM)
@@ -35,8 +40,8 @@ class Transformador:
         for i in range(TOTALPROMEDIO):
             self.exchangePromedio.append(MessageMiddlewareExchange(MOMHOST, EXCHANGEPROMEDIO, [EXCHANGEPROMEDIO + "_" + str(i)]))
 
-        self.colaEOF = MessageMiddlewareExchange(MOMHOST, EXCHANGETRANSFORMADOREOF, [EXCHANGETRANSFORMADOREOF])
-        self.colaEOFSend = MessageMiddlewareExchange(MOMHOST, EXCHANGETRANSFORMADOREOF, [EXCHANGETRANSFORMADOREOF])
+        self.colaSincronizador = MessageMiddlewareQueue(MOMHOST, COLASINCRONIZADOR)
+        self.exchangeSincronizacion = MessageMiddlewareExchange(MOMHOST, EXCHANGETRANSFORMADOREOF, [EXCHANGETRANSFORMADOREOF])
 
         self.clientes = {}
 
@@ -59,41 +64,31 @@ class Transformador:
         if mensajeLote.clienteId not in self.clientes:
             self.clientes[mensajeLote.clienteId] = ClienteLock(TOTALCLASIFICADORES)
 
+        palabrasSumTop = []
+        cuentaPromedio = []
+        promedio = []
+
+        for mensaje in mensajeLote.mensajes:
+            palabras = self._resumenAPalabras(mensaje.resumen)
+
+            if len(palabras) > 0: 
+                    palabrasSumTop.append(PalabrasMensajeSistema( mensaje.url, mensaje.lenguaje, palabras))
+                    if mensaje.fecha <= 2020:
+                        
+                        promedio.append(CantidadPalabraMensajeSistema( mensaje.url, len(palabras)))
+                    else:
+                        cuentaPromedio.append(CantidadPalabraMensajeSistema( mensaje.url, len(palabras)))
+
+        nodo = mensajeLote.clienteId.int % TOTALPROMEDIO
+        self.colaCuentaProm.send(CantidadPalabrasLoteMensajeSistema(mensajeLote.clienteId, cuentaPromedio).aBytes())
+        self.exchangePromedio[nodo].send(CantidadPalabrasLoteMensajeSistema(mensajeLote.clienteId, promedio).aBytes())
+        self.colaSumTop.send(PalabrasLoteMensajeSistema(mensajeLote.clienteId, palabrasSumTop).aBytes())
         self.clientes[mensajeLote.clienteId].nuevoMensaje()
-        try:
-            palabrasSumTop = []
-            cuentaPromedio = []
-            promedio = []
-
-            for mensaje in mensajeLote.mensajes:
-                palabras = self._resumenAPalabras(mensaje.resumen)
-
-                if len(palabras) > 0: 
-                        palabrasSumTop.append(PalabrasMensajeSistema( mensaje.url, mensaje.lenguaje, palabras))
-                        if mensaje.fecha <= 2020:
-                            
-                            promedio.append(CantidadPalabraMensajeSistema( mensaje.url, len(palabras)))
-                        else:
-                            cuentaPromedio.append(CantidadPalabraMensajeSistema( mensaje.url, len(palabras)))
-
-            nodo = mensajeLote.clienteId.int % TOTALPROMEDIO
-            self.colaCuentaProm.send(CantidadPalabrasLoteMensajeSistema(mensajeLote.clienteId, cuentaPromedio).aBytes())
-            self.exchangePromedio[nodo].send(CantidadPalabrasLoteMensajeSistema(mensajeLote.clienteId, promedio).aBytes())
-            self.colaSumTop.send(PalabrasLoteMensajeSistema(mensajeLote.clienteId, palabrasSumTop).aBytes())
-        finally:
-            self.clientes[mensajeLote.clienteId].nuevaRespuesta()
-
-
-    def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
-        self.colaEOFSend.send(mensaje.aBytes())
 
     def procesarMensaje(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
-            if isinstance(mensaje, FinMensajeSistema): # TODO: esta bien esto?
-                self._procesarEOF(mensaje)
-            else:
-                self._procesarData(mensaje)
+            self._procesarData(mensaje)
             ack()
         except Exception as e:
             logging.info(e)
@@ -101,11 +96,13 @@ class Transformador:
             nack()
 
 
-    def _manejarEof(self, bytes, ack, nack):
+    def _manejarMensajeControl(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
-
-            if self.clientes[mensaje.clienteId].llegadaEof():
+            if isinstance(mensaje, CantidadMensajes):
+                mensaje.setCantidad(cant=self.clientes[mensaje.clienteId].cantMensajes())
+                self.colaSincronizador.send(mensaje.aBytes())
+            else: 
                 self.colaSumTop.send(mensaje.aBytes())
 
                 nodo = mensaje.clienteId.int % TOTALPROMEDIO
@@ -118,32 +115,32 @@ class Transformador:
             nack()
 
     
-    def _controlarEof(self):
-        self.colaEOF.start_consuming(self._manejarEof)
-
+    def _mainControl(self):
+        self.exchangeSincronizacion.start_consuming(self._manejarMensajeControl)
 
     def iniciar(self):
-        thread_eof = threading.Thread(target=self._controlarEof, daemon=True)
-        thread_eof.start()
+        thread_sincronizacion = threading.Thread(target=self._mainControl, daemon=True)
+        thread_sincronizacion.start()
         self.colaTransformador.start_consuming(self.procesarMensaje)
-        thread_eof.join()
+        thread_sincronizacion.join()
         self._close_connections()
 
 
     def _close_connections(self):
         self.colaTransformador.close()
         self.colaSumTop.close()
-        self.colaEOFSend.close()
-        self.colaEOF.close()
         self.colaCuentaProm.close()
         for i in range(TOTALPROMEDIO):
             self.exchangePromedio[i].close()
 
+        self.colaSincronizador.close()
+        self.exchangeSincronizacion.close()
+
 
     def manejarSigterm(self) -> None:
-        self.colaEOF.remote_stop()
-        self.colaTransformador.remote_stop()
-        
+        self.colaSincronizador.remote_stop()
+        self.exchangeSincronizacion.remote_stop()
+
 
 def main() -> int:
     logging.basicConfig(level=logging.INFO)

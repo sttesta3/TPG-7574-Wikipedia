@@ -21,7 +21,7 @@ def _seccionATexto(documento: str) -> tuple[str, bool]:
         pass
 
     try:
-        if len(re.findall(r'"type"\s*:\s*"section"\s*,\s*"name"\s*:\s*"biograph(?:y|ie)"', documento)) > 1:
+        if re.search(r'"type"\s*:\s*"section"\s*,\s*"name"\s*:\s*"biograph(?:y|ie)"', documento, re.IGNORECASE):
             bio = True
     except Exception:
             pass

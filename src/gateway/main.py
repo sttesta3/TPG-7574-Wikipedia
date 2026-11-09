@@ -17,8 +17,13 @@ COLADATOS = os.environ["COLADATOS"]
 COLARESPUESTAS = os.environ["COLARESPUESTAS"]
 
 TOTALIMGEOF = int(os.environ["TOTALIMGEOF"])
-TOTALPROMEOF = int(os.environ["TOTALPROMEOF"])
+TOTALCUENTAPROMEOF = int(os.environ["TOTALCUENTAPROMEOF"])
 TOTALTOPEOF = int(os.environ["TOTALTOPEOF"])
+TOTAL_EOFS_ESPERADOS = TOTALCUENTAPROMEOF + TOTALTOPEOF + TOTALIMGEOF
+
+# Cada cliente se guarda como [socket, eofs_recibidos]
+SOCKET = 0
+EOFS_RECIBIDOS = 1
 
 def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
     logging.basicConfig(level=logging.INFO)
@@ -52,14 +57,15 @@ def manejarRespuesta(clientes: dict) -> None:
         try:
             respuesta = recvMensajeSistema(message)
             clienteId = respuesta.clienteId
-            clienteSocket = clientes[clienteId][0]
-            
+            clienteSocket = clientes[clienteId][SOCKET]
+
             logging.info(f"Respuesta {clienteId}")
             if isinstance(respuesta, FinMensajeSistema):
+                # Es un manager.dict: hay que copiar, modificar y reasignar para que se propague
                 cliente = clientes[clienteId]
-                cliente[1] += 1
+                cliente[EOFS_RECIBIDOS] += 1
                 clientes[clienteId] = cliente
-                if clientes[clienteId][1] ==  TOTALPROMEOF + TOTALTOPEOF + TOTALIMGEOF:
+                if cliente[EOFS_RECIBIDOS] == TOTAL_EOFS_ESPERADOS:
                     FinMensaje(clienteSocket).send()
                     print("llego eofs")
                     del clientes[clienteId]
@@ -99,7 +105,7 @@ def main() -> None:
                             continue
                         else: 
                             clientId = uuid.uuid4()
-                            clientes[clientId] = [clientSocket, 0]
+                            clientes[clientId] = [clientSocket, 0]  # [SOCKET, EOFS_RECIBIDOS]
                             
                             processes_pool.apply_async(manejarPeticion, args=(clientId, clientSocket))
                     except socket.error:

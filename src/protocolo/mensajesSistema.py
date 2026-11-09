@@ -15,7 +15,15 @@ LOTE_TRANFORMADOR_MENSAJE = b'\x08'
 LOTE_PALABRAS_MENSAJE = b'\x09'
 LOTE_CANTIDAD_PALABRAS_MENSAJE = b'\x0A'
 FIN_PROM_MENSAJE = b'\x0B'
+CANT_MENSAJE = b'\x0C'
+FIN_MENSAJE_SINCRONIZACION = b'\x0D'
 
+# Tipos de EOF de sincronizacion
+EOF_GATEWAY = b'\x00'
+EOF_CLASIFICADOR_IMG = b'\x01'
+EOF_CLASIFICADOR_TRANS = b'\x01'
+EOF_IMG = b'\x02'
+EOF_SUM = b'\x03'
 
 class MensajeSistema(ABC):
     @abstractmethod
@@ -42,6 +50,26 @@ class FinMensajeSistema(MensajeSistema):
     def deBytes(self, bytes):
         self.totalMsg = int.from_bytes(bytes[0:4], byteorder="big")
         self.clienteId = uuid.UUID(bytes = bytes[4:20])
+
+
+class FinMensajeSincronizacion(MensajeSistema):
+    def __init__(self, clienteId: uuid.UUID = None, totalMsg: int = 1, tipoMensaje: int = None) -> None:
+        self.tipoMensaje = tipoMensaje
+        self.clienteId = clienteId 
+        self.totalMsg = totalMsg    
+
+    def aBytes(self) -> bytes:
+        mensajeBytes = FIN_MENSAJE_SINCRONIZACION
+        mensajeBytes += self.tipoMensaje.to_bytes(1)
+        mensajeBytes += self.totalMsg.to_bytes(4, byteorder="big")
+        mensajeBytes += self.clienteId.bytes
+        return mensajeBytes
+    
+
+    def deBytes(self, bytes):
+        self.totalMsg = int.from_bytes(bytes[0:4], byteorder="big")
+        self.clienteId = uuid.UUID(bytes = bytes[4:20])
+
 
 
 class LoteDataMensajeSistema(MensajeSistema):
@@ -354,6 +382,25 @@ class CantidadPalabraMensajeSistema(MensajeSistema):
         self.cantidad = int.from_bytes( bytes[totalLeido:totalLeido+4], byteorder="big")
         totalLeido += 4
 
+class CantidadMensajes(MensajeSistema):
+    def __init__(self, clienteId: uuid.UUID = None, cant: int = 0 ):
+        self.clienteId = clienteId
+        self.cant = cant
+
+    def aBytes(self) -> bytes:
+        bytesMensaje = CANT_MENSAJE
+        bytesMensaje += self.cant.to_bytes(4, byteorder="big")
+        bytesMensaje += self.clienteId.bytes
+
+        return bytesMensaje
+
+    def deBytes(self, bytes: bytes):        
+        self.cant = int.from_bytes(bytes[0:4], byteorder="big")
+        self.clienteId = uuid.UUID(bytes=bytes[4:20])
+
+    def setCantidad(self, cant: int = 0):
+        self.cant = cant
+
 
 class FinPromMensajeSistema(MensajeSistema):
     def __init__(self, clienteId: uuid.UUID = None, promedio: int = None ):
@@ -561,6 +608,8 @@ def recvMensajeSistema(mensaje: bytes) -> MensajeSistema:
         rta = Respuesta4MensajeSistema()
     elif type == RESPUESTA5_MENSAJE:
         rta = Respuesta5MensajeSistema()
+    elif type == CANT_MENSAJE:
+        rta = CantidadMensajes()
     else:
         rta = None
     

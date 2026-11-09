@@ -5,7 +5,7 @@ import signal
 import threading
 from clienteLock import ClienteLock
 from middleware import MessageMiddlewareQueue,MessageMiddlewareExchange
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, LoteDataMensajeSistema, ImgMensajeSistema, Respuesta1MensajeSistema, TransformadorMensajeSistema, TransformadorLoteMensajeSistema
+from protocolo.mensajesSistema import EOF_CLASIFICADOR_IMG, EOF_CLASIFICADOR_TRANS, FinMensajeSincronizacion, recvMensajeSistema, FinMensajeSistema, LoteDataMensajeSistema, ImgMensajeSistema, Respuesta1MensajeSistema, TransformadorMensajeSistema, TransformadorLoteMensajeSistema, CantidadMensajes
 from protocolo.mensajesCliente import LENGUAJEINGLES, LENGUAJEFRANCES
 
 MOMHOST = os.environ["MOMHOST"]
@@ -14,6 +14,11 @@ COLARESPUESTAS = os.environ["COLARESPUESTAS"]
 COLAIMGDESCARGA = os.environ["COLAIMGDESCARGA"]
 COLATRANSFORMADOR = os.environ["COLATRANSFORMADOR"]
 CLASIFICADOREXCHANGEEOF = os.environ["CLASIFICADOREXCHANGEEOF"]
+COLASINCRONIZADOR = os.environ["COLASINCRONIZADOR"]
+
+MENSAJES_RECIBIDOS = 0
+MENSAJES_IMG_ENVIADOS = 1
+MENSAJES_RTA1_ENVIADOS = 2
 
 class Clasificador:
     def __init__(self):
@@ -22,81 +27,72 @@ class Clasificador:
         self.colaImgDescarga = MessageMiddlewareQueue(MOMHOST, COLAIMGDESCARGA)
         self.colaTransformador = MessageMiddlewareQueue(MOMHOST, COLATRANSFORMADOR)
 
-        self.colaEOF = MessageMiddlewareExchange(MOMHOST, CLASIFICADOREXCHANGEEOF, [CLASIFICADOREXCHANGEEOF])
-        self.colaEOFSend = MessageMiddlewareExchange(MOMHOST, CLASIFICADOREXCHANGEEOF, [CLASIFICADOREXCHANGEEOF])
+        self.colaSincronizador = MessageMiddlewareQueue(MOMHOST, COLASINCRONIZADOR)
+        self.exchangeSincronizacion = MessageMiddlewareExchange(MOMHOST, CLASIFICADOREXCHANGEEOF, [CLASIFICADOREXCHANGEEOF])
 
         self.clientes = {}
 
-
     def _procesarData(self, loteMensaje: LoteDataMensajeSistema) -> None:
         if loteMensaje.clienteId not in self.clientes:
-            self.clientes[loteMensaje.clienteId] = ClienteLock()
+            self.clientes[loteMensaje.clienteId] = [ ClienteLock(), 0, 0 ]
 
-        self.clientes[loteMensaje.clienteId].nuevoMensaje()
-        try:
-            logging.info(f"Recibo mensaje de {loteMensaje.clienteId}")            
-            transformadorMensajes = []
-            for mensaje in loteMensaje.lote:
-                if mensaje.lenguaje == LENGUAJEINGLES and mensaje.fecha <= 2020:
-                    self.colaRespuestas.send(Respuesta1MensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.fecha).aBytes())
-                if mensaje.fecha <= 2020 and mensaje.biografia == 1:
-                    self.colaImgDescarga.send(ImgMensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.nombre, mensaje.imgUrl).aBytes())
+        logging.info(f"Recibo mensaje de {loteMensaje.clienteId}")            
+        transformadorMensajes = []
+        for mensaje in loteMensaje.lote:
+            if mensaje.lenguaje == LENGUAJEINGLES and mensaje.fecha <= 2020:
+                self.colaRespuestas.send(Respuesta1MensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.fecha).aBytes())
+                self.clientes[loteMensaje.clienteId][MENSAJES_RTA1_ENVIADOS] += 1            
+            if mensaje.fecha <= 2020 and mensaje.biografia == 1:
+                self.colaImgDescarga.send(ImgMensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.nombre, mensaje.imgUrl).aBytes())
+                self.clientes[loteMensaje.clienteId][MENSAJES_IMG_ENVIADOS] += 1            
                 
-                transformadorMensajes.append(TransformadorMensajeSistema(mensaje.url, mensaje.fecha, mensaje.resumen, mensaje.lenguaje))
+            transformadorMensajes.append(TransformadorMensajeSistema(mensaje.url, mensaje.fecha, mensaje.resumen, mensaje.lenguaje))
+            self.clientes[loteMensaje.clienteId][MENSAJES_RECIBIDOS].nuevoMensaje()            
 
-            self.colaTransformador.send(TransformadorLoteMensajeSistema(loteMensaje.clienteId, transformadorMensajes).aBytes())
-        finally:
-            self.clientes[loteMensaje.clienteId].nuevaRespuesta()
-            
-
-    def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
-        self.colaEOFSend.send(mensaje.aBytes())
-
+        self.colaTransformador.send(TransformadorLoteMensajeSistema(loteMensaje.clienteId, transformadorMensajes).aBytes())
 
     def procesarMensaje(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
-            if isinstance(mensaje, FinMensajeSistema): # TODO: esta bien esto?
-                self._procesarEOF(mensaje)
-            else:
-                self._procesarData(mensaje)
+            self._procesarData(mensaje)
             ack()
         except Exception as e:
             logging.info(e)
             nack()
 
-
-    def _manejarEof(self, bytes, ack, nack):
+    def _manejarMensajeControl(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
+            if isinstance(mensaje, CantidadMensajes):
+                mensaje.setCantidad(cant=self.clientes[mensaje.clienteId][MENSAJES_RECIBIDOS].cantMensajes())
+                self.colaSincronizador.send(mensaje.aBytes())
+            else: 
+                clienteId = mensaje.clienteId
+                totalMsg=self.clientes[clienteId][MENSAJES_IMG_ENVIADOS]
+                self.colaSincronizador.send(FinMensajeSincronizacion(clienteId, totalMsg=totalMsg, tipoMensaje=EOF_CLASIFICADOR_IMG).aBytes())
+                totalMsg=self.clientes[clienteId][MENSAJES_RECIBIDOS].cantMensajes()
+                self.colaSincronizador.send(FinMensajeSincronizacion(clienteId, totalMsg=totalMsg, tipoMensaje=EOF_CLASIFICADOR_TRANS).aBytes())
 
-            if self.clientes[mensaje.clienteId].llegadaEof():
-                print("MANDO EOF")
-                self.colaImgDescarga.send(mensaje.aBytes())
-                self.colaTransformador.send(mensaje.aBytes())
-                
+                # TODO: EOF para RTA 1 ?                 
                 del self.clientes[mensaje.clienteId]
 
             ack()
         except Exception as e:
             logging.info(e)
             nack()
-
     
-    def _controlarEof(self):
-        self.colaEOFSend.start_consuming(self._manejarEof)
-
+    def _mainControl(self):
+        self.exchangeSincronizacion.start_consuming(self._manejarMensajeControl)
 
     def iniciar(self):
-        thread_eof = threading.Thread(target=self._controlarEof, daemon=True)
-        thread_eof.start()
+        thread_sincronizacion = threading.Thread(target=self._mainControl, daemon=True)
+        thread_sincronizacion.start()
         self.colaDatos.start_consuming(self.procesarMensaje)
-        thread_eof.join()
+        thread_sincronizacion.join()
         self._close_connections()
 
-
     def manejarSigterm(self) -> None:
-        self.colaEOF.remote_stop()
+        self.exchangeSincronizacion.remote_stop()
         self.colaDatos.remote_stop() #mando la señal para que el hilo que maneja corte el channel esto vuelve a lo
                                      #que va despues de invocar al hilo en iniciar
 
@@ -105,10 +101,8 @@ class Clasificador:
         self.colaRespuestas.close()
         self.colaImgDescarga.close()
         self.colaTransformador.close()
-        self.colaEOFSend.close()
-        self.colaEOF.close()
-
-
+        self.colaSincronizador.close()
+        self.exchangeSincronizacion.close()
 
 def main() -> int:
     logging.basicConfig(level=logging.INFO)

@@ -6,7 +6,7 @@ import signal
 import multiprocessing
 from protocolo.mensajesCliente import recvMensaje, FinMensaje
 from protocolo.mensajesGateway import sendRespuesta
-from protocolo.mensajesSistema import FinMensajeSistema, LoteDataMensajeSistema, recvMensajeSistema
+from protocolo.mensajesSistema import EOF_GATEWAY, FinMensajeSincronizacion, FinMensajeSistema, LoteDataMensajeSistema, recvMensajeSistema
 from middleware import MessageMiddlewareQueue
 
 GATEWAYHOST = os.environ["GATEWAYHOST"]
@@ -15,6 +15,7 @@ LOTE = int(os.environ["LOTE"])
 MOMHOST = os.environ["MOMHOST"]
 COLADATOS = os.environ["COLADATOS"]
 COLARESPUESTAS = os.environ["COLARESPUESTAS"]
+COLASINCRONIZADOR = os.environ["COLASINCRONIZADOR"]
 
 TOTALIMGEOF = int(os.environ["TOTALIMGEOF"])
 TOTALPROMEOF = int(os.environ["TOTALPROMEOF"])
@@ -25,6 +26,7 @@ def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
     logging.info(f"manejando cliente {clienteId}")
     try:
         colaDatos = MessageMiddlewareQueue(MOMHOST, COLADATOS)
+        colaSincronizador = MessageMiddlewareQueue(MOMHOST, COLASINCRONIZADOR)
         
         eof = False
         contador_mensajes = 0
@@ -33,7 +35,7 @@ def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
             if mensaje is None:
                 logging.info(f"EOF de {clienteId}")
                 eof = True
-                colaDatos.send(FinMensajeSistema(clienteId).aBytes())
+                colaSincronizador.send(FinMensajeSincronizacion(clienteId, totalMsg=contador_mensajes, tipoMensaje=EOF_GATEWAY).aBytes())
             else:
                 contador_mensajes += 1 
                 colaDatos.send(LoteDataMensajeSistema(clienteId, mensaje).aBytes())
@@ -95,9 +97,7 @@ def main() -> None:
                 while True:
                     try:
                         clientSocket, clientAddress = serverSocket.accept()
-                        if clientAddress[0] == '127.0.0.1':
-                            continue
-                        else: 
+                        if clientAddress[0] != '127.0.0.1':
                             clientId = uuid.uuid4()
                             clientes[clientId] = [clientSocket, 0]
                             

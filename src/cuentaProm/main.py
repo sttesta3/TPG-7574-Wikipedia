@@ -57,6 +57,11 @@ class CuentaProm:
     def _manejarEof(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
+            if str(mensaje.clienteId) not in self.cliente:
+                self.colaRespuestas.send(FinMensajeSistema(mensaje.clienteId).aBytes())
+                print("EOF")
+                ack()
+                return
             if self.cliente[str(mensaje.clienteId)].llegadaEof():
                 with open(str(mensaje.clienteId), "r", encoding="utf-8") as f:
                     data = {}

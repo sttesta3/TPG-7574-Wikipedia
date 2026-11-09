@@ -27,6 +27,10 @@ cant_sum_top=$9
 cant_agr_top=${10}
 cant_join_top=${11}
 
+# Cantidad de parquets por idioma que lee cada cliente (opcional, por entorno)
+datasets_en=${DATASETS_EN:-5}
+datasets_fr=${DATASETS_FR:-5}
+
 CLASIFICADOR="clasificador"
 TRANSFORMADOR="transformador"
 
@@ -84,7 +88,7 @@ echo "services:
       - COLARESPUESTAS=Respuestas
       - LOTE=$lote
       - TOTALIMGEOF=$cant_descarg
-      - TOTALPROMEOF=$cant_promedio
+      - TOTALCUENTAPROMEOF=$cant_cuenta_promedio
       - TOTALTOPEOF=$cant_sum_top
     healthcheck:
       test: ['CMD', 'python3', '-c', \"import socket; s=socket.create_connection(('127.0.0.1', 8000), timeout=2); s.close()\"]
@@ -117,7 +121,8 @@ for ((i=0; i<$clientes; i++)); do
     environment:
     - DATASETPATHEN=/datasets/enwiki_namespace_0_
     - DATASETPATHFR=/datasets/frwiki_namespace_0_
-    - TOTALDATASETS=5
+    - TOTALDATASETSEN=$datasets_en
+    - TOTALDATASETSFR=$datasets_fr
     - GATEWAYHOST=gateway
     - GATEWAYPORT=8000
     - LOTE=$lote

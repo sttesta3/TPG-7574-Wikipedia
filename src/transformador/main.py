@@ -98,7 +98,7 @@ class Transformador:
         except Exception as e:
             logging.info(e)
             logging.info(traceback.format_exc())
-            ack()
+            nack()
 
 
     def _manejarEof(self, bytes, ack, nack):

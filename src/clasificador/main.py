@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 import signal
 import threading
@@ -6,6 +7,7 @@ from clienteLock import ClienteLock
 from middleware import MessageMiddlewareQueue,MessageMiddlewareExchange
 from protocolo.mensajesSistema import EOF_CLASIFICADOR_IMG, EOF_CLASIFICADOR_TRANS, FinMensajeSincronizacion, recvMensajeSistema, FinMensajeSistema, LoteDataMensajeSistema, ImgMensajeSistema, Respuesta1MensajeSistema, TransformadorMensajeSistema, TransformadorLoteMensajeSistema, CantidadMensajes
 from protocolo.mensajesCliente import LENGUAJEINGLES, LENGUAJEFRANCES
+from worker.worker import WorkerSincronizado
 
 MOMHOST = os.environ["MOMHOST"]
 COLADATOS = os.environ["COLADATOS"]
@@ -19,15 +21,14 @@ MENSAJES_RECIBIDOS = 0
 MENSAJES_IMG_ENVIADOS = 1
 MENSAJES_RTA1_ENVIADOS = 2
 
-class Clasificador:
+class Clasificador(WorkerSincronizado):
     def __init__(self):
+        super().__init__(exchange=CLASIFICADOREXCHANGEEOF)
+
         self.colaDatos = MessageMiddlewareQueue(MOMHOST, COLADATOS)
         self.colaRespuestas = MessageMiddlewareQueue(MOMHOST, COLARESPUESTAS)
         self.colaImgDescarga = MessageMiddlewareQueue(MOMHOST, COLAIMGDESCARGA)
         self.colaTransformador = MessageMiddlewareQueue(MOMHOST, COLATRANSFORMADOR)
-
-        self.colaSincronizador = MessageMiddlewareQueue(MOMHOST, COLASINCRONIZADOR)
-        self.exchangeSincronizacion = MessageMiddlewareExchange(MOMHOST, CLASIFICADOREXCHANGEEOF, [CLASIFICADOREXCHANGEEOF])
 
         self.clientes = {}
 
@@ -50,35 +51,16 @@ class Clasificador:
 
         self.colaTransformador.send(TransformadorLoteMensajeSistema(loteMensaje.clienteId, transformadorMensajes).aBytes())
 
-    def procesarMensaje(self, bytes, ack, nack):
-        try:
-            mensaje = recvMensajeSistema(bytes)
-            self._procesarData(mensaje)
-            ack()
-        except Exception as e:
-            logging.info(e)
-            nack()
+    def _finProcesamiento(self, mensaje):
+        clienteId = mensaje.clienteId
+        totalMsg=self.clientes[clienteId][MENSAJES_IMG_ENVIADOS]
+        self.colaSincronizador.send(FinMensajeSincronizacion(clienteId, totalMsg=totalMsg, tipoMensaje=EOF_CLASIFICADOR_IMG).aBytes())
+        totalMsg=self.clientes[clienteId][MENSAJES_RECIBIDOS].cantMensajes()
+        self.colaSincronizador.send(FinMensajeSincronizacion(clienteId, totalMsg=totalMsg, tipoMensaje=EOF_CLASIFICADOR_TRANS).aBytes())
 
-    def _manejarMensajeControl(self, bytes, ack, nack):
-        try:
-            mensaje = recvMensajeSistema(bytes)
-            if isinstance(mensaje, CantidadMensajes):
-                mensaje.setCantidad(cant=self.clientes[mensaje.clienteId][MENSAJES_RECIBIDOS].cantMensajes())
-                self.colaSincronizador.send(mensaje.aBytes())
-            else: 
-                clienteId = mensaje.clienteId
-                totalMsg=self.clientes[clienteId][MENSAJES_IMG_ENVIADOS]
-                self.colaSincronizador.send(FinMensajeSincronizacion(clienteId, totalMsg=totalMsg, tipoMensaje=EOF_CLASIFICADOR_IMG).aBytes())
-                totalMsg=self.clientes[clienteId][MENSAJES_RECIBIDOS].cantMensajes()
-                self.colaSincronizador.send(FinMensajeSincronizacion(clienteId, totalMsg=totalMsg, tipoMensaje=EOF_CLASIFICADOR_TRANS).aBytes())
+        # TODO: EOF para RTA 1 ?                 
+        del self.clientes[mensaje.clienteId]
 
-                # TODO: EOF para RTA 1 ?                 
-                del self.clientes[mensaje.clienteId]
-
-            ack()
-        except Exception as e:
-            logging.info(e)
-            nack()
     
     def _mainControl(self):
         self.exchangeSincronizacion.start_consuming(self._manejarMensajeControl)

@@ -24,7 +24,7 @@ class WorkerSincronizado(ABC):
         pass
 
     @abstractmethod
-    def _finProcesamiento(self) -> None:
+    def _finProcesamiento(self, mensaje) -> None:
         pass
 
     def procesarMensaje(self, bytes, ack, nack):

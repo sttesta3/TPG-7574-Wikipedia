@@ -31,7 +31,6 @@ class Transformador:
     def __init__(self):
         self.stopWords = set(stopwords.words('english')) | set(stopwords.words('french'))
 
-
         self.colaTransformador = MessageMiddlewareQueue(MOMHOST, COLATRANSFORMADOR)
         self.colaSumTop = MessageMiddlewareQueue(MOMHOST, COLASUMTOP)
         self.colaCuentaProm = MessageMiddlewareQueue(MOMHOST, COLACUENTAPROM)
@@ -72,12 +71,11 @@ class Transformador:
             palabras = self._resumenAPalabras(mensaje.resumen)
 
             if len(palabras) > 0: 
-                    palabrasSumTop.append(PalabrasMensajeSistema( mensaje.url, mensaje.lenguaje, palabras))
-                    if mensaje.fecha <= 2020:
-                        
-                        promedio.append(CantidadPalabraMensajeSistema( mensaje.url, len(palabras)))
-                    else:
-                        cuentaPromedio.append(CantidadPalabraMensajeSistema( mensaje.url, len(palabras)))
+                palabrasSumTop.append(PalabrasMensajeSistema( mensaje.url, mensaje.lenguaje, palabras))
+                if mensaje.fecha <= 2020:
+                    promedio.append(CantidadPalabraMensajeSistema( mensaje.url, len(palabras)))
+                else:
+                    cuentaPromedio.append(CantidadPalabraMensajeSistema( mensaje.url, len(palabras)))
 
         nodo = mensajeLote.clienteId.int % TOTALPROMEDIO
         self.colaCuentaProm.send(CantidadPalabrasLoteMensajeSistema(mensajeLote.clienteId, cuentaPromedio).aBytes())
@@ -94,7 +92,6 @@ class Transformador:
             logging.info(e)
             logging.info(traceback.format_exc())
             nack()
-
 
     def _manejarMensajeControl(self, bytes, ack, nack):
         try:

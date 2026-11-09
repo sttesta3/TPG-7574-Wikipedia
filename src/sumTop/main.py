@@ -6,24 +6,26 @@ import traceback
 import threading
 from clienteLock import ClienteLock
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, PalabrasMensajeSistema
+from protocolo.mensajesSistema import CantidadMensajes, recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, PalabrasMensajeSistema
 
 MOMHOST = os.environ["MOMHOST"]
 COLASUMTOP = os.environ["COLASUMTOP"]
-EXCHANGESUMTOPEOF = os.environ["EXCHANGESUMTOPEOF"]
 EXCHANGETOPPARCIAL = os.environ["EXCHANGETOPPARCIAL"]
 TOTALTOPPARCIAL = int(os.environ["TOTALTOPPARCIAL"])
 TOTALTRANSFORMADORES = int(os.environ["TOTALTRANSFORMADORES"])
 
+EXCHANGESUMTOPEOF = os.environ["EXCHANGESUMTOPEOF"]
+COLASINCRONIZADOR = os.environ["COLASINCRONIZADOR"]
 
 class SumTop:
     def __init__(self):
         self.colaSumTop = MessageMiddlewareQueue(MOMHOST, COLASUMTOP)
-        self.exchangeSumTopEofSend = MessageMiddlewareExchange(MOMHOST, EXCHANGESUMTOPEOF, [EXCHANGESUMTOPEOF])
-        self.exchangeSumTopEof = MessageMiddlewareExchange(MOMHOST, EXCHANGESUMTOPEOF, [EXCHANGESUMTOPEOF])
         self.excahangeTopParciales = []
         for i in range(TOTALTOPPARCIAL):
             self.excahangeTopParciales.append(MessageMiddlewareExchange(MOMHOST, EXCHANGETOPPARCIAL, [EXCHANGETOPPARCIAL+ "_"+str(i)]))
+
+        self.colaSincronizador = MessageMiddlewareQueue(MOMHOST, COLASINCRONIZADOR)
+        self.exchangeSincronizacion = MessageMiddlewareExchange(MOMHOST, EXCHANGESUMTOPEOF, [EXCHANGESUMTOPEOF])
 
         self.clientes = {}
         self.clientesLock = {}
@@ -54,10 +56,7 @@ class SumTop:
     def procesarMensaje(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
-            if isinstance(mensaje, FinMensajeSistema): # TODO: esta bien esto?
-                self._procesarEOF(mensaje)
-            else:
-                self._procesarData(mensaje)
+            self._procesarData(mensaje)
             ack()
         except Exception as e:
             logging.warning(e)
@@ -65,10 +64,14 @@ class SumTop:
             nack()
 
 
-    def _manejarEof(self, bytes, ack, nack):
+    def _manejarMensajeControl(self, bytes, ack, nack):
+        
         try:
             mensaje = recvMensajeSistema(bytes)
-            if self.clientesLock[mensaje.clienteId].llegadaEof():
+            if isinstance(mensaje, CantidadMensajes):
+                mensaje.setCantidad(cant=self.clientesLock[mensaje.clienteId].cantMensajes())
+                self.colaSincronizador.send(mensaje.aBytes())
+            else: 
                 nodos = [{} for _ in range(TOTALTOPPARCIAL)]
                 logging.info("1")
                 # Afinidad palabras de cliente por nodo
@@ -101,31 +104,27 @@ class SumTop:
             nack()
     
     
-    def _controlarEof(self):
-        self.exchangeSumTopEof.start_consuming(self._manejarEof)
-
+    def _mainControl(self):
+        self.exchangeSincronizacion.start_consuming(self._manejarMensajeControl)
 
     def iniciar(self):
-        thread_eof = threading.Thread(target=self._controlarEof, daemon=True)
-        thread_eof.start()
+        thread_sincronizacion = threading.Thread(target=self._mainControl, daemon=True)
+        thread_sincronizacion.start()
         self.colaSumTop.start_consuming(self.procesarMensaje)
-        thread_eof.join()
+        thread_sincronizacion.join()
         self._close_connections()
-
 
 
     def manejarSigterm(self) -> None:
         self.colaSumTop.remote_stop()
-        self.exchangeSumTopEof.remote_stop()
-        
+        self.exchangeSincronizacion.remote_stop()        
 
     def _close_connections(self):
         self.colaSumTop.close()
-        self.exchangeSumTopEof.close()
-        self.exchangeSumTopEofSend.close()
         for i in range(TOTALTOPPARCIAL):
             self.excahangeTopParciales[i].close()
 
+        self.exchangeSincronizacion.close()        
 
 
 def main() -> int:

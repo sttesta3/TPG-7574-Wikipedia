@@ -71,7 +71,7 @@ services:
     - LOTE=256
     - PYTHONUNBUFFERED=1
     - ID=0
-    - DATASETINICIO=0
+    - DATASETINICIO=2
     volumes:
     - ./datasets:/datasets
     - ./output:/output

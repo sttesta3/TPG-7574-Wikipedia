@@ -17,7 +17,7 @@ ID = os.environ["ID"]
 SUMA = 0
 CUENTA = 1
 EOFS_RECIBIDOS = 2
-CUENTA_INICIAL = 1
+CUENTA_INICIAL = 0
 
 
 class Promedio:

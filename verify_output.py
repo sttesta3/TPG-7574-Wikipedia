@@ -138,7 +138,7 @@ def run_notebook_output_to_files(input_files, id_cliente):
         return False
     wiki_entry_before_2020_df['has_biography_section'] = wiki_entry_before_2020_df['sections'].apply(has_biography_section)
     
-    #Note: Actual implementation should download the image from the url
+    # Nota: Referencia LOCAL a imagen POSTERIOR a ser transferida desde los nodos descargadores 
     resultado_2 = wiki_entry_before_2020_df[(wiki_entry_before_2020_df['has_biography_section'] == True)][["url", "name"]]     
     resultado_2["ubicacion_imagen"] = "/output/0/2/" + resultado_2["name"] + ".jpg"
     resultado_2.to_csv(f"output/test_{id_cliente}_2.csv", index=False, header=False)
@@ -184,6 +184,25 @@ def run_notebook_output_to_files(input_files, id_cliente):
     resultado_3 = pd.Series(data=list(english_words & french_words))
     resultado_3.to_csv(f"output/test_{id_cliente}_3.csv", index=False, header=False)
 
+    # Query 5
+    wiki_entry_after_2020_df = wiki_entry_df[wiki_entry_df['date_modified_year'] > 2020].copy()
+    # Url and count of all articles modified after 2020 with an abstract word count greater than the average of all articles written before or at 2020
+    def calc_abstract_word_count_average(df):
+        count = 0
+        total = 0
+        for abstract in df['abstract'].dropna():
+            # DIFERENCIA CON EL NOTEBOOK ORIGINAL: Se cuentan palabras segun el criterio de la consigna
+            total += len(set(extract_non_stopwords_from_abstract(abstract)))
+            count += 1
+        with open("output/5_promedio_notebook.txt","w") as f:
+            f.write(f"Total: {total}\nArchivos: {count}\n")
+        return total/count
+    before_2020_abstract_average = calc_abstract_word_count_average(wiki_entry_before_2020_df)
+    wiki_entry_after_2020_df["abstract_word_count"] = wiki_entry_after_2020_df["abstract"].apply(lambda abstract: len(set(extract_non_stopwords_from_abstract(abstract))))
+    resultado_5 = wiki_entry_after_2020_df[wiki_entry_after_2020_df["abstract_word_count"] > before_2020_abstract_average][["url","abstract_word_count"]]
+    resultado_5.to_csv(f"output/test_{id_cliente}_5.csv", index=False, header=False)
+
+
 def diff_files(id_query, id_cliente, sort=True) -> bool:
     archivo1 = f"output/{id_cliente}/{id_query}.csv"
     archivo2 = f"output/test_{id_cliente}_{id_query}.csv"
@@ -216,7 +235,7 @@ def verify_client_output(client_service):
         raise ClientValidationError("Bad file environment variable config")
 
     run_notebook_output_to_files(input_files,client_id)
-    for id_query in range(1,5):
+    for id_query in range(1,6):
         sort = id_query != 4   # Se ordena la salida de todas las queries excepto la 4, dado que es un top
         if not diff_files(id_query, client_id, sort):
             raise ClientValidationError(f"Query {id_query} no coincidió")

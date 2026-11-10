@@ -48,6 +48,7 @@ class FinMensajeSistema(MensajeSistema):
 
 class AnuncioMensajeSistema(MensajeSistema):
     def __init__(self, clienteId: uuid.UUID = None, secuencias: list[int] = None) -> None:
+        print(f"Cliente: {clienteId} sec {secuencias}")
         self.clienteId = clienteId
         self.secuencias = secuencias
 

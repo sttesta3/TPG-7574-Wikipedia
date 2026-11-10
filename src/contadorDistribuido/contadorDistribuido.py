@@ -61,6 +61,7 @@ class contadorDistribuido():
             estado.secuencias_propias.add(secuencia)
             anunciar = estado.anunciado
         if anunciar:
+            logging.info(f"[procesado] Anuncio {clienteId}, {[secuencia]}")
             self.publicador.send(AnuncioMensajeSistema(clienteId, [secuencia]).aBytes())
 
 
@@ -71,6 +72,7 @@ class contadorDistribuido():
             estado = self._estado(clienteId)
             estado.anunciado = True
             secuencias = list(estado.secuencias_propias)
+        logging.info(f"[_anunciarPropias] Anuncio {clienteId}, {secuencias}")
         self.publicador.send(AnuncioMensajeSistema(clienteId, secuencias).aBytes())
 
 

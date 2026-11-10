@@ -62,12 +62,12 @@ def enviarParquet(socket: socket) -> None:
 def recibirRespuestas(socket: socket) -> None:
     inicio = time.time()
     eof = False
+    os.makedirs(f"/output/{ID}/2", exist_ok=True)
     archivos = [
-        open(f"/output/output1_{ID}.txt", "a", encoding="utf-8"),
-        open(f"/output/output2_{ID}.txt", "a", encoding="utf-8"),
-        open(f"/output/output3_{ID}.txt", "a", encoding="utf-8"),
-        open(f"/output/output4_{ID}.txt", "a", encoding="utf-8"),
-        open(f"/output/output5_{ID}.txt", "a", encoding="utf-8")
+        open(f"/output/{ID}/1.txt", "w", encoding="utf-8"),
+        open(f"/output/{ID}/3.txt", "w", encoding="utf-8"),
+        open(f"/output/{ID}/4.txt", "w", encoding="utf-8"),
+        open(f"/output/{ID}/5.txt", "w", encoding="utf-8")
     ]
     
     while not eof:
@@ -89,16 +89,18 @@ def recibirRespuestas(socket: socket) -> None:
         if isinstance(respuesta, Respuesta1Mensaje):
             archivos[0].write(respuesta.url + " - "+ str(respuesta.fecha) + "\n")
         if isinstance(respuesta, Respuesta2Mensaje):
-            archivos[1].write(respuesta.nombre + " - "+respuesta.url + " - "+ str(respuesta.imgBytes) + "\n")
+            logging.info(f"IMG. Recibi {respuesta.nombre} {respuesta.url} ")
+            with open(f"/output/{ID}/2/{respuesta.nombre}.png", "wb") as f:
+                f.write(respuesta.imgBytes)
         if isinstance(respuesta,Respuesta3Mensaje):
             for palabra in respuesta.palabras:
-                archivos[2].write(palabra + "\n")        
+                archivos[1].write(palabra + "\n")        
         if isinstance(respuesta, Respuesta4Mensaje):
             for k,v in respuesta.palabras.items():
-                archivos[3].write(k +" - " +str(v) + "\n")
+                archivos[2].write(k +" - " +str(v) + "\n")
         if isinstance(respuesta, Respuesta5Mensaje):
             for k,v in respuesta.data.items():
-                archivos[4].write(k + " - "+ str(v)+ "\n")
+                archivos[3].write(k + " - "+ str(v)+ "\n")
   
 
 def manejarSigterm(coneccion: socket.socket, ) -> None:

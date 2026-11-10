@@ -1,6 +1,5 @@
 import ast
 import socket
-import logging
 from safeSocket import safeSend, safeRecv
 from collections import namedtuple
 
@@ -10,23 +9,27 @@ LENGUAJEFRANCES = 2
 FIN_MENSAJE =  b'\x00'
 DATA_MENSAJE =  b'\x01'
 LOTE_MENSAJE = b'\x02'
-
+import re
+# Esta seccion tarda 28 segundo en una ejecucion 
 def _seccionATexto(documento: str) -> tuple[str, bool]:
     bio = False
-    textoSeccion = ""
+    texto = ""
+
     try:
-        for seccion in ast.literal_eval(documento):
-            for parrafo in seccion["has_parts"]:
-                if parrafo["type"] == "paragraph":
-                    textoSeccion += parrafo["value"] 
-            if seccion["name"].lower() == "biography" or seccion["name"].lower() == "biographie": 
-                bio = True
+        texto = "".join(re.findall(r'"type"\s*:\s*"paragraph"\s*,\s*"value"\s*:\s*"((?:\\.|[^"\\])*)"', documento)) 
     except Exception:
         pass
 
-    return (textoSeccion, bio)
+    try:
+        if re.search(r'"type"\s*:\s*"section"\s*,\s*"name"\s*:\s*"biograph(?:y|ie)"', documento, re.IGNORECASE):
+            bio = True
+    except Exception:
+            pass
 
 
+    return texto, bio
+
+import time
 class DataMensaje():
     def __init__(self, fila: namedtuple = None) -> None:
         if fila is None:
@@ -82,7 +85,7 @@ class DataMensaje():
         totalLeido = 0
         urlLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
         
-        self.url = bytes[totalLeido+4:totalLeido+urlLen].decode()
+        self.url = bytes[totalLeido+4:totalLeido+urlLen+4].decode()
         totalLeido += (urlLen + 4)
 
         resumenLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
@@ -133,7 +136,6 @@ class FinMensaje():
     def send(self) -> None:
         safeSend(self.socket, FIN_MENSAJE)
 
-
 class LoteMensaje():
     def __init__(self, socket: socket = None, tamañoLote: int = None) -> None:
         self.tamañoLote = tamañoLote
@@ -141,20 +143,16 @@ class LoteMensaje():
         self.socket = socket
 
 
-    def agregarMensaje(self, fila: namedtuple) -> None:
-        logging.debug("Agregando mensaje")
-        self.lote.append(DataMensaje(fila))
-        
-        logging.debug("Agregado")
+    def agregarMensaje(self, mensajes: namedtuple) -> None:
+        self.lote.append(DataMensaje(mensajes))
         if len(self.lote) == self.tamañoLote:
             self.send()
-            self.lote = []
-            logging.debug("Reiniciado")
+            self.lote.clear()
 
 
     def aBytes(self) -> bytes:
         bytesMensaje = LOTE_MENSAJE
-        bytesMensaje += len(self.lote).to_bytes(2, byteorder="big")
+        bytesMensaje += len(self.lote).to_bytes(4, byteorder="big")
         
         dataMensajeBytes = b''
         for mensaje in self.lote:
@@ -178,9 +176,9 @@ class LoteMensaje():
 
 
     def obtenerLote(self) -> list[DataMensaje]:
-        loteInfo = safeRecv(self.socket, 6)
-        loteLen = int.from_bytes(loteInfo[0:2], byteorder="big")
-        loteSize = int.from_bytes(loteInfo[2:6], byteorder="big")
+        loteInfo = safeRecv(self.socket, 8)
+        loteLen = int.from_bytes(loteInfo[0:4], byteorder="big")
+        loteSize = int.from_bytes(loteInfo[4:8], byteorder="big")
 
         bytes = safeRecv(self.socket, loteSize)
         self.deBytes(bytes, loteLen)
@@ -193,9 +191,7 @@ class LoteMensaje():
             return
 
         mensaje = self.aBytes()
-        logging.debug("Por enviar mensaje")
         safeSend(self.socket, mensaje)
-        logging.debug("Enviado")
 
 
 def recvMensaje(socket: socket.socket) -> list[DataMensaje]:

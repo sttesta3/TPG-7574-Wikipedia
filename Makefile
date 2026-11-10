@@ -20,11 +20,9 @@ logs:
 test:
 	docker compose -f docker-compose.yaml build nodo-base
 	mkdir -p output
-	rm ./output/* -f
+	rm ./output/test*.csv -f
 	COMPOSE_HTTP_TIMEOUT=300 docker compose -f docker-compose.yaml up --build --remove-orphans --detach
 	PYTHONPATH="$(PWD)/src/common" python3 ./verify_output.py; EXIT_CODE=$$?; \
-	docker compose -f docker-compose.yaml stop -t 5; \
-	docker compose -f docker-compose.yaml down; \
 	exit $$EXIT_CODE
 .PHONY: test
 
@@ -46,5 +44,5 @@ scenario:
 switch:
 	@read -p "Ingresar nombre de archivo a utilizar: " option;       \
 	cp ./$${option} docker-compose.yaml
-
+	
 .PHONY: switch

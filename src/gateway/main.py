@@ -16,9 +16,16 @@ MOMHOST = os.environ["MOMHOST"]
 COLADATOS = os.environ["COLADATOS"]
 COLARESPUESTAS = os.environ["COLARESPUESTAS"]
 
+TOTALCLASIFEOF = int(os.environ["TOTALCLASIFEOF"])
 TOTALIMGEOF = int(os.environ["TOTALIMGEOF"])
-TOTALPROMEOF = int(os.environ["TOTALPROMEOF"])
+TOTALAGRTOPEOF = int(os.environ["TOTALAGRTOPEOF"])
 TOTALTOPEOF = int(os.environ["TOTALTOPEOF"])
+TOTALCUENTAPROMEOF = int(os.environ["TOTALCUENTAPROMEOF"])
+TOTAL_EOFS_ESPERADOS = TOTALCLASIFEOF + TOTALIMGEOF + TOTALAGRTOPEOF + TOTALTOPEOF + TOTALCUENTAPROMEOF
+
+# Cada cliente se guarda como [socket, eofs_recibidos]
+SOCKET = 0
+EOFS_RECIBIDOS = 1
 
 def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
     logging.basicConfig(level=logging.INFO)
@@ -27,16 +34,20 @@ def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
         colaDatos = MessageMiddlewareQueue(MOMHOST, COLADATOS)
         
         eof = False
+        contador_mensajes = 0
         while not eof:
             mensaje = recvMensaje(clientSocket)
             if mensaje is None:
+                logging.info(f"EOF de {clienteId}")
                 eof = True
-                colaDatos.send(FinMensajeSistema(clienteId).aBytes())
+                colaDatos.send(FinMensajeSistema(clienteId, contador_mensajes).aBytes())
             else:
-                colaDatos.send(LoteDataMensajeSistema(clienteId, mensaje).aBytes())
+                contador_mensajes += 1
+                colaDatos.send(LoteDataMensajeSistema(clienteId, mensaje, contador_mensajes).aBytes())
     except socket.error:
         logging.error("The connection with the server was lost")
     except Exception as e:
+        print(e)
         logging.warning(e)
     finally:
         colaDatos.close()
@@ -48,19 +59,23 @@ def manejarRespuesta(clientes: dict) -> None:
         try:
             respuesta = recvMensajeSistema(message)
             clienteId = respuesta.clienteId
-            clienteSocket = clientes[clienteId][0]
+            clienteSocket = clientes[clienteId][SOCKET]
+
+            logging.info(f"Respuesta {clienteId}")
             if isinstance(respuesta, FinMensajeSistema):
+                # Es un manager.dict: hay que copiar, modificar y reasignar para que se propague
                 cliente = clientes[clienteId]
-                cliente[1] += 1
+                cliente[EOFS_RECIBIDOS] += 1
                 clientes[clienteId] = cliente
-                if clientes[clienteId][1] == TOTALIMGEOF + TOTALPROMEOF + TOTALTOPEOF:
+                if cliente[EOFS_RECIBIDOS] == TOTAL_EOFS_ESPERADOS:
                     FinMensaje(clienteSocket).send()
+                    print("llego eofs")
                     del clientes[clienteId]
             else:
                 sendRespuesta(clienteSocket, respuesta.aRespuestaGateway())
             ack()
         except Exception as e:
-            logging.info(e)
+            logging.error(e)
             nack()
         
     colaRespuestas.start_consuming(_consumirRespuesta)
@@ -92,7 +107,7 @@ def main() -> None:
                             continue
                         else: 
                             clientId = uuid.uuid4()
-                            clientes[clientId] = [clientSocket, 0]
+                            clientes[clientId] = [clientSocket, 0]  # [SOCKET, EOFS_RECIBIDOS]
                             
                             processes_pool.apply_async(manejarPeticion, args=(clientId, clientSocket))
                     except socket.error:

@@ -4,122 +4,96 @@ import logging
 import signal
 import traceback
 import threading
-from clienteLock import ClienteLock
+from contadorDistribuido import contadorDistribuido
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasMensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, PalabrasMensajeSistema
 
 MOMHOST = os.environ["MOMHOST"]
 COLASUMTOP = os.environ["COLASUMTOP"]
 EXCHANGESUMTOPEOF = os.environ["EXCHANGESUMTOPEOF"]
 EXCHANGETOPPARCIAL = os.environ["EXCHANGETOPPARCIAL"]
 TOTALTOPPARCIAL = int(os.environ["TOTALTOPPARCIAL"])
-TOTALTRANSFORMADORES = int(os.environ["TOTALTRANSFORMADORES"])
 
 
 class SumTop:
     def __init__(self):
         self.colaSumTop = MessageMiddlewareQueue(MOMHOST, COLASUMTOP)
-        self.exchangeSumTopEofSend = MessageMiddlewareExchange(MOMHOST, EXCHANGESUMTOPEOF, [EXCHANGESUMTOPEOF])
-        self.exchangeSumTopEof = MessageMiddlewareExchange(MOMHOST, EXCHANGESUMTOPEOF, [EXCHANGESUMTOPEOF])
         self.excahangeTopParciales = []
         for i in range(TOTALTOPPARCIAL):
             self.excahangeTopParciales.append(MessageMiddlewareExchange(MOMHOST, EXCHANGETOPPARCIAL, [EXCHANGETOPPARCIAL+ "_"+str(i)]))
 
+        self.contador = contadorDistribuido(MOMHOST, EXCHANGESUMTOPEOF, self._finalizarCliente, self.colaSumTop.remote_execution)
+
         self.clientes = {}
-        self.clientesLock = {}
 
 
-    def _procesarData(self, mensaje: PalabrasMensajeSistema) -> None:
-        logging.debug(f"Mensaje recibido {mensaje}")
-        if mensaje.clienteId not in self.clientes:
-            self.clientes[mensaje.clienteId] = {}
-            self.clientesLock[mensaje.clienteId] = ClienteLock(TOTALTRANSFORMADORES)
-        if mensaje.lenguaje not in self.clientes[mensaje.clienteId]: 
-            self.clientes[mensaje.clienteId][mensaje.lenguaje] = {}
+    def _procesarData(self, mensajes: PalabrasLoteMensajeSistema) -> None:
+        clienteId = mensajes.clienteId
+        if clienteId not in self.clientes:
+            self.clientes[clienteId] = {}
 
-        self.clientesLock[mensaje.clienteId].nuevoMensaje()
-        for clave, valor in mensaje.palabras.items():
-            self.clientes[mensaje.clienteId][mensaje.lenguaje][clave] = self.clientes[mensaje.clienteId][mensaje.lenguaje].get(clave, 0) + valor
-        self.clientesLock[mensaje.clienteId].nuevaRespuesta()
+        for mensaje in mensajes.mensajes:
+            if mensaje.lenguaje not in self.clientes[clienteId]:
+                self.clientes[clienteId][mensaje.lenguaje] = {}
 
-    def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
-        self.exchangeSumTopEofSend.send(mensaje.aBytes())
+            for clave, valor in mensaje.palabras.items():
+                self.clientes[clienteId][mensaje.lenguaje][clave] = self.clientes[clienteId][mensaje.lenguaje].get(clave, 0) + valor
+
+
+    def _finalizarCliente(self, clienteId, fin: FinMensajeSistema, originador: bool) -> None:
+        palabrasCliente = self.clientes.pop(clienteId, {})
+
+        nodos = [{} for _ in range(TOTALTOPPARCIAL)]
+        for lenguaje, palabras in palabrasCliente.items():
+            for clave, valor in palabras.items():
+                i = int.from_bytes(clave.encode("UTF-8")) % TOTALTOPPARCIAL
+                nodos[i][lenguaje] = nodos[i].get(lenguaje, {})
+                nodos[i][lenguaje][clave] = nodos[i][lenguaje].get(clave,valor)
+
+        for i in range(TOTALTOPPARCIAL):
+            for lenguaje, palabras in nodos[i].items():
+                parcial = PalabrasLoteMensajeSistema(clienteId=clienteId, mensajes=[PalabrasMensajeSistema(palabras=palabras, url="", lenguaje=lenguaje)])
+                self.excahangeTopParciales[i].send(parcial.aBytes())
+            self.excahangeTopParciales[i].send(FinMensajeSistema(clienteId).aBytes())
+
+        logging.info(f"Mando parciales y EOF de {clienteId}")
 
 
     def procesarMensaje(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
-            if isinstance(mensaje, FinMensajeSistema): # TODO: esta bien esto?
-                self._procesarEOF(mensaje)
+            if isinstance(mensaje, FinMensajeSistema):
+                self.contador.eofRecibido(mensaje)
+            elif self.contador.yaFinalizado(mensaje.clienteId):
+                logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
             else:
                 self._procesarData(mensaje)
+                self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
             ack()
         except Exception as e:
             logging.warning(e)
             logging.warning(traceback.format_exc())
             nack()
-
-
-    def _manejarEof(self, bytes, ack, nack):
-        try:
-            mensaje = recvMensajeSistema(bytes)
-            if self.clientesLock[mensaje.clienteId].llegadaEof():
-                nodos = [{} for _ in range(TOTALTOPPARCIAL)]
-                logging.debug("1")
-                # Afinidad palabras de cliente por nodo
-                for lenguaje, palabras in self.clientes[mensaje.clienteId].items():
-                    logging.debug("1.1")
-                    for clave, valor in palabras.items():
-                        logging.debug("1.1.1")
-                        i = int.from_bytes(clave.encode("UTF-8")) % TOTALTOPPARCIAL
-                        nodos[i][lenguaje] = nodos[i].get(lenguaje, {}) 
-                        nodos[i][lenguaje][clave] = nodos[i][lenguaje].get(clave,valor)
-                # Enviar palabras a cada nodo
-                logging.debug("2")
-                for i in range(TOTALTOPPARCIAL):
-                    logging.debug("2.1")
-                    for lenguaje, palabras in nodos[i].items():
-                        logging.debug("2.1.1")
-                        logging.debug(f"MANDO: {nodos[i]}")
-                        mensaje = PalabrasMensajeSistema(palabras=palabras, clienteId=mensaje.clienteId, url="", lenguaje=lenguaje)
-                        self.excahangeTopParciales[i].send(mensaje.aBytes())
-                    self.excahangeTopParciales[i].send(FinMensajeSistema(mensaje.clienteId).aBytes())
-
-                del self.clientesLock[mensaje.clienteId]
-                del self.clientes[mensaje.clienteId]
-                
-            ack()
-        except Exception as e:
-            logging.info("Guarda que sali en manejarEOF")
-            logging.warning(traceback.format_exc())
-            logging.warning(e)
-            nack()
-    
-    
-    def _controlarEof(self):
-        self.exchangeSumTopEof.start_consuming(self._manejarEof)
 
 
     def iniciar(self):
-        thread_eof = threading.Thread(target=self._controlarEof, daemon=True)
-        thread_eof.start()
+        thread_contador = threading.Thread(target=self.contador.iniciar, daemon=True)
+        thread_contador.start()
         self.colaSumTop.start_consuming(self.procesarMensaje)
-        thread_eof.join()
+        thread_contador.join()
         self._close_connections()
 
 
-
     def manejarSigterm(self) -> None:
+        self.contador.detener()
         self.colaSumTop.remote_stop()
-        self.exchangeSumTopEof.remote_stop()
-        
+
 
     def _close_connections(self):
         self.colaSumTop.close()
-        self.exchangeSumTopEof.close()
-        self.exchangeSumTopEofSend.close()
         for i in range(TOTALTOPPARCIAL):
             self.excahangeTopParciales[i].close()
+        self.contador.cerrar()
 
 
 

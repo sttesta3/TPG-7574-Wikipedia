@@ -136,33 +136,47 @@ class Respuesta4Mensaje(Respuesta):
 
 
 class Respuesta5Mensaje(Respuesta):
-    def __init__(self, url: str = None, cantidad: int = None) -> None:
-        self.url = url
-        self.cantidad = cantidad
+    def __init__(self, data: dict[str, int] = None) -> None:
+        self.data = data
 
 
     def aBytes(self) -> bytes:
         bytesMensaje = RESPUESTA5_MENSAJE
 
-        urlBytes = self.url.encode("UTF-8")
-        
-        tamañoMensaje = (len(urlBytes) + 8)
-        bytesMensaje += tamañoMensaje.to_bytes(4, byteorder="big")
+        tamañoMensaje = 0
+        bytes = b''
 
-        bytesMensaje += len(urlBytes).to_bytes(4, byteorder="big")
-        bytesMensaje += urlBytes
+        for clave, valor in self.data.items():
+            urlBytes = clave.encode("UTF-8")
+            bytes += len(urlBytes).to_bytes(4, byteorder="big")
+            bytes += urlBytes
 
-        bytesMensaje += self.cantidad.to_bytes(4, byteorder="big")
+            bytes += valor.to_bytes(4, byteorder="big")
+            
+            tamañoMensaje += (len(urlBytes) + 8)
+
+        bytesMensaje += (tamañoMensaje + 4).to_bytes(4, byteorder="big")
+        bytesMensaje += len(self.data).to_bytes(4, byteorder="big")
+        bytesMensaje += bytes
+
         return bytesMensaje
 
     def deBytes(self, bytes: bytes) -> None:        
         totalLeido = 0
-        
-        urlLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
-        self.url = bytes[totalLeido+4:totalLeido+urlLen+4].decode()
-        totalLeido += (urlLen + 4)
 
-        self.cantidad = int.from_bytes(bytes[totalLeido:totalLeido+4])
+        lote = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
+        totalLeido += 4
+
+        self.data = {}
+        for _ in range(lote):
+            urlLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
+            url = bytes[totalLeido+4:totalLeido+urlLen+4].decode()
+            totalLeido += (urlLen + 4)
+
+            cantidad = int.from_bytes(bytes[totalLeido:totalLeido+4])
+            totalLeido += 4
+
+            self.data[url] = cantidad
 
 
 def sendRespuesta(socket: socket.socket, respuesta: Respuesta) -> None:    

@@ -27,6 +27,15 @@ cant_sum_top=$9
 cant_agr_top=${10}
 cant_join_top=${11}
 
+# Cantidad de parquets por idioma que lee cada cliente (opcional, por entorno)
+datasets_en=${DATASETS_EN:-5}
+datasets_fr=${DATASETS_FR:-5}
+datasets_distintos=${DATASETS_DISTINTOS:-0}
+
+descargas_por_minuto=${DESCARGAS_POR_MINUTO:-150}
+descargas_por_minuto_nodo=$(( descargas_por_minuto / cant_descarg ))
+(( descargas_por_minuto_nodo < 1 )) && descargas_por_minuto_nodo=1
+
 CLASIFICADOR="clasificador"
 TRANSFORMADOR="transformador"
 
@@ -83,9 +92,11 @@ echo "services:
       - COLADATOS=EntradaDatos
       - COLARESPUESTAS=Respuestas
       - LOTE=$lote
+      - TOTALCLASIFEOF=$cant_clasif
       - TOTALIMGEOF=$cant_descarg
-      - TOTALPROMEOF=$cant_promedio
-      - TOTALTOPEOF=$cant_sum_top
+      - TOTALAGRTOPEOF=$cant_agr_top
+      - TOTALTOPEOF=1
+      - TOTALCUENTAPROMEOF=$cant_cuenta_promedio
     healthcheck:
       test: ['CMD', 'python3', '-c', \"import socket; s=socket.create_connection(('127.0.0.1', 8000), timeout=2); s.close()\"]
       interval: 2s
@@ -117,12 +128,14 @@ for ((i=0; i<$clientes; i++)); do
     environment:
     - DATASETPATHEN=/datasets/enwiki_namespace_0_
     - DATASETPATHFR=/datasets/frwiki_namespace_0_
-    - TOTALDATASETS=$((i+1))
+    - TOTALDATASETSEN=$datasets_en
+    - TOTALDATASETSFR=$datasets_fr
     - GATEWAYHOST=gateway
     - GATEWAYPORT=8000
     - LOTE=$lote
     - PYTHONUNBUFFERED=1
     - ID=$i
+    - DATASETINICIO=$(( datasets_distintos ? i * (datasets_en > datasets_fr ? datasets_en : datasets_fr) : 0 ))
     volumes:
     - ./datasets:/datasets
     - ./output:/output" >> $archivo_salida 
@@ -151,8 +164,8 @@ for ((i=0; i<$cant_descarg; i++)); do
       - COLARESPUESTAS=Respuestas
       - COLAIMGDESCARGA=ImgDescarga
       - EXCHANGEIMGEOF=ExchangeImgEof
-      - TOTALCLASIFICADORES=$cant_clasif
-      - MAXCLIENTES=10 " >> $archivo_salida
+      - MAXCLIENTES=1
+      - DESCARGASPORMINUTO=$descargas_por_minuto_nodo" >> $archivo_salida
 done
 
 for ((i=0; i<$cant_transf; i++)); do 
@@ -165,11 +178,10 @@ for ((i=0; i<$cant_transf; i++)); do
       - COLATRANSFORMADOR=ColaTransformador
       - COLASUMTOP=ColaSumTop
       - EXCHANGEPROMEDIO=ExchangePromedio
-      - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - COLACUENTAPROM=ColaCuentaProm
       - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
       - TOTALCUENTAPROM=$cant_cuenta_promedio
-      - TOTALPROMEDIO=$cant_promedio
-      - TOTALCLASIFICADORES=$cant_clasif" >> $archivo_salida
+      - TOTALPROMEDIO=$cant_promedio" >> $archivo_salida
 done 
 
 for ((i=0; i<$cant_promedio; i++)); do 
@@ -180,7 +192,7 @@ for ((i=0; i<$cant_promedio; i++)); do
 	echo "    environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
-      - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - COLACUENTAPROM=ColaCuentaProm
       - EXCHANGEPROMEDIO=ExchangePromedio
       - TOTALCUENTAPROM=$cant_cuenta_promedio
       - TOTALTRANSFORMADORES=$cant_transf
@@ -195,9 +207,10 @@ for ((i=0; i<$cant_cuenta_promedio; i++)); do
 	echo "    environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
-      - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - COLACUENTAPROM=ColaCuentaProm
       - COLARESPUESTAS=Respuestas
-      - ID=$i" >> $archivo_salida	
+      - EXCHANGECUENTAPROMEOF=ExchangeCuentaPromEof
+      - ID=$i" >> $archivo_salida
 done 
 
 for ((i=0; i<$cant_sum_top; i++)); do
@@ -210,8 +223,7 @@ for ((i=0; i<$cant_sum_top; i++)); do
       - COLASUMTOP=ColaSumTop
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
-      - TOTALTOPPARCIAL=$cant_agr_top
-      - TOTALTRANSFORMADORES=$cant_transf" >> $archivo_salida
+      - TOTALTOPPARCIAL=$cant_agr_top" >> $archivo_salida
 done
 
 for ((i=0; i<$cant_agr_top; i++)); do
@@ -243,4 +255,3 @@ for ((i=0; i<$cant_join_top; i++)); do
       - TOTALTOPPARCIAL=$cant_agr_top
       - ID=$i" >> $archivo_salida
 done
-

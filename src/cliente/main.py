@@ -4,73 +4,112 @@ import logging
 import socket
 import signal
 import threading
-import pandas as pd
+import time
+import pyarrow.parquet as pq
 from protocolo.mensajesCliente import LoteMensaje, FinMensaje
 from protocolo.mensajesGateway import recvMensaje, Respuesta1Mensaje, Respuesta2Mensaje, Respuesta3Mensaje, Respuesta4Mensaje, Respuesta5Mensaje
 
 DATASETPATHEN = os.environ["DATASETPATHEN"]
 DATASETPATHFR = os.environ["DATASETPATHFR"]
-TOTALDATASETS = int(os.environ["TOTALDATASETS"])
+TOTALDATASETSFR = int(os.environ["TOTALDATASETSFR"])
+TOTALDATASETSEN = int(os.environ["TOTALDATASETSEN"])
 GATEWAYHOST = os.environ["GATEWAYHOST"]
 GATEWAYPORT = int(os.environ["GATEWAYPORT"])
 LOTE = int(os.environ["LOTE"])
 ID = os.environ["ID"]
+DATASETINICIO = int(os.environ["DATASETINICIO"])
+
 
 def enviarParquet(socket: socket) -> None:
-    loteMensaje = LoteMensaje(socket, LOTE)
-    for i in range(TOTALDATASETS):
-        datasetEn = pd.read_parquet(DATASETPATHEN + str(i).zfill(5) + ".parquet")
-        datasetFr = pd.read_parquet(DATASETPATHFR + str(i).zfill(5) + ".parquet")
+    try:
+        inicio = time.time()
+        loteMensaje = LoteMensaje(socket, LOTE)
         
-        dataset = pd.concat([datasetEn, datasetFr])
-        
-        logging.debug("Post pd.concat")
-        cuenta = 0
-        for fila in dataset.itertuples():
-            logging.debug(f"Agregando mensaje {cuenta} al lote")
-            loteMensaje.agregarMensaje(fila)
-            logging.debug("Mensaje agregado OK")
-            cuenta += 1 
-    
-    logging.debug("Por enviar Lote")    
-    loteMensaje.send()
-    logging.debug("Lote enviado")
-    FinMensaje(socket).send()
-    logging.debug("EOF enviado")
+        j = 0
+        for i in range(TOTALDATASETSEN):
 
+            with pq.ParquetFile(DATASETPATHEN + str(DATASETINICIO + i).zfill(5) + ".parquet") as archivo:
+                for batch in archivo.iter_batches(batch_size=10000):
+                    dataset = batch.to_pandas()
+                    for fila in dataset.itertuples(index=False):
+                        loteMensaje.agregarMensaje(fila)
+                    del dataset
+            
+
+            if j < TOTALDATASETSFR:
+                with pq.ParquetFile(DATASETPATHFR + str(DATASETINICIO + i).zfill(5) + ".parquet") as archivo:
+                    for batch in archivo.iter_batches(batch_size=10000):
+                        dataset = batch.to_pandas()
+
+                        for fila in dataset.itertuples(index=False):
+                            loteMensaje.agregarMensaje(fila)
+                        del dataset
+
+                    j += 1
+
+            print(f"vamos por EN {i} - FR {j} en {(time.time() - inicio)/60:.2f}")
+
+        loteMensaje.send()
+        FinMensaje(socket).send()
+
+        fin = time.time()
+        print(f"Tiempo de envio de mensajes: {(fin - inicio)/60:.2f} minutos")
+
+    except Exception as e:
+        print(e)
+
+
+def format_comma(url: str) -> str:
+    if ',' in url:
+        return_url = f"\"{url}\""
+        return return_url
+    else:
+        return url
 
 def recibirRespuestas(socket: socket) -> None:
-    logging.info("Thread receptor iniciado")
+    inicio = time.time()
     eof = False
+    os.makedirs(f"/output/{ID}/2", exist_ok=True)
+    archivos = [
+        open(f"/output/{ID}/1.csv", "w", encoding="utf-8"),
+        open(f"/output/{ID}/2.csv", "w", encoding="utf-8"),
+        open(f"/output/{ID}/3.csv", "w", encoding="utf-8"),
+        open(f"/output/{ID}/4.csv", "w", encoding="utf-8"),
+        open(f"/output/{ID}/5.csv", "w", encoding="utf-8")
+    ]
+    
     while not eof:
         try:
             respuesta = recvMensaje(socket)
-            logging.debug(f"Recibi respuesta {respuesta}")
         except OSError as e:
-            print(f"Se perdio la conexion con el gateway: {e}")
+            logging.error(f"Se perdio la conexion con el gateway: {e}")
             return
+        
 
-        # TODO: tal vez hacerlo mas polimorfico (?
         if isinstance(respuesta, FinMensaje):
             eof = True
+            for archivo in archivos:
+                archivo.close()
+            
+            print(f"fin {time.time()}")
+            fin = time.time()
+            print(f"Tiempo de envio de mensajes: {(fin - inicio)/60:.2f} minutos")
         if isinstance(respuesta, Respuesta1Mensaje):
-            with open("/output/output1_"+ID +".txt", "a", encoding="utf-8") as f:
-                f.write(respuesta.url + " - "+ str(respuesta.fecha) + "\n")
+            archivos[0].write(f"{format_comma(respuesta.url)},{str(respuesta.fecha)}\n")
         if isinstance(respuesta, Respuesta2Mensaje):
-            with open("/output/output2_"+ID +".txt", "a", encoding="utf-8") as f:
-                f.write(respuesta.nombre + " - "+respuesta.url + " - "+ str(respuesta.imgBytes) + "\n")
-
+            nombre_imagen=f"/output/{ID}/2/{respuesta.nombre}.jpg"
+            archivos[1].write(f"{format_comma(respuesta.url)},{format_comma(respuesta.nombre)},{format_comma(nombre_imagen)}\n")
+            with open(nombre_imagen, "wb") as f:
+                f.write(respuesta.imgBytes)
         if isinstance(respuesta,Respuesta3Mensaje):
-            with open("/output/output3_"+ID +".txt", "a", encoding= "utf-8") as f:
-                for palabra in respuesta.palabras:
-                    f.write(palabra + "\n")        
+            for palabra in respuesta.palabras:
+                archivos[2].write(f"{palabra}\n")        
         if isinstance(respuesta, Respuesta4Mensaje):
-            with open("/output/output4_"+ID +".txt", "a", encoding="utf-8") as f:
-                for k,v in respuesta.palabras.items():
-                    f.write(k +" - " +str(v) + "\n")
+            for k,v in respuesta.palabras.items():
+                archivos[3].write(f"{k},{str(v)}\n")
         if isinstance(respuesta, Respuesta5Mensaje):
-            with open("/output/output5_"+ID +".txt", "a", encoding="utf-8") as f:
-                f.write(respuesta.url + " - "+ str(respuesta.cantidad)+ "\n")
+            for k,v in respuesta.data.items():
+                archivos[4].write(f"{format_comma(k)},{str(v)}\n")
   
 
 def manejarSigterm(coneccion: socket.socket, ) -> None:

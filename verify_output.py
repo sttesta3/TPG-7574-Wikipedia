@@ -127,12 +127,27 @@ def build_output_for_check(input_files, id_cliente):
     resultado_1 = wiki_entry_before_2020_df[wiki_entry_before_2020_df["in_language"] == "en"][["url","date_modified_year"]]
     resultado_1.to_csv(f"output/test_{id_cliente}_1.csv", index=False, header=False)
 
-def diff_files(id_query, id_cliente):
-    logging.info(f"diff output/{id_cliente}/{id_query}.csv output/test_{id_query}.csv")
-    result = subprocess.run(
-        ["diff", f"output/{id_cliente}/{id_query}.csv", f"output/test_{id_cliente}_{id_query}.csv"], capture_output=True
-    )
-    print(result.stdout)
+def diff_files(id_query, id_cliente, sort=True) -> bool:
+    archivo1 = f"output/{id_cliente}/{id_query}.csv"
+    archivo2 = f"output/test_{id_cliente}_{id_query}.csv"
+
+    if sort: 
+        cmd = f"diff <(sort {archivo1}) <(sort {archivo2})"
+    else:
+        cmd = f"diff {archivo1} {archivo2}" 
+    
+    logging.info(cmd)
+    result = subprocess.run(cmd, shell=True, executable='/bin/bash', capture_output=True, text=True)
+    
+    # Man diff(1): Devuelve 1 si los archivos son diferentes 0 si son iguales 
+    if result.returncode == 2:
+        logging.warning(f"diff error: {result.stderr.strip()}")
+        return False
+    elif result.returncode == 1:
+        logging.info(f"Los archivos son diferentes:\n{result.stdout.strip()}")
+        return False
+    else:
+        return True
 
 def verify_client_output(client_service):
     client_name = client_service["container_name"]
@@ -145,7 +160,9 @@ def verify_client_output(client_service):
 
     build_output_for_check(input_files,client_id)
     for id_query in range(1,6):
-        diff_files(id_query, client_id)
+        sort = id_query != 4   # Se ordena la salida de todas las queries excepto la 4, dado que es un top
+        if not diff_files(id_query, client_id, sort):
+            raise ClientValidationError(f"Query {id_query} no coincidió")
 
     logging.info("OK")
 

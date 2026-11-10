@@ -89,7 +89,7 @@ def recibirRespuestas(socket: socket) -> None:
         if isinstance(respuesta, Respuesta1Mensaje):
             archivos[0].write(respuesta.url + " - "+ str(respuesta.fecha) + "\n")
         if isinstance(respuesta, Respuesta2Mensaje):
-            logging.info(f"IMG. Recibi {respuesta.nombre} {respuesta.url} ")
+            logging.debug(f"IMG. Recibi {respuesta.nombre} {respuesta.url} ")
             with open(f"/output/{ID}/2/{respuesta.nombre}.png", "wb") as f:
                 f.write(respuesta.imgBytes)
         if isinstance(respuesta,Respuesta3Mensaje):

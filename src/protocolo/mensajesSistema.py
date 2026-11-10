@@ -21,9 +21,10 @@ FIN_MENSAJE_SINCRONIZACION = b'\x0D'
 # Tipos de EOF de sincronizacion
 EOF_GATEWAY = b'\x00'
 EOF_CLASIFICADOR_IMG = b'\x01'
-EOF_CLASIFICADOR_TRANS = b'\x01'
-EOF_IMG = b'\x02'
-EOF_SUM = b'\x03'
+EOF_CLASIFICADOR_TRANS = b'\x02'
+EOF_TRANS = b'\x03'
+EOF_IMG = b'\x04'
+EOF_SUM = b'\x05'
 
 class MensajeSistema(ABC):
     @abstractmethod

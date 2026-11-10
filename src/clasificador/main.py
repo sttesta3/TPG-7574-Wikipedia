@@ -34,17 +34,17 @@ class Clasificador:
 
     def _procesarData(self, loteMensaje: LoteDataMensajeSistema) -> None:
         if loteMensaje.clienteId not in self.clientes:
-            self.clientes[loteMensaje.clienteId] = [ ClienteLock(), 0, 0 ]
+            self.clientes[loteMensaje.clienteId] = [ ClienteLock(), ClienteLock(), ClienteLock() ]
 
         logging.info(f"Recibo mensaje de {loteMensaje.clienteId}")            
         transformadorMensajes = []
         for mensaje in loteMensaje.lote:
             if mensaje.lenguaje == LENGUAJEINGLES and mensaje.fecha <= 2020:
                 self.colaRespuestas.send(Respuesta1MensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.fecha).aBytes())
-                self.clientes[loteMensaje.clienteId][MENSAJES_RTA1_ENVIADOS] += 1            
+                self.clientes[loteMensaje.clienteId][MENSAJES_RTA1_ENVIADOS].nuevoMensaje()
             if mensaje.fecha <= 2020 and mensaje.biografia == 1:
                 self.colaImgDescarga.send(ImgMensajeSistema(loteMensaje.clienteId, mensaje.url, mensaje.nombre, mensaje.imgUrl).aBytes())
-                self.clientes[loteMensaje.clienteId][MENSAJES_IMG_ENVIADOS] += 1            
+                self.clientes[loteMensaje.clienteId][MENSAJES_IMG_ENVIADOS].nuevoMensaje() 
                 
             transformadorMensajes.append(TransformadorMensajeSistema(mensaje.url, mensaje.fecha, mensaje.resumen, mensaje.lenguaje))
             self.clientes[loteMensaje.clienteId][MENSAJES_RECIBIDOS].nuevoMensaje()            
@@ -68,7 +68,7 @@ class Clasificador:
                 self.colaSincronizador.send(mensaje.aBytes())
             else: 
                 clienteId = mensaje.clienteId
-                totalMsg=self.clientes[clienteId][MENSAJES_IMG_ENVIADOS]
+                totalMsg=self.clientes[clienteId][MENSAJES_IMG_ENVIADOS].cantMensajes()
                 self.colaSincronizador.send(FinMensajeSincronizacion(clienteId, totalMsg=totalMsg, tipoMensaje=EOF_CLASIFICADOR_IMG).aBytes())
                 totalMsg=self.clientes[clienteId][MENSAJES_RECIBIDOS].cantMensajes()
                 self.colaSincronizador.send(FinMensajeSincronizacion(clienteId, totalMsg=totalMsg, tipoMensaje=EOF_CLASIFICADOR_TRANS).aBytes())

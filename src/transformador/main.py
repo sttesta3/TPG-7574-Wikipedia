@@ -7,7 +7,7 @@ import signal
 import threading
 import traceback
 from nltk.corpus import stopwords
-from protocolo.mensajesSistema import CantidadMensajes, recvMensajeSistema, FinMensajeSistema, TransformadorLoteMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema, PalabrasLoteMensajeSistema, CantidadPalabrasLoteMensajeSistema
+from protocolo.mensajesSistema import EOF_TRANS, CantidadMensajes, FinMensajeSincronizacion, recvMensajeSistema, FinMensajeSistema, TransformadorLoteMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema, PalabrasLoteMensajeSistema, CantidadPalabrasLoteMensajeSistema
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
 from clienteLock import ClienteLock
 
@@ -61,7 +61,7 @@ class Transformador:
 
     def _procesarData(self, mensajeLote: TransformadorLoteMensajeSistema) -> None:
         if mensajeLote.clienteId not in self.clientes:
-            self.clientes[mensajeLote.clienteId] = ClienteLock(TOTALCLASIFICADORES)
+            self.clientes[mensajeLote.clienteId] = ClienteLock()
 
         palabrasSumTop = []
         cuentaPromedio = []
@@ -76,12 +76,13 @@ class Transformador:
                     promedio.append(CantidadPalabraMensajeSistema( mensaje.url, len(palabras)))
                 else:
                     cuentaPromedio.append(CantidadPalabraMensajeSistema( mensaje.url, len(palabras)))
+                self.clientes[mensajeLote.clienteId].nuevoMensaje()
 
         nodo = mensajeLote.clienteId.int % TOTALPROMEDIO
         self.colaCuentaProm.send(CantidadPalabrasLoteMensajeSistema(mensajeLote.clienteId, cuentaPromedio).aBytes())
         self.exchangePromedio[nodo].send(CantidadPalabrasLoteMensajeSistema(mensajeLote.clienteId, promedio).aBytes())
         self.colaSumTop.send(PalabrasLoteMensajeSistema(mensajeLote.clienteId, palabrasSumTop).aBytes())
-        self.clientes[mensajeLote.clienteId].nuevoMensaje()
+        
 
     def procesarMensaje(self, bytes, ack, nack):
         try:
@@ -100,7 +101,9 @@ class Transformador:
                 mensaje.setCantidad(cant=self.clientes[mensaje.clienteId].cantMensajes())
                 self.colaSincronizador.send(mensaje.aBytes())
             else: 
-                self.colaSumTop.send(mensaje.aBytes())
+                clienteId = mensaje.clienteId
+                totalMsg=self.clientes[clienteId].cantMensajes()
+                self.colaSincronizador.send(FinMensajeSincronizacion(clienteId, totalMsg=totalMsg, tipoMensaje=EOF_TRANS).aBytes())
 
                 nodo = mensaje.clienteId.int % TOTALPROMEDIO
                 self.exchangePromedio[nodo].send(mensaje.aBytes())

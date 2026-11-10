@@ -36,8 +36,6 @@ class SumTop:
         if clienteId not in self.clientes:
             self.clientes[clienteId] = {}
             self.clientesLock[clienteId] = ClienteLock(TOTALTRANSFORMADORES)
-
-        self.clientesLock[clienteId].nuevoMensaje()
         
         for mensaje in mensajes.mensajes:
             if mensaje.lenguaje not in self.clientes[clienteId]: 
@@ -45,13 +43,8 @@ class SumTop:
 
             for clave, valor in mensaje.palabras.items():
                 self.clientes[clienteId][mensaje.lenguaje][clave] = self.clientes[clienteId][mensaje.lenguaje].get(clave, 0) + valor
-            
-        self.clientesLock[clienteId].nuevaRespuesta()
 
-
-    def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
-        self.exchangeSumTopEofSend.send(mensaje.aBytes())
-
+            self.clientesLock[clienteId].nuevoMensaje()            
 
     def procesarMensaje(self, bytes, ack, nack):
         try:
@@ -73,7 +66,7 @@ class SumTop:
                 self.colaSincronizador.send(mensaje.aBytes())
             else: 
                 nodos = [{} for _ in range(TOTALTOPPARCIAL)]
-                logging.info("1")
+                logging.debug("1")
                 # Afinidad palabras de cliente por nodo
                 for lenguaje, palabras in self.clientes[mensaje.clienteId].items():
                     logging.debug("1.1")
@@ -103,7 +96,6 @@ class SumTop:
             logging.warning(e)
             nack()
     
-    
     def _mainControl(self):
         self.exchangeSincronizacion.start_consuming(self._manejarMensajeControl)
 
@@ -114,7 +106,6 @@ class SumTop:
         thread_sincronizacion.join()
         self._close_connections()
 
-
     def manejarSigterm(self) -> None:
         self.colaSumTop.remote_stop()
         self.exchangeSincronizacion.remote_stop()        
@@ -124,6 +115,7 @@ class SumTop:
         for i in range(TOTALTOPPARCIAL):
             self.excahangeTopParciales[i].close()
 
+        self.colaSincronizador.close()
         self.exchangeSincronizacion.close()        
 
 

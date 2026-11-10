@@ -59,16 +59,23 @@ def enviarParquet(socket: socket) -> None:
         print(e)
 
 
+def format_url(url: str) -> str:
+    if ',' in url:
+        return_url = f"\"{url}\""
+        return return_url
+    else:
+        return url
+
 def recibirRespuestas(socket: socket) -> None:
     inicio = time.time()
     eof = False
     os.makedirs(f"/output/{ID}/2", exist_ok=True)
     archivos = [
-        open(f"/output/{ID}/1.txt", "w", encoding="utf-8"),
-        open(f"/output/{ID}/2.txt", "w", encoding="utf-8"),
-        open(f"/output/{ID}/3.txt", "w", encoding="utf-8"),
-        open(f"/output/{ID}/4.txt", "w", encoding="utf-8"),
-        open(f"/output/{ID}/5.txt", "w", encoding="utf-8")
+        open(f"/output/{ID}/1.csv", "w", encoding="utf-8"),
+        open(f"/output/{ID}/2.csv", "w", encoding="utf-8"),
+        open(f"/output/{ID}/3.csv", "w", encoding="utf-8"),
+        open(f"/output/{ID}/4.csv", "w", encoding="utf-8"),
+        open(f"/output/{ID}/5.csv", "w", encoding="utf-8")
     ]
     
     while not eof:
@@ -88,21 +95,21 @@ def recibirRespuestas(socket: socket) -> None:
             fin = time.time()
             print(f"Tiempo de envio de mensajes: {(fin - inicio)/60:.2f} minutos")
         if isinstance(respuesta, Respuesta1Mensaje):
-            archivos[0].write(respuesta.url + " - "+ str(respuesta.fecha) + "\n")
+            archivos[0].write(f"{format_url(respuesta.url)},{str(respuesta.fecha)}\n")
         if isinstance(respuesta, Respuesta2Mensaje):
             nombre_imagen=f"/output/{ID}/2/{respuesta.nombre}.jpg"
-            archivos[1].write(f"{respuesta.url} - {respuesta.nombre} - {nombre_imagen}\n")
+            archivos[1].write(f"{format_url(respuesta.url)},{respuesta.nombre},{nombre_imagen}\n")
             with open(nombre_imagen, "wb") as f:
                 f.write(respuesta.imgBytes)
         if isinstance(respuesta,Respuesta3Mensaje):
             for palabra in respuesta.palabras:
-                archivos[2].write(palabra + "\n")        
+                archivos[2].write(f"{palabra}\n")        
         if isinstance(respuesta, Respuesta4Mensaje):
             for k,v in respuesta.palabras.items():
-                archivos[3].write(k +" - " +str(v) + "\n")
+                archivos[3].write(f"{k},{str(v)}\n")
         if isinstance(respuesta, Respuesta5Mensaje):
             for k,v in respuesta.data.items():
-                archivos[4].write(k + " - "+ str(v)+ "\n")
+                archivos[4].write(f"{k},{str(v)}\n")
   
 
 def manejarSigterm(coneccion: socket.socket, ) -> None:

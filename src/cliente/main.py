@@ -59,7 +59,7 @@ def enviarParquet(socket: socket) -> None:
         print(e)
 
 
-def format_url(url: str) -> str:
+def format_comma(url: str) -> str:
     if ',' in url:
         return_url = f"\"{url}\""
         return return_url
@@ -95,10 +95,10 @@ def recibirRespuestas(socket: socket) -> None:
             fin = time.time()
             print(f"Tiempo de envio de mensajes: {(fin - inicio)/60:.2f} minutos")
         if isinstance(respuesta, Respuesta1Mensaje):
-            archivos[0].write(f"{format_url(respuesta.url)},{str(respuesta.fecha)}\n")
+            archivos[0].write(f"{format_comma(respuesta.url)},{str(respuesta.fecha)}\n")
         if isinstance(respuesta, Respuesta2Mensaje):
             nombre_imagen=f"/output/{ID}/2/{respuesta.nombre}.jpg"
-            archivos[1].write(f"{format_url(respuesta.url)},{respuesta.nombre},{nombre_imagen}\n")
+            archivos[1].write(f"{format_comma(respuesta.url)},{format_comma(respuesta.nombre)},{format_comma(nombre_imagen)}\n")
             with open(nombre_imagen, "wb") as f:
                 f.write(respuesta.imgBytes)
         if isinstance(respuesta,Respuesta3Mensaje):
@@ -109,7 +109,7 @@ def recibirRespuestas(socket: socket) -> None:
                 archivos[3].write(f"{k},{str(v)}\n")
         if isinstance(respuesta, Respuesta5Mensaje):
             for k,v in respuesta.data.items():
-                archivos[4].write(f"{k},{str(v)}\n")
+                archivos[4].write(f"{format_comma(k)},{str(v)}\n")
   
 
 def manejarSigterm(coneccion: socket.socket, ) -> None:

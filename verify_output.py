@@ -80,9 +80,6 @@ def get_input_files(environment) -> list[list[str],list[str]]:
 
     return datasetsEN + datasetsFR
 
-def get_output_files(environment) -> list[str]:
-    return [ f"./output/{find_environment_variable(environment, "ID")}/{i}.txt" for i in range(1,6) ]     
-
 def run_notebook_output_to_files(input_files, id_cliente):
     # Referencia: https://www.kaggle.com/code/francobar/wikipedia-article-analysis
     import re
@@ -146,7 +143,46 @@ def run_notebook_output_to_files(input_files, id_cliente):
     resultado_2["ubicacion_imagen"] = "/output/0/2/" + resultado_2["name"] + ".jpg"
     resultado_2.to_csv(f"output/test_{id_cliente}_2.csv", index=False, header=False)
 
+    # Query 4 
+    # Word and count of the 20 most common words in the abstract
+    TOP_SIZE = 20
+    WORD_REGEX = r'\b\w+\b'
+    NUMBER_REGEX = r'[+-]?((\d+\.?\d*)|(\.\d+))'
+    
+    def extract_non_stopwords_from_abstract(abstract):
+        if not isinstance(abstract, str):
+            return []
+        words = re.findall(WORD_REGEX, abstract.lower())
+        return [word for word in words if word not in stop_words and not re.fullmatch(NUMBER_REGEX, word)]
+    
+    def extract_word_count(abstract):
+        if not isinstance(abstract, str):
+            return []
+        words = re.findall(WORD_REGEX, abstract.lower())
+        return len(words)
+    
+    stop_words = set(stopwords.words('english')) | set(stopwords.words('french'))
+    words_counter = collections.Counter()
+    total_words = 0 
+    for abstract in wiki_entry_df['abstract'].dropna():
+        non_stop_words = extract_non_stopwords_from_abstract(abstract)
+        words_counter.update(set(non_stop_words))
+    resultado_4 = pd.DataFrame(words_counter.most_common(TOP_SIZE), columns=["word", "count"])
+    resultado_4.to_csv(f"output/test_{id_cliente}_4.csv", index=False, header=False)
 
+    # Query 3
+    # Shared words between all french and english articles in the abstract
+    def fill_language_word_set(df, language):
+        language_words = set()
+        for abstract in df[df["in_language"] == language]['abstract'].dropna():
+            language_words |= set(extract_non_stopwords_from_abstract(abstract))
+        return language_words
+    
+    english_words = fill_language_word_set(wiki_entry_df, "en")
+    french_words = fill_language_word_set(wiki_entry_df, "fr")
+    shared_words = english_words & french_words
+    resultado_3 = pd.Series(data=list(english_words & french_words))
+    resultado_3.to_csv(f"output/test_{id_cliente}_3.csv", index=False, header=False)
 
 def diff_files(id_query, id_cliente, sort=True) -> bool:
     archivo1 = f"output/{id_cliente}/{id_query}.csv"
@@ -180,7 +216,7 @@ def verify_client_output(client_service):
         raise ClientValidationError("Bad file environment variable config")
 
     run_notebook_output_to_files(input_files,client_id)
-    for id_query in range(1,3):
+    for id_query in range(1,5):
         sort = id_query != 4   # Se ordena la salida de todas las queries excepto la 4, dado que es un top
         if not diff_files(id_query, client_id, sort):
             raise ClientValidationError(f"Query {id_query} no coincidió")
@@ -216,7 +252,7 @@ def main():
             for client_service_name in client_services_name:
                 client_service = services[client_service_name]
                 verify_client_output(client_service)
-            logging.info("All fruit tops match the expected results")
+            logging.info("Test was successful")
     except ClientValidationError as e:
         logging.error(e.message)
         return 1

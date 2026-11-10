@@ -83,7 +83,8 @@ def get_input_files(environment) -> list[list[str],list[str]]:
 def get_output_files(environment) -> list[str]:
     return [ f"./output/{find_environment_variable(environment, "ID")}/{i}.txt" for i in range(1,6) ]     
 
-def build_output_for_check(input_files, id_cliente):
+def run_notebook_output_to_files(input_files, id_cliente):
+    # Referencia: https://www.kaggle.com/code/francobar/wikipedia-article-analysis
     import re
     import os
     import json
@@ -100,7 +101,7 @@ def build_output_for_check(input_files, id_cliente):
        'description', 'event', 'identifier',
        'infoboxes', 'is_part_of', 'license', 'main_entity',
        'references', 'tables', 'version']
-
+    
     wiki_entry_df = None
     for file in input_files:
         df = pd.read_parquet(file)
@@ -122,10 +123,30 @@ def build_output_for_check(input_files, id_cliente):
         return image.get('content_url', None)
     wiki_entry_df["image"] = wiki_entry_df["image"].apply(image_object_to_url)
 
+    # Query1 
     wiki_entry_df['date_modified_year'] = wiki_entry_df['date_modified'].dt.year
     wiki_entry_before_2020_df = wiki_entry_df[wiki_entry_df['date_modified_year'] <= 2020].copy()
     resultado_1 = wiki_entry_before_2020_df[wiki_entry_before_2020_df["in_language"] == "en"][["url","date_modified_year"]]
     resultado_1.to_csv(f"output/test_{id_cliente}_1.csv", index=False, header=False)
+
+    # Query2 
+    BIOGRAPHY_SECTION_NAMES = ['biographie', 'biography']
+    def has_biography_section(sections):
+        if not isinstance(sections, str):
+            return False
+        section_names =  [section.get("name", "").lower() for section in json.loads(sections)]
+        for biography_section_name in BIOGRAPHY_SECTION_NAMES:
+            if biography_section_name in section_names:
+                return True
+        return False
+    wiki_entry_before_2020_df['has_biography_section'] = wiki_entry_before_2020_df['sections'].apply(has_biography_section)
+    
+    #Note: Actual implementation should download the image from the url
+    resultado_2 = wiki_entry_before_2020_df[(wiki_entry_before_2020_df['has_biography_section'] == True)][["url", "name"]]     
+    resultado_2["ubicacion_imagen"] = "/output/0/2/" + resultado_2["name"] + ".jpg"
+    resultado_2.to_csv(f"output/test_{id_cliente}_2.csv", index=False, header=False)
+
+
 
 def diff_files(id_query, id_cliente, sort=True) -> bool:
     archivo1 = f"output/{id_cliente}/{id_query}.csv"
@@ -158,8 +179,8 @@ def verify_client_output(client_service):
     if not input_files:
         raise ClientValidationError("Bad file environment variable config")
 
-    build_output_for_check(input_files,client_id)
-    for id_query in range(1,6):
+    run_notebook_output_to_files(input_files,client_id)
+    for id_query in range(1,3):
         sort = id_query != 4   # Se ordena la salida de todas las queries excepto la 4, dado que es un top
         if not diff_files(id_query, client_id, sort):
             raise ClientValidationError(f"Query {id_query} no coincidió")

@@ -78,8 +78,12 @@ class AgregadorTop:
         return dict(top[:TOP_SIZE])
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
+        if mensaje.clienteId not in self.clientes:
+            self.clientes[mensaje.clienteId] = [0, PalabrasPorIdioma()]
+
         self.clientes[mensaje.clienteId][0] += 1
         if self.clientes[mensaje.clienteId][0] == TOTALSUMTOP:
+            self.colaRespuestas.send(FinMensajeSistema(mensaje.clienteId).aBytes())
 
             nodo = mensaje.clienteId.int % TOTALTOPGLOBAL
             self.exchangeTopGlobal[nodo].send(PalabrasLoteMensajeSistema(mensaje.clienteId, [PalabrasMensajeSistema( palabras=self._top20(self.clientes[mensaje.clienteId][1].mergeTop()), url="", lenguaje=0)]).aBytes())    

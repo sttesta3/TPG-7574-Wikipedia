@@ -16,10 +16,12 @@ MOMHOST = os.environ["MOMHOST"]
 COLADATOS = os.environ["COLADATOS"]
 COLARESPUESTAS = os.environ["COLARESPUESTAS"]
 
+TOTALCLASIFEOF = int(os.environ["TOTALCLASIFEOF"])
 TOTALIMGEOF = int(os.environ["TOTALIMGEOF"])
-TOTALCUENTAPROMEOF = int(os.environ["TOTALCUENTAPROMEOF"])
+TOTALAGRTOPEOF = int(os.environ["TOTALAGRTOPEOF"])
 TOTALTOPEOF = int(os.environ["TOTALTOPEOF"])
-TOTAL_EOFS_ESPERADOS = TOTALCUENTAPROMEOF + TOTALTOPEOF + TOTALIMGEOF
+TOTALCUENTAPROMEOF = int(os.environ["TOTALCUENTAPROMEOF"])
+TOTAL_EOFS_ESPERADOS = TOTALCLASIFEOF + TOTALIMGEOF + TOTALAGRTOPEOF + TOTALTOPEOF + TOTALCUENTAPROMEOF
 
 # Cada cliente se guarda como [socket, eofs_recibidos]
 SOCKET = 0
@@ -38,10 +40,10 @@ def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
             if mensaje is None:
                 logging.info(f"EOF de {clienteId}")
                 eof = True
-                colaDatos.send(FinMensajeSistema(clienteId).aBytes())
+                colaDatos.send(FinMensajeSistema(clienteId, contador_mensajes).aBytes())
             else:
-                contador_mensajes += 1 
-                colaDatos.send(LoteDataMensajeSistema(clienteId, mensaje).aBytes())
+                contador_mensajes += 1
+                colaDatos.send(LoteDataMensajeSistema(clienteId, mensaje, contador_mensajes).aBytes())
     except socket.error:
         logging.error("The connection with the server was lost")
     except Exception as e:

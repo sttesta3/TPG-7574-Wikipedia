@@ -21,9 +21,11 @@ services:
       - COLADATOS=EntradaDatos
       - COLARESPUESTAS=Respuestas
       - LOTE=256
+      - TOTALCLASIFEOF=3
       - TOTALIMGEOF=2
+      - TOTALAGRTOPEOF=3
+      - TOTALTOPEOF=1
       - TOTALCUENTAPROMEOF=3
-      - TOTALTOPEOF=3
     healthcheck:
       test: ['CMD', 'python3', '-c', "import socket; s=socket.create_connection(('127.0.0.1', 8000), timeout=2); s.close()"]
       interval: 2s
@@ -66,6 +68,53 @@ services:
     - LOTE=256
     - PYTHONUNBUFFERED=1
     - ID=0
+    - DATASETINICIO=0
+    volumes:
+    - ./datasets:/datasets
+    - ./output:/output
+
+  cliente_1:
+    build:
+      context: ./src/
+      dockerfile: cliente/Dockerfile
+    container_name: cliente_1
+    depends_on:
+      gateway:
+        condition: service_healthy
+    environment:
+    - DATASETPATHEN=/datasets/enwiki_namespace_0_
+    - DATASETPATHFR=/datasets/frwiki_namespace_0_
+    - TOTALDATASETSEN=1
+    - TOTALDATASETSFR=1
+    - GATEWAYHOST=gateway
+    - GATEWAYPORT=8000
+    - LOTE=256
+    - PYTHONUNBUFFERED=1
+    - ID=1
+    - DATASETINICIO=1
+    volumes:
+    - ./datasets:/datasets
+    - ./output:/output
+
+  cliente_2:
+    build:
+      context: ./src/
+      dockerfile: cliente/Dockerfile
+    container_name: cliente_2
+    depends_on:
+      gateway:
+        condition: service_healthy
+    environment:
+    - DATASETPATHEN=/datasets/enwiki_namespace_0_
+    - DATASETPATHFR=/datasets/frwiki_namespace_0_
+    - TOTALDATASETSEN=1
+    - TOTALDATASETSFR=1
+    - GATEWAYHOST=gateway
+    - GATEWAYPORT=8000
+    - LOTE=256
+    - PYTHONUNBUFFERED=1
+    - ID=2
+    - DATASETINICIO=2
     volumes:
     - ./datasets:/datasets
     - ./output:/output
@@ -157,8 +206,8 @@ services:
       - COLARESPUESTAS=Respuestas
       - COLAIMGDESCARGA=ImgDescarga
       - EXCHANGEIMGEOF=ExchangeImgEof
-      - TOTALCLASIFICADORES=3
-      - MAXCLIENTES=10 
+      - MAXCLIENTES=1
+      - DESCARGASPORMINUTO=75
 
   img_descargador_1:
     build:
@@ -184,8 +233,8 @@ services:
       - COLARESPUESTAS=Respuestas
       - COLAIMGDESCARGA=ImgDescarga
       - EXCHANGEIMGEOF=ExchangeImgEof
-      - TOTALCLASIFICADORES=3
-      - MAXCLIENTES=10 
+      - MAXCLIENTES=1
+      - DESCARGASPORMINUTO=75
 
   transformador_0:
     build:
@@ -211,11 +260,10 @@ services:
       - COLATRANSFORMADOR=ColaTransformador
       - COLASUMTOP=ColaSumTop
       - EXCHANGEPROMEDIO=ExchangePromedio
-      - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - COLACUENTAPROM=ColaCuentaProm
       - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
       - TOTALCUENTAPROM=3
       - TOTALPROMEDIO=3
-      - TOTALCLASIFICADORES=3
 
   transformador_1:
     build:
@@ -241,11 +289,10 @@ services:
       - COLATRANSFORMADOR=ColaTransformador
       - COLASUMTOP=ColaSumTop
       - EXCHANGEPROMEDIO=ExchangePromedio
-      - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - COLACUENTAPROM=ColaCuentaProm
       - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
       - TOTALCUENTAPROM=3
       - TOTALPROMEDIO=3
-      - TOTALCLASIFICADORES=3
 
   transformador_2:
     build:
@@ -271,11 +318,10 @@ services:
       - COLATRANSFORMADOR=ColaTransformador
       - COLASUMTOP=ColaSumTop
       - EXCHANGEPROMEDIO=ExchangePromedio
-      - EXCHANGECUENTAPROM=ExchangeCuentaProm
+      - COLACUENTAPROM=ColaCuentaProm
       - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
       - TOTALCUENTAPROM=3
       - TOTALPROMEDIO=3
-      - TOTALCLASIFICADORES=3
 
   promedio_0:
     build:
@@ -304,7 +350,6 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
-      - EXCHANGECUENTAPROM=ExchangeCuentaProm
       - COLACUENTAPROM=ColaCuentaProm
       - EXCHANGEPROMEDIO=ExchangePromedio
       - TOTALCUENTAPROM=3
@@ -338,7 +383,6 @@ services:
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
-      - EXCHANGECUENTAPROM=ExchangeCuentaProm
       - COLACUENTAPROM=ColaCuentaProm
       - EXCHANGEPROMEDIO=ExchangePromedio
       - TOTALCUENTAPROM=3
@@ -373,7 +417,6 @@ services:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLACUENTAPROM=ColaCuentaProm
-      - EXCHANGECUENTAPROM=ExchangeCuentaProm
       - EXCHANGEPROMEDIO=ExchangePromedio
       - TOTALCUENTAPROM=3
       - TOTALTRANSFORMADORES=3
@@ -407,8 +450,8 @@ services:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLACUENTAPROM=ColaCuentaProm
-      - EXCHANGECUENTAPROM=ExchangeCuentaProm
       - COLARESPUESTAS=Respuestas
+      - EXCHANGECUENTAPROMEOF=ExchangeCuentaPromEof
       - ID=0
 
   cuenta_prom_1:
@@ -439,8 +482,8 @@ services:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLACUENTAPROM=ColaCuentaProm
-      - EXCHANGECUENTAPROM=ExchangeCuentaProm
       - COLARESPUESTAS=Respuestas
+      - EXCHANGECUENTAPROMEOF=ExchangeCuentaPromEof
       - ID=1
 
   cuenta_prom_2:
@@ -471,8 +514,8 @@ services:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLACUENTAPROM=ColaCuentaProm
-      - EXCHANGECUENTAPROM=ExchangeCuentaProm
       - COLARESPUESTAS=Respuestas
+      - EXCHANGECUENTAPROMEOF=ExchangeCuentaPromEof
       - ID=2
 
   sum_top_0:
@@ -500,7 +543,6 @@ services:
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
       - TOTALTOPPARCIAL=3
-      - TOTALTRANSFORMADORES=3
 
   sum_top_1:
     build:
@@ -527,7 +569,6 @@ services:
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
       - TOTALTOPPARCIAL=3
-      - TOTALTRANSFORMADORES=3
 
   sum_top_2:
     build:
@@ -554,7 +595,6 @@ services:
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
       - TOTALTOPPARCIAL=3
-      - TOTALTRANSFORMADORES=3
 
   agregador_top_0:
     build:

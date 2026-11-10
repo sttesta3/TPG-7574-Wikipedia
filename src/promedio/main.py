@@ -14,6 +14,11 @@ TOTALCUENTAPROM = int(os.environ["TOTALCUENTAPROM"])
 TOTALTRANSFORMADORES = int(os.environ["TOTALTRANSFORMADORES"])
 ID = os.environ["ID"]
 
+SUMA = 0
+CUENTA = 1
+EOFS_RECIBIDOS = 2
+CUENTA_INICIAL = 1
+
 
 class Promedio:
     def __init__(self):
@@ -21,30 +26,36 @@ class Promedio:
         self.exchangePromedio = MessageMiddlewareExchange(MOMHOST, EXCHANGEPROMEDIO, [EXCHANGEPROMEDIO + "_" + ID])
         self.colaCuentaProm = MessageMiddlewareQueue(MOMHOST, COLACUENTAPROM)
 
-    def _procesarData(self, mensajes: CantidadPalabrasLoteMensajeSistema) -> None:
-        clienteId = str(mensajes.clienteId)
+    def _estado(self, clienteId: str) -> list:
         if clienteId not in self.clientes:
-            self.clientes[clienteId] = [0, 1, 0]
+            self.clientes[clienteId] = [0, CUENTA_INICIAL, 0]
+        return self.clientes[clienteId]
+
+    def _procesarData(self, mensajes: CantidadPalabrasLoteMensajeSistema) -> None:
+        estado = self._estado(str(mensajes.clienteId))
 
         for mensaje in mensajes.mensajes:
-            self.clientes[clienteId][0] += mensaje.cantidad
-            self.clientes[clienteId][1] += 1
+            estado[SUMA] += mensaje.cantidad
+            estado[CUENTA] += 1
 
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
-        self.clientes[str(mensaje.clienteId)][2] += 1
+        clienteId = str(mensaje.clienteId)
+        estado = self._estado(clienteId)
 
-        if self.clientes[str(mensaje.clienteId)][2] == TOTALTRANSFORMADORES:
-            promedio_float = self.clientes[str(mensaje.clienteId)][0] / self.clientes[str(mensaje.clienteId)][1]
-            promedio = self.clientes[str(mensaje.clienteId)][0] // self.clientes[str(mensaje.clienteId)][1] 
-            logging.info(f"Total: {self.clientes[str(mensaje.clienteId)][0]}")
-            logging.info(f"Cuenta: {self.clientes[str(mensaje.clienteId)][1]}")
+        estado[EOFS_RECIBIDOS] += 1
+
+        if estado[EOFS_RECIBIDOS] == TOTALTRANSFORMADORES:
+            promedio_float = estado[SUMA] / estado[CUENTA]
+            promedio = estado[SUMA] // estado[CUENTA]
+            logging.info(f"Total: {estado[SUMA]}")
+            logging.info(f"Cuenta: {estado[CUENTA]}")
             logging.info(f"Promedio flotante: {promedio_float}")
-            logging.info(f"Promedio : {promedio}") 
-            
-            self.colaCuentaProm.send(FinPromMensajeSistema(mensaje.clienteId, promedio).aBytes())
+            logging.info(f"Promedio : {promedio}")
 
-            del self.clientes[str(mensaje.clienteId)]
+            self.colaCuentaProm.send(FinPromMensajeSistema(mensaje.clienteId, promedio, mensaje.totalMsg).aBytes())
+
+            del self.clientes[clienteId]
         
     
     def procesarMensaje(self, bytes, ack, nack):

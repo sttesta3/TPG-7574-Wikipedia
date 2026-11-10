@@ -17,6 +17,7 @@ GATEWAYHOST = os.environ["GATEWAYHOST"]
 GATEWAYPORT = int(os.environ["GATEWAYPORT"])
 LOTE = int(os.environ["LOTE"])
 ID = os.environ["ID"]
+DATASETINICIO = int(os.environ["DATASETINICIO"])
 
 
 def enviarParquet(socket: socket) -> None:
@@ -27,7 +28,7 @@ def enviarParquet(socket: socket) -> None:
         j = 0
         for i in range(TOTALDATASETSEN):
 
-            with pq.ParquetFile(DATASETPATHEN + str(i).zfill(5) + ".parquet") as archivo:
+            with pq.ParquetFile(DATASETPATHEN + str(DATASETINICIO + i).zfill(5) + ".parquet") as archivo:
                 for batch in archivo.iter_batches(batch_size=10000):
                     dataset = batch.to_pandas()
                     for fila in dataset.itertuples(index=False):
@@ -36,7 +37,7 @@ def enviarParquet(socket: socket) -> None:
             
 
             if j < TOTALDATASETSFR:
-                with pq.ParquetFile(DATASETPATHFR + str(i).zfill(5) + ".parquet") as archivo:
+                with pq.ParquetFile(DATASETPATHFR + str(DATASETINICIO + i).zfill(5) + ".parquet") as archivo:
                     for batch in archivo.iter_batches(batch_size=10000):
                         dataset = batch.to_pandas()
 

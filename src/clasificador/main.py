@@ -23,9 +23,8 @@ MENSAJES_RTA1_ENVIADOS = 2
 
 class Clasificador(WorkerSincronizado):
     def __init__(self):
-        super().__init__(exchange=CLASIFICADOREXCHANGEEOF)
+        super().__init__(cola_datos=COLADATOS,exchange=CLASIFICADOREXCHANGEEOF)
 
-        self.colaDatos = MessageMiddlewareQueue(MOMHOST, COLADATOS)
         self.colaRespuestas = MessageMiddlewareQueue(MOMHOST, COLARESPUESTAS)
         self.colaImgDescarga = MessageMiddlewareQueue(MOMHOST, COLAIMGDESCARGA)
         self.colaTransformador = MessageMiddlewareQueue(MOMHOST, COLATRANSFORMADOR)
@@ -61,29 +60,17 @@ class Clasificador(WorkerSincronizado):
         # TODO: EOF para RTA 1 ?                 
         del self.clientes[mensaje.clienteId]
 
-    
-    def _mainControl(self):
-        self.exchangeSincronizacion.start_consuming(self._manejarMensajeControl)
-
-    def iniciar(self):
-        thread_sincronizacion = threading.Thread(target=self._mainControl, daemon=True)
-        thread_sincronizacion.start()
-        self.colaDatos.start_consuming(self.procesarMensaje)
-        thread_sincronizacion.join()
-        self._close_connections()
+    def _get_mensajes_recibidos(self, clienteId) -> int:
+        return self.clientes[clienteId][MENSAJES_RECIBIDOS].cantMensajes()
 
     def manejarSigterm(self) -> None:
-        self.exchangeSincronizacion.remote_stop()
-        self.colaDatos.remote_stop() #mando la señal para que el hilo que maneja corte el channel esto vuelve a lo
-                                     #que va despues de invocar al hilo en iniciar
+        super().manejarSigterm()
 
     def _close_connections(self):
-        self.colaDatos.close()
+        super()._close_connections()
         self.colaRespuestas.close()
         self.colaImgDescarga.close()
         self.colaTransformador.close()
-        self.colaSincronizador.close()
-        self.exchangeSincronizacion.close()
 
 def main() -> int:
     logging.basicConfig(level=logging.INFO)

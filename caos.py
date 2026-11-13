@@ -14,6 +14,9 @@ def caos(servicios: list):
         if randomProba == 1: # 1/3 de que pueda matar un servicio   
             servicio = random.randint(0, len(servicios)-1)
 
+            if "cliente" in servicios[servicio].lower():
+                continue
+
             subprocess.run(["sudo", "docker", "stop", servicios[servicio]])
             print(f"[INFO] Mato al servicio {servicios[servicio]}") 
             

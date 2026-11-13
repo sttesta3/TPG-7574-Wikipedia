@@ -1,18 +1,50 @@
 import os
 import sys
-import logging
+import uuid
 import signal
+import logging
 import traceback
 import threading
 from contadorDistribuido import contadorDistribuido
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, PalabrasMensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, PalabrasMensajeSistema, MensajeSistema
 
 MOMHOST = os.environ["MOMHOST"]
 COLASUMTOP = os.environ["COLASUMTOP"]
 EXCHANGESUMTOPEOF = os.environ["EXCHANGESUMTOPEOF"]
 EXCHANGETOPPARCIAL = os.environ["EXCHANGETOPPARCIAL"]
 TOTALTOPPARCIAL = int(os.environ["TOTALTOPPARCIAL"])
+
+from collections.abc import Iterator
+class wal():
+    def __init__(self) -> None:
+        self.logs = {}
+
+
+    def guardarMensaje(self, mensaje: MensajeSistema) -> None:
+        if mensaje.clienteId not in self.logs:
+            self.logs[mensaje.clienteId] = open("log/"+str(mensaje.clienteId), "ab")
+
+        self.logs[mensaje.clienteId].write(mensaje.aBytes() + b"\n")
+
+
+    def recuperarLogs(self) -> Iterator[bytes]:
+        logsName = os.listdir("/log")
+
+        for logName in logsName:
+            with open("/log/"+logName, "rb") as log:
+                for line in log.readlines():
+                    yield line.rstrip(b"\n").deBytes() # TODO: hacer esto bien
+
+    
+    def borrarLog(self, clienteId: uuid.UUID):    
+        os.remove("log/"+str(clienteId))
+        del self.logs[clienteId]
+
+
+    def cerrar(self):
+        for log in self.logs.values():
+            log.close()
 
 
 class SumTop:
@@ -26,8 +58,18 @@ class SumTop:
 
         self.clientes = {}
 
+        self.wal = wal()
 
-    def _procesarData(self, mensajes: PalabrasLoteMensajeSistema) -> None:
+
+    def _recuperacion(self):
+        for mensaje in self.wal.recuperarLogs():
+            self._procesarData(mensaje, True)
+
+
+    def _procesarData(self, mensajes: PalabrasLoteMensajeSistema, recuperacion: bool = False) -> None:
+        if not recuperacion:
+            self.wal.guardarMensaje(mensajes)
+
         clienteId = mensajes.clienteId
         if clienteId not in self.clientes:
             self.clientes[clienteId] = {}
@@ -42,6 +84,7 @@ class SumTop:
 
     def _finalizarCliente(self, clienteId, fin: FinMensajeSistema, originador: bool) -> None:
         palabrasCliente = self.clientes.pop(clienteId, {})
+        self.wal.guardarMensaje(fin)
 
         nodos = [{} for _ in range(TOTALTOPPARCIAL)]
         for lenguaje, palabras in palabrasCliente.items():
@@ -51,10 +94,13 @@ class SumTop:
                 nodos[i][lenguaje][clave] = nodos[i][lenguaje].get(clave,valor)
 
         for i in range(TOTALTOPPARCIAL):
+            # TODO: como resolvemos esto
             for lenguaje, palabras in nodos[i].items():
                 parcial = PalabrasLoteMensajeSistema(clienteId=clienteId, mensajes=[PalabrasMensajeSistema(palabras=palabras, url="", lenguaje=lenguaje)])
                 self.excahangeTopParciales[i].send(parcial.aBytes())
             self.excahangeTopParciales[i].send(FinMensajeSistema(clienteId).aBytes())
+        
+        self.wal.borrarLog(clienteId)
 
         logging.info(f"Mando parciales y EOF de {clienteId}")
 

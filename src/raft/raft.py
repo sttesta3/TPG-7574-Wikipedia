@@ -1,4 +1,5 @@
 import os
+import time
 import socket
 import random
 import logging
@@ -28,6 +29,8 @@ class raft():
         self.voto = None
         self.liderId = None
 
+        self.mensajes = []
+
 
     def iniciarVotacion(self):
         self.timer.cancel()
@@ -41,11 +44,22 @@ class raft():
         #TODO: Contar votos
         if self.votos >= (CANTIDADNODOS / 2) + 1:
             self.estado = LIDER
-            #TODO: Me declaro lider
-            pass
+            for nodo in self.nodos:
+                #TODO: me declaro lider
+                pass 
+            self.latido()
         else:
             self.timer = threading.Timer(random.randint(150, 300) / 1000, self.iniciarVotacion)
             self.timer.start()
+
+
+    def latido(self):
+        while self.estado == LIDER:
+            for nodo in self.nodos:
+                # TODO: usar lock para esto 
+                safeSend(nodo, mensajeLatido(self.mensajes).aBytes())
+            self.mensajes = []
+            time.sleep(1)
 
 
     def votacion(self, candidatoId: int) -> int:
@@ -62,21 +76,19 @@ class raft():
         self.timer.start()
 
 
-    def latido(self):
-        pass
-
-
     def procesarMensaje(self, clientSocket: socket.socket):
-        mensaje = recvMensaje(clientSocket)
         
-        if isinstance(mensaje, mensajeVotacion):
-            safeSend(clientSocket, mensajeVoto(self.votacion()).aBytes())
-        elif isinstance(mensaje, mensajeLatido):
-            # TODO: procesar mensaje
-            self.timer = threading.Timer(random.randint(150, 300) / 1000, self.iniciarVotacion)
-            self.timer.start()
-        elif isinstance(mensaje, mensajeLider):
-            self.nuevoLider(mensaje.liderId)
+        if self.estado == SEGUIDOR:
+            mensaje = recvMensaje(clientSocket)
+            
+            if isinstance(mensaje, mensajeVotacion):
+                safeSend(clientSocket, mensajeVoto(self.votacion()).aBytes())
+            elif isinstance(mensaje, mensajeLatido):
+                # TODO: procesar mensaje
+                self.timer = threading.Timer(random.randint(150, 300) / 1000, self.iniciarVotacion)
+                self.timer.start()
+            elif isinstance(mensaje, mensajeLider):
+                self.nuevoLider(mensaje.liderId)
 
 
     def iniciar(self):
@@ -94,10 +106,3 @@ class raft():
                 except Exception as e:
                     logging.warning(e)
                     return 2
-            
-
-    
-
-
-    
-    

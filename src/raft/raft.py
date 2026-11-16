@@ -2,7 +2,6 @@ import os
 import socket
 import random
 import asyncio
-import threading
 from socket.safeSocket import safeSend 
 from protocolo.mensajesRaft import recvMensaje, VotacionMensaje, VotoMensaje, LatidoMensaje, RespuestaLatidoMensaje, LiderMensaje, RaftMensaje
 
@@ -51,7 +50,7 @@ class Raft():
 
 
     def iniciarVotacion(self):
-        self.timer.cancelar()
+        self.timer.setear(self.contarVotos)
         self.estado = CANDIDATO
         self.votos = 1
 
@@ -60,7 +59,7 @@ class Raft():
 
 
     def contarVotos(self):
-        if self.votos >= (CANTIDADNODOS / 2) + 1:
+        if self.votos >= (CANTIDADNODOS // 2) + 1:
             self.estado = LIDER
             for nodo in self.nodos:
                 safeSend(nodo, LiderMensaje(self.id).aBytes())
@@ -78,6 +77,7 @@ class Raft():
 
 
     def votacion(self, candidatoId: int) -> VotoMensaje:
+        self.timer.setear(self.iniciarVotacion)
         if self.voto is None:
             self.voto = candidatoId
             return VotoMensaje(1)

@@ -1,11 +1,10 @@
 import os
 import socket
 import random
-import logging
+import asyncio
 import threading
-import multiprocessing
 from socket.safeSocket import safeSend 
-from protocolo.mensajesRaft import recvMensaje, VotacionMensaje, VotoMensaje, LatidoMensaje, RespuestaLatidoMensaje, LiderMensaje
+from protocolo.mensajesRaft import recvMensaje, VotacionMensaje, VotoMensaje, LatidoMensaje, RespuestaLatidoMensaje, LiderMensaje, RaftMensaje
 
 ID = int(os.environ["ID"])
 CANTIDADNODOS = int(os.environ["CANTIDADNODOS"])
@@ -16,7 +15,25 @@ SEGUIDOR = b'\x00'
 CANDIDATO = b'\x01'
 LIDER = b'\x03'
 
-class raft():
+class Timer():
+    def __init__(self) -> None:
+        self.loop = asyncio.get_running_loop()
+        self.timer = None
+
+    
+    def setear(self, fn):
+        if self.timer is not None:
+            self.timer.cancel()
+
+        self.timer = self.loop.call_later(random.randint(150, 300) / 1000, self.iniciarVotacion)
+    
+
+    def cancelar(self):
+        self.timer.cancel()
+        self.timer = None
+
+
+class Raft():
     def __init__(self):
         self.id = ID
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -24,7 +41,7 @@ class raft():
         self.nodos = []
 
         self.estado = SEGUIDOR
-        self.timer = threading.Timer(random.randint(150, 300) / 1000, self.iniciarVotacion)
+        self.timer = Timer()
 
         self.votos = 0
         self.voto = None
@@ -34,9 +51,9 @@ class raft():
 
 
     def iniciarVotacion(self):
-        self.timer.cancel()
+        self.timer.cancelar()
         self.estado = CANDIDATO
-        self.votos += 1
+        self.votos = 1
 
         for nodo in self.nodos:
            safeSend(nodo, VotacionMensaje(self.id).aBytes())
@@ -50,15 +67,13 @@ class raft():
             self.latido()
         else:
             self.estado = SEGUIDOR
-            self.timer = threading.Timer(random.randint(150, 300) / 1000, self.iniciarVotacion)
-            self.timer.start()
+            self.timer.setear(self.iniciarVotacion)
 
 
     def latido(self):
         for nodo in self.nodos: 
             safeSend(nodo, LatidoMensaje(self.mensajes).aBytes())
-        self.timer = threading.Timer(random.randint(150, 300) / 1000, self.latido)
-        self.timer.start()
+        self.timer.setear(self.latido)
         self.mensajes = []
 
 
@@ -73,44 +88,37 @@ class raft():
         self.liderId = liderId
         self.voto = None
         self.votos = 0
-        self.timer = threading.Timer(random.randint(150, 300) / 1000, self.iniciarVotacion)
-        self.timer.start()
+        self.timer.setear(self.iniciarVotacion)
 
 
-    def procesarMensaje(self, clientSocket: socket.socket):
+    def procesarMensaje(self, clientWriter: asyncio.StreamWriter, mensaje: RaftMensaje):
+        if self.estado == SEGUIDOR:
+            if isinstance(mensaje, VotacionMensaje):
+                clientWriter.write(self.votacion(mensaje.candidatoId).aBytes())
+            elif isinstance(mensaje, LatidoMensaje):
+                self.timer.setear(self.iniciarVotacion)
+                # TODO: procesar mensaje
+                
+            elif isinstance(mensaje, LiderMensaje):
+                self.nuevoLider(mensaje.liderId)
+        elif self.estado == CANDIDATO:
+            if isinstance(mensaje, VotoMensaje):
+                self.votos += mensaje.voto
+        elif self.estado == LIDER:
+            if isinstance(mensaje, RespuestaLatidoMensaje):
+                # TODO: procesar mensaje
+                pass
+
+    
+    async def procesarConexion(self, reader, writer):
         while True:
-            mensaje = recvMensaje(clientSocket)
+            mensaje = await recvMensaje(reader)
 
-            if self.estado == SEGUIDOR:
-                if isinstance(mensaje, VotacionMensaje):
-                    safeSend(clientSocket, self.votacion(mensaje.candidatoId).aBytes())
-                elif isinstance(mensaje, LatidoMensaje):
-                    self.timer = threading.Timer(random.randint(150, 300) / 1000, self.iniciarVotacion)
-                    # TODO: procesar mensaje
-                    self.timer.start()
-                elif isinstance(mensaje, LiderMensaje):
-                    self.nuevoLider(mensaje.liderId)
-            elif self.estado == CANDIDATO:
-                if isinstance(mensaje, VotoMensaje):
-                    self.votos += mensaje.voto
-            elif self.estado == LIDER:
-                if isinstance(mensaje, RespuestaLatidoMensaje):
-                    # TODO: procesar mensaje
-                    pass
+            self.procesarMensaje(writer, mensaje)
             
 
-    def iniciar(self):
-        with multiprocessing.Pool(processes=os.process_cpu_count()) as processes_pool:
-            self.socket.bind((RAFTHOST, RAFTPORT))
-            self.timer.start()
-            self.socket.listen()
+    async def iniciar(self):
+        server = await asyncio.start_server(self.procesarConexion, RAFTHOST, RAFTPORT)
 
-            while True:
-                try:
-                    clientSocket, _ = self.socket.accept()  
-                    processes_pool.apply_async(self.procesarMensaje, args=(clientSocket))
-                except socket.error:
-                    return 0
-                except Exception as e:
-                    logging.warning(e)
-                    return 2
+        async with server:
+            await server.serve_forever()

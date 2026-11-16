@@ -2,7 +2,7 @@
 
 ## Pruebas 
 
-- make build: Crear un archivo docker compose custom (te pregunta los parametros)
+- make scenario: Crear un archivo docker compose custom (te pregunta los parametros)
 
 - make switch: Elegir un archivo yaml para ejecutar (sobreescribe docker-compose.yaml con dicho archivo)
 

@@ -59,9 +59,11 @@ services:
     depends_on:
       gateway:
         condition: service_healthy
-#    limits:
-#      cpus: .2
-#      memory: 500m
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: "0.5"
+#          memory: 512M
     environment:
     - DATASETPATHEN=/datasets/enwiki_namespace_0_
     - DATASETPATHFR=/datasets/frwiki_namespace_0_
@@ -73,8 +75,64 @@ services:
     - DATASETINICIO=2
     - PYTHONUNBUFFERED=1
     - ID=0
+    - DATASETINICIO=0
+    volumes:
+    - ./datasets:/datasets
+    - ./output:/output
+
+  cliente_2:
+    build:
+      context: ./src/
+      dockerfile: cliente/Dockerfile
+    container_name: cliente_2
+    depends_on:
+      gateway:
+        condition: service_healthy
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: "0.5"
+#          memory: 512M
+    environment:
+    - DATASETPATHEN=/datasets/enwiki_namespace_0_
+    - DATASETPATHFR=/datasets/frwiki_namespace_0_
+    - TOTALDATASETSEN=1
+    - TOTALDATASETSFR=1
+    - GATEWAYHOST=gateway
+    - GATEWAYPORT=8000
+    - LOTE=256
+    - PYTHONUNBUFFERED=1
+    - ID=2
+    - DATASETINICIO=2
+    volumes:
+    - ./datasets:/datasets
+    - ./output:/output
 
 
+  cliente_3:
+    build:
+      context: ./src/
+      dockerfile: cliente/Dockerfile
+    container_name: cliente_3
+    depends_on:
+      gateway:
+        condition: service_healthy
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: "0.5"
+#          memory: 512M
+    environment:
+    - DATASETPATHEN=/datasets/enwiki_namespace_0_
+    - DATASETPATHFR=/datasets/frwiki_namespace_0_
+    - TOTALDATASETSEN=1
+    - TOTALDATASETSFR=1
+    - GATEWAYHOST=gateway
+    - GATEWAYPORT=8000
+    - LOTE=256
+    - PYTHONUNBUFFERED=1
+    - ID=3
+    - DATASETINICIO=3
     volumes:
     - ./datasets:/datasets
     - ./output:/output

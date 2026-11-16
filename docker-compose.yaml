@@ -58,9 +58,11 @@ services:
     depends_on:
       gateway:
         condition: service_healthy
-#    limits:
-#      cpus: .2
-#      memory: 500m
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: "0.5"
+#          memory: 512M
     environment:
     - DATASETPATHEN=/datasets/enwiki_namespace_0_
     - DATASETPATHFR=/datasets/frwiki_namespace_0_
@@ -84,9 +86,11 @@ services:
     depends_on:
       gateway:
         condition: service_healthy
-#    limits:
-#      cpus: .2
-#      memory: 500m
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: "0.5"
+#          memory: 512M
     environment:
     - DATASETPATHEN=/datasets/enwiki_namespace_0_
     - DATASETPATHFR=/datasets/frwiki_namespace_0_
@@ -111,9 +115,11 @@ services:
     depends_on:
       gateway:
         condition: service_healthy
-#    limits:
-#      cpus: .2
-#      memory: 500m
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: "0.5"
+#          memory: 512M
     environment:
     - DATASETPATHEN=/datasets/enwiki_namespace_0_
     - DATASETPATHFR=/datasets/frwiki_namespace_0_

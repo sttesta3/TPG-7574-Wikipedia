@@ -140,7 +140,7 @@ def run_notebook_output_to_files(input_files, id_cliente):
     
     # Nota: Referencia LOCAL a imagen POSTERIOR a ser transferida desde los nodos descargadores 
     resultado_2 = wiki_entry_before_2020_df[(wiki_entry_before_2020_df['has_biography_section'] == True)][["url", "name"]]     
-    resultado_2["ubicacion_imagen"] = "/output/0/2/" + resultado_2["name"] + ".jpg"
+    resultado_2["ubicacion_imagen"] = f"/output/{id_cliente}/2/" + resultado_2["name"] + ".jpg"
     resultado_2.to_csv(f"output/test_{id_cliente}_2.csv", index=False, header=False)
 
     # Query 4 

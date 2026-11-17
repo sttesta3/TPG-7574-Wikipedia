@@ -99,6 +99,10 @@ services:
       - COLAIMGDESCARGA=ImgDescarga
       - COLATRANSFORMADOR=ColaTransformador
       - CLASIFICADOREXCHANGEEOF=ClasificadorExchangeEof
+      - ID=0
+      - CANTIDADNODOS=3
+      - RAFTPORT=5050
+      - RAFTHOSTS=clasificador_1,clasificador_2
 
   clasificador_1:
     build:
@@ -112,6 +116,8 @@ services:
           condition: service_started
         nodo-base:
           condition: service_started
+        clasificador_0:
+          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
@@ -120,6 +126,10 @@ services:
       - COLAIMGDESCARGA=ImgDescarga
       - COLATRANSFORMADOR=ColaTransformador
       - CLASIFICADOREXCHANGEEOF=ClasificadorExchangeEof
+      - ID=1
+      - CANTIDADNODOS=3
+      - RAFTPORT=5050
+      - RAFTHOSTS=clasificador_0,clasificador_2
 
   clasificador_2:
     build:
@@ -133,6 +143,8 @@ services:
           condition: service_started
         nodo-base:
           condition: service_started
+        clasificador_1:
+          condition: service_started
     environment:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
@@ -141,6 +153,10 @@ services:
       - COLAIMGDESCARGA=ImgDescarga
       - COLATRANSFORMADOR=ColaTransformador
       - CLASIFICADOREXCHANGEEOF=ClasificadorExchangeEof
+      - ID=2
+      - CANTIDADNODOS=3
+      - RAFTPORT=5050
+      - RAFTHOSTS=clasificador_0,clasificador_1
 
   img_descargador_0:
     build:

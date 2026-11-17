@@ -1,5 +1,4 @@
 import os
-import sys
 import logging
 import signal
 import threading
@@ -7,6 +6,8 @@ from contadorDistribuido import contadorDistribuido
 from middleware import MessageMiddlewareQueue
 from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, LoteDataMensajeSistema, ImgMensajeSistema, ImgLoteMensajeSistema, Respuesta1MensajeSistema, TransformadorMensajeSistema, TransformadorLoteMensajeSistema
 from protocolo.mensajesCliente import LENGUAJEINGLES, LENGUAJEFRANCES
+
+from raft.raft import Raft
 
 MOMHOST = os.environ["MOMHOST"]
 COLADATOS = os.environ["COLADATOS"]
@@ -24,6 +25,7 @@ class Clasificador:
 
         self.contador = contadorDistribuido(MOMHOST, CLASIFICADOREXCHANGEEOF, self._finalizarCliente, self.colaDatos.remote_execution)
 
+        self.raft = Raft()
 
     def _procesarData(self, loteMensaje: LoteDataMensajeSistema) -> None:
         logging.info(f"Recibo lote {loteMensaje.secuencia} de {loteMensaje.clienteId}")
@@ -68,6 +70,7 @@ class Clasificador:
 
     def iniciar(self):
         thread_contador = threading.Thread(target=self.contador.iniciar, daemon=True)
+        threading.Thread(target=self.raft.iniciarRaft, daemon=True).start()
         thread_contador.start()
         self.colaDatos.start_consuming(self.procesarMensaje)
         thread_contador.join()

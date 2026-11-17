@@ -1,6 +1,5 @@
 import socket
 from abc import ABC, abstractmethod
-from socket.safeSocket import safeRecv, safeSend
 from protocolo.mensajesSistema import MensajeSistema, recvMensajeSistema
 
 VOTACION_MENSAJE = b'\x01'
@@ -84,7 +83,7 @@ class LatidoMensaje(RaftMensaje):
         mensajeBytes = LATIDO_MENSAJE
 
         dataBytes = b''
-        if self.data is not None:
+        if self.data is not None and len(self.data) > 0:
             dataBytes = self.data.aBytes()
         
         mensajeBytes += len(dataBytes).to_bytes(4, byteorder="big")
@@ -114,49 +113,56 @@ class RespuestaLatidoMensaje(RaftMensaje):
 
 
 class LiderMensaje(RaftMensaje):
-    def __init__(self, liderId: int) -> None:
+    def __init__(self, liderId: int = None, term: int = None) -> None:
         self.liderId = liderId
+        self.term = term
 
     def aBytes(self) -> bytes:
         mensajeBytes = LIDER_MENSAJE
 
-        mensajeBytes += (4).to_bytes(4, byteorder="big")
+        mensajeBytes += (8).to_bytes(4, byteorder="big")
         mensajeBytes += self.liderId.to_bytes(4, byteorder="big")
+        mensajeBytes += self.term.to_bytes(4, byteorder="big")
 
         return mensajeBytes
     
 
     def deBytes(self, bytes: bytes) -> None:
-        
-        self.liderId = int.from_bytes(bytes, byteorder="big")
+        totalLeido = 0
+
+        self.liderId = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
+        totalLeido += 4
+
+        self.term = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
     
       
-def obtenerRespuesta(socket: socket.socket, instancia: RaftMensaje) -> RaftMensaje:
-    respuestaInfo = safeRecv(socket, 4)
+async def obtenerRespuesta(reader, instancia: RaftMensaje) -> RaftMensaje:
+    respuestaInfo = await reader.readexactly(4)
     respuestaSize = int.from_bytes(respuestaInfo, byteorder="big")
 
-    if len(respuestaSize) == 0:
+    if respuestaSize == 0:
         return instancia
 
-    bytes = safeRecv(socket, respuestaSize)
+    bytes = await reader.readexactly(respuestaSize)
     instancia.deBytes(bytes)
 
     return instancia
 
 
-def recvMensaje(socket: socket.socket) -> RaftMensaje:
-    type = safeRecv(socket, 1)
+async def recvMensaje(reader) -> RaftMensaje:
+    tipo = await reader.readexactly(1)
 
-    if type == LIDER_MENSAJE:
-        return obtenerRespuesta(socket, LiderMensaje())
-    if type == RESPUESTA_LATIDO_MENSAJE:
-        return obtenerRespuesta(socket, RespuestaLatidoMensaje())
-    if type == LATIDO_MENSAJE:
-        return obtenerRespuesta(socket, LatidoMensaje())
-    if type == VOTO_MENSAJE:
-        return obtenerRespuesta(socket, VotoMensaje())
-    if type == VOTACION_MENSAJE:
-        return obtenerRespuesta(socket, VotacionMensaje())
+
+    if tipo == LIDER_MENSAJE:
+        return await obtenerRespuesta(reader, LiderMensaje())
+    if tipo == RESPUESTA_LATIDO_MENSAJE:
+        return await obtenerRespuesta(reader, RespuestaLatidoMensaje())
+    if tipo == LATIDO_MENSAJE:
+        return await obtenerRespuesta(reader, LatidoMensaje())
+    if tipo == VOTO_MENSAJE:
+        return await obtenerRespuesta(reader, VotoMensaje())
+    if tipo == VOTACION_MENSAJE:
+        return await obtenerRespuesta(reader, VotacionMensaje())
     else:
         return None
         

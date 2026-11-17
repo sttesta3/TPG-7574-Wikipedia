@@ -1,18 +1,20 @@
 import os
 import socket
 import random
-import asyncio
-from socket.safeSocket import safeSend 
+import asyncio 
 from protocolo.mensajesRaft import recvMensaje, VotacionMensaje, VotoMensaje, LatidoMensaje, RespuestaLatidoMensaje, LiderMensaje, RaftMensaje
 
 ID = int(os.environ["ID"])
 CANTIDADNODOS = int(os.environ["CANTIDADNODOS"])
-RAFTHOST = os.environ["RAFTHOST"]
+RAFTHOSTS = os.environ["RAFTHOSTS"]
 RAFTPORT = int(os.environ["RAFTPORT"])
 
 SEGUIDOR = b'\x00'
 CANDIDATO = b'\x01'
 LIDER = b'\x03'
+
+LECTURA = 0
+ESCRITURA = 1
 
 class Timer():
     def __init__(self) -> None:
@@ -20,15 +22,24 @@ class Timer():
         self.timer = None
 
     
-    def setear(self, fn):
+    def _setear(self, min, max, fn):
         if self.timer is not None:
             self.timer.cancel()
 
-        self.timer = self.loop.call_later(random.randint(150, 300) / 1000, fn)
+        self.timer = self.loop.call_later(random.randint(min, max) / 1000,  lambda: asyncio.create_task(fn()))
     
 
+    def setearLargo(self, fn):
+        self._setear(500, 1000, fn)
+        
+
+    def setearCorto(self, fn):
+        self._setear(50, 100, fn)
+
+
     def cancelar(self):
-        self.timer.cancel()
+        if self.timer is not None:
+            self.timer.cancel()
         self.timer = None
 
 
@@ -38,9 +49,9 @@ class Raft():
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         
         self.nodos = []
-
+        
         self.estado = SEGUIDOR
-        self.timer = Timer()
+        self.timer = None
 
         self.votos = 0
         self.voto = None
@@ -51,81 +62,115 @@ class Raft():
         self.mensajes = []
 
 
-    def iniciarVotacion(self):
+    async def iniciarVotacion(self):
         self.term += 1
         self.estado = CANDIDATO
         self.votos = 1
         self.voto = self.id
-
+        print(f"soy {self.id} e inicie la votacion")
+        print(self.nodos)
         for nodo in self.nodos:
-           safeSend(nodo, VotacionMensaje(self.id, self.term, self.index).aBytes())
-        self.timer.setear(self.contarVotos)
+           nodo[ESCRITURA].write(VotacionMensaje(self.id, self.term, self.index).aBytes())
+           await nodo[ESCRITURA].drain()
+        self.timer.setearLargo(self.contarVotos)
 
 
-    def contarVotos(self):
+    async def contarVotos(self):
         if self.votos >= (CANTIDADNODOS // 2) + 1:
+            print(f"soy {self.id} y gane")
             self.estado = LIDER
             for nodo in self.nodos:
-                safeSend(nodo, LiderMensaje(self.id).aBytes())
-            self.latido()
+                nodo[ESCRITURA].write(LiderMensaje(self.id, self.term).aBytes()) 
+                await nodo[ESCRITURA].drain()
+            self.timer.setearCorto(self.latido)
         else:
+            print(f"soy {self.id} y perdi, me votaron {self.votos}")
             self.estado = SEGUIDOR
-            self.timer.setear(self.iniciarVotacion)
+            self.timer.setearLargo(self.iniciarVotacion)
 
 
-    def latido(self):
+    async def latido(self):
+        print("Latido")
         for nodo in self.nodos: 
-            safeSend(nodo, LatidoMensaje(self.mensajes).aBytes())
-        self.timer.setear(self.latido)
+            nodo[ESCRITURA].write(LatidoMensaje(self.mensajes).aBytes()) 
+            await nodo[ESCRITURA].drain()
+        self.timer.setearCorto(self.latido)
         self.mensajes = []
 
 
     def votacion(self, mensaje: VotacionMensaje) -> VotoMensaje:
-        self.timer.setear(self.iniciarVotacion)
-        if self.voto is None or self.term < mensaje.term:
-            self.voto = mensaje.candidatoId
+        
+        print(f"soy {self.id} y voto por {mensaje.candidatoId}")
+        if (self.voto is None or self.term < mensaje.term) and self.index <= mensaje.index:
             self.term = mensaje.term
+            self.voto = mensaje.candidatoId
+            self.estado = SEGUIDOR
+            self.timer.setearLargo(self.iniciarVotacion)
             return VotoMensaje(1, self.term)
 
         return VotoMensaje(0, self.term)
 
 
-    def nuevoLider(self, liderId: int):
-        self.liderId = liderId
+    def nuevoLider(self, mensaje: LiderMensaje):
+        print(f"soy {self.id} y gano como lider {mensaje.liderId}")
+        self.timer.setearLargo(self.iniciarVotacion)
+        self.liderId = mensaje.liderId
+        self.term = mensaje.term
         self.voto = None
         self.votos = 0
-        self.timer.setear(self.iniciarVotacion)
+        self.estado = SEGUIDOR
 
 
-    def procesarMensaje(self, clientWriter: asyncio.StreamWriter, mensaje: RaftMensaje):
-        if self.estado == SEGUIDOR:
-            if isinstance(mensaje, VotacionMensaje):
-                clientWriter.write(self.votacion(mensaje).aBytes())
-            elif isinstance(mensaje, LatidoMensaje):
-                self.timer.setear(self.iniciarVotacion)
-                # TODO: procesar mensaje
+    async def procesarMensaje(self, clientWriter: asyncio.StreamWriter, mensaje: RaftMensaje):
+        
+        if isinstance(mensaje, VotacionMensaje):
+            clientWriter.write(self.votacion(mensaje).aBytes())
+            await clientWriter.drain()
+        elif isinstance(mensaje, LatidoMensaje):
+            print("Recivo latido")
+            self.timer.setear(self.iniciarVotacion)
+            # TODO: procesar mensaje
+        elif isinstance(mensaje, LiderMensaje):
+            self.nuevoLider(mensaje)
+        elif isinstance(mensaje, VotoMensaje):
+            if mensaje.term == self.term and self.estado == CANDIDATO:
+                self.votos += mensaje.voto
+        elif isinstance(mensaje, RespuestaLatidoMensaje):
                 
-            elif isinstance(mensaje, LiderMensaje):
-                self.nuevoLider(mensaje.liderId)
-        elif self.estado == CANDIDATO:
-            if isinstance(mensaje, VotoMensaje):
-                if mensaje.term == self.term:
-                    self.votos += mensaje.voto
-        elif self.estado == LIDER:
-            if isinstance(mensaje, RespuestaLatidoMensaje):
                 # TODO: procesar mensaje
                 pass
 
     
     async def procesarConexion(self, reader, writer):
+        if (reader, writer) not in self.nodos:
+            self.nodos.append((reader, writer))
+
         while True:
             mensaje = await recvMensaje(reader)
 
-            self.procesarMensaje(writer, mensaje)
+            await self.procesarMensaje(writer, mensaje)
             
 
+    async def conectarNodos(self):
+        hosts = os.getenv("RAFTHOSTS", "").split(",")
+        for i in range(self.id):
+            host = hosts[i]
+            if host is not None and host != "":
+                print(f"me conecto con {host}")
+                reader, writer = await asyncio.open_connection(host, RAFTPORT)
+                asyncio.create_task(self.procesarConexion(reader, writer))
+
+
     async def iniciar(self):
-        server = await asyncio.start_server(self.procesarConexion, RAFTHOST, RAFTPORT)
+        print("INICIO")
+        self.timer = Timer()
+        self.timer.setearCorto(self.iniciarVotacion)
+
+        server = await asyncio.start_server(self.procesarConexion, host="0.0.0.0",  port=RAFTPORT)
 
         async with server:
+            await self.conectarNodos()
             await server.serve_forever()
+
+    def iniciarRaft(self):
+        asyncio.run(self.iniciar())

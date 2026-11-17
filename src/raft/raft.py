@@ -24,7 +24,7 @@ class Timer():
         if self.timer is not None:
             self.timer.cancel()
 
-        self.timer = self.loop.call_later(random.randint(150, 300) / 1000, self.iniciarVotacion)
+        self.timer = self.loop.call_later(random.randint(150, 300) / 1000, fn)
     
 
     def cancelar(self):
@@ -45,17 +45,21 @@ class Raft():
         self.votos = 0
         self.voto = None
         self.liderId = None
+        self.term = 0
 
+        self.index = 0
         self.mensajes = []
 
 
     def iniciarVotacion(self):
-        self.timer.setear(self.contarVotos)
+        self.term += 1
         self.estado = CANDIDATO
         self.votos = 1
+        self.voto = self.id
 
         for nodo in self.nodos:
-           safeSend(nodo, VotacionMensaje(self.id).aBytes())
+           safeSend(nodo, VotacionMensaje(self.id, self.term, self.index).aBytes())
+        self.timer.setear(self.contarVotos)
 
 
     def contarVotos(self):
@@ -76,12 +80,14 @@ class Raft():
         self.mensajes = []
 
 
-    def votacion(self, candidatoId: int) -> VotoMensaje:
+    def votacion(self, mensaje: VotacionMensaje) -> VotoMensaje:
         self.timer.setear(self.iniciarVotacion)
-        if self.voto is None:
-            self.voto = candidatoId
-            return VotoMensaje(1)
-        return VotoMensaje(0)
+        if self.voto is None or self.term < mensaje.term:
+            self.voto = mensaje.candidatoId
+            self.term = mensaje.term
+            return VotoMensaje(1, self.term)
+
+        return VotoMensaje(0, self.term)
 
 
     def nuevoLider(self, liderId: int):
@@ -94,7 +100,7 @@ class Raft():
     def procesarMensaje(self, clientWriter: asyncio.StreamWriter, mensaje: RaftMensaje):
         if self.estado == SEGUIDOR:
             if isinstance(mensaje, VotacionMensaje):
-                clientWriter.write(self.votacion(mensaje.candidatoId).aBytes())
+                clientWriter.write(self.votacion(mensaje).aBytes())
             elif isinstance(mensaje, LatidoMensaje):
                 self.timer.setear(self.iniciarVotacion)
                 # TODO: procesar mensaje
@@ -103,7 +109,8 @@ class Raft():
                 self.nuevoLider(mensaje.liderId)
         elif self.estado == CANDIDATO:
             if isinstance(mensaje, VotoMensaje):
-                self.votos += mensaje.voto
+                if mensaje.term == self.term:
+                    self.votos += mensaje.voto
         elif self.estado == LIDER:
             if isinstance(mensaje, RespuestaLatidoMensaje):
                 # TODO: procesar mensaje

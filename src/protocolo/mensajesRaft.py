@@ -20,42 +20,60 @@ class RaftMensaje(ABC):
 
 
 class VotacionMensaje(RaftMensaje):
-    def __init__(self, candidatoId: int = None) -> None:
+    def __init__(self, candidatoId: int = None, term: int = None, index: int = None ) -> None:
         self.candidatoId = candidatoId
+        self.term = term
+        self.index = index
 
     
     def aBytes(self) -> bytes:
         mensajeBytes = VOTACION_MENSAJE
 
-        mensajeBytes += (4).to_bytes(4, byteorder="big")
+        mensajeBytes += (12).to_bytes(4, byteorder="big")
         mensajeBytes += self.candidatoId.to_bytes(4, byteorder="big")
+        mensajeBytes += self.term.to_bytes(4, byteorder="big")
+        mensajeBytes += self.index.to_bytes(4, byteorder="big")
 
         return mensajeBytes
     
 
     def deBytes(self, bytes: bytes) -> None:
-        
-        self.candidatoId = int.from_bytes(bytes, byteorder="big")
+        totalLeido = 0
+
+        self.candidatoId = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
+        totalLeido += 4
+
+        self.term = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
+        totalLeido += 4
+
+        self.index = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
 
 
 class VotoMensaje(RaftMensaje):
-    def __init__(self, voto: int = None) -> None:
+    def __init__(self, voto: int = None, term: int = None) -> None:
         self.voto = voto
+        self.term = term
 
     
     def aBytes(self) -> bytes:
         mensajeBytes = VOTO_MENSAJE
 
-        mensajeBytes += (1).to_bytes(4, byteorder="big")
+        mensajeBytes += (5).to_bytes(4, byteorder="big")
         mensajeBytes += self.voto.to_bytes(1, byteorder="big")
+        mensajeBytes += self.term.to_bytes(4, byteorder="big")
 
         return mensajeBytes
     
 
     def deBytes(self, bytes: bytes) -> None:
         
-        self.voto = int.from_bytes(bytes, byteorder="big")
-        
+        totalLeido = 0
+        self.voto = int.from_bytes(bytes[totalLeido:totalLeido+1], byteorder="big")
+        totalLeido += 1
+
+        self.term = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
+
+
 
 class LatidoMensaje(RaftMensaje):
     def __init__(self, data: MensajeSistema = None) -> None:

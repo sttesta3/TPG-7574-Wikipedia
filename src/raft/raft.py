@@ -128,7 +128,7 @@ class Raft():
             await clientWriter.drain()
         elif isinstance(mensaje, LatidoMensaje):
             print("Recivo latido")
-            self.timer.setear(self.iniciarVotacion)
+            self.timer.setearLargo(self.iniciarVotacion)
             # TODO: procesar mensaje
         elif isinstance(mensaje, LiderMensaje):
             self.nuevoLider(mensaje)

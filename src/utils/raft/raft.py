@@ -31,6 +31,10 @@ class Timer():
 
     def setearLargo(self, fn):
         self._setear(500, 1000, fn)
+
+
+    def setearMedio(self, fn):
+        self._setear(150, 250, fn)
         
 
     def setearCorto(self, fn):
@@ -72,9 +76,11 @@ class Raft():
             try:
                 nodo[ESCRITURA].write(VotacionMensaje(self.id, self.term, self.index).aBytes())
                 await nodo[ESCRITURA].drain()
-            except Exception:
-                continue
-        self.timer.setearLargo(self.contarVotos)
+            except (ConnectionResetError, BrokenPipeError, OSError, asyncio.IncompleteReadError):
+                pos = self.nodos.index(nodo)
+                self.nodos.pop(pos)
+                break
+        self.timer.setearMedio(self.contarVotos)
 
 
     async def contarVotos(self):
@@ -85,13 +91,15 @@ class Raft():
                 try:
                     nodo[ESCRITURA].write(LiderMensaje(self.id, self.term).aBytes()) 
                     await nodo[ESCRITURA].drain()
-                except Exception:
-                    continue
+                except (ConnectionResetError, BrokenPipeError, OSError, asyncio.IncompleteReadError):
+                    pos = self.nodos.index(nodo)
+                    self.nodos.pop(pos)
+                    break
             self.timer.setearCorto(self.latido)
         else:
+            self.timer.setearLargo(self.iniciarVotacion)
             print(f"soy {self.id} y perdi, me votaron {self.votos}")
             self.estado = SEGUIDOR
-            self.timer.setearLargo(self.iniciarVotacion)
 
 
     async def latido(self):
@@ -99,28 +107,30 @@ class Raft():
             try:
                 nodo[ESCRITURA].write(LatidoMensaje(self.mensajes).aBytes()) 
                 await nodo[ESCRITURA].drain()
-            except Exception:
-                continue
+            except (ConnectionResetError, BrokenPipeError, OSError, asyncio.IncompleteReadError):
+                pos = self.nodos.index(nodo)
+                self.nodos.pop(pos)
+                break
         self.timer.setearCorto(self.latido)
         self.mensajes = []
 
 
     def votacion(self, mensaje: VotacionMensaje) -> VotoMensaje:
+        self.timer.setearLargo(self.iniciarVotacion)
         
         if (self.voto is None or self.term < mensaje.term) and self.index <= mensaje.index:
             print(f"soy {self.id} y voto por {mensaje.candidatoId}")
             self.term = mensaje.term
             self.voto = mensaje.candidatoId
             self.estado = SEGUIDOR
-            self.timer.setearLargo(self.iniciarVotacion)
             return VotoMensaje(1, self.term)
 
         return VotoMensaje(0, self.term)
 
 
     def nuevoLider(self, mensaje: LiderMensaje):
-        print(f"soy {self.id} y gano como lider {mensaje.liderId}")
         self.timer.setearLargo(self.iniciarVotacion)
+        print(f"soy {self.id} y gano como lider {mensaje.liderId}")
         self.liderId = mensaje.liderId
         self.term = mensaje.term
         self.voto = None
@@ -132,7 +142,7 @@ class Raft():
         
         if isinstance(mensaje, VotacionMensaje):
             clientWriter.write(self.votacion(mensaje).aBytes())
-            await clientWriter.drain()
+            await clientWriter.drain()          
         elif isinstance(mensaje, LatidoMensaje):
             self.timer.setearLargo(self.iniciarVotacion)
             # TODO: procesar mensaje
@@ -153,11 +163,17 @@ class Raft():
             self.nodos.append((reader, writer))
 
         while True:
-            mensaje = await recvMensaje(reader)
-
-            await self.procesarMensaje(writer, mensaje)
+            try:
+                mensaje = await recvMensaje(reader)
+                await self.procesarMensaje(writer, mensaje)
+            except (ConnectionResetError, BrokenPipeError, OSError, asyncio.IncompleteReadError):
+                nodo = self.nodos.index((reader, writer))
+                self.nodos.pop(nodo)
+                break
+            except Exception:
+                continue
+                
             
-
     async def conectarNodos(self):
         hosts = os.getenv("RAFTHOSTS", "").split(",")
         for host in hosts:
@@ -171,7 +187,6 @@ class Raft():
 
 
     async def iniciar(self):
-        print("INICIO")
         self.timer = Timer()
         self.timer.setearCorto(self.iniciarVotacion)
 

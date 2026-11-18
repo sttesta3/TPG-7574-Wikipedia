@@ -765,5 +765,5 @@ services:
       - PYTHONUNBUFFERED=1
       - ID=2
       - RAFTPORT=5050
-      - RAFTHOSTS=maestro_0,maestro_2
+      - RAFTHOSTS=maestro_0,maestro_1
       - CANTIDADNODOS=3

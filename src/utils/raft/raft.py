@@ -189,6 +189,7 @@ class Raft():
 
 
     async def iniciar(self):
+        logging.basicConfig(level=logging.INFO)
         self.timer = Timer()
         self.timer.setearCorto(self.iniciarVotacion)
 

@@ -36,7 +36,7 @@ services:
 
   rabbitmq:
       build:
-        context: ./src/middleware
+        context: ./src/utils/middleware
         dockerfile: Dockerfile
       container_name: rabbitmq
       environment:
@@ -99,10 +99,6 @@ services:
       - COLAIMGDESCARGA=ImgDescarga
       - COLATRANSFORMADOR=ColaTransformador
       - CLASIFICADOREXCHANGEEOF=ClasificadorExchangeEof
-      - ID=0
-      - CANTIDADNODOS=3
-      - RAFTPORT=5050
-      - RAFTHOSTS=clasificador_1,clasificador_2
 
   clasificador_1:
     build:
@@ -126,10 +122,6 @@ services:
       - COLAIMGDESCARGA=ImgDescarga
       - COLATRANSFORMADOR=ColaTransformador
       - CLASIFICADOREXCHANGEEOF=ClasificadorExchangeEof
-      - ID=1
-      - CANTIDADNODOS=3
-      - RAFTPORT=5050
-      - RAFTHOSTS=clasificador_0,clasificador_2
 
   clasificador_2:
     build:
@@ -153,10 +145,6 @@ services:
       - COLAIMGDESCARGA=ImgDescarga
       - COLATRANSFORMADOR=ColaTransformador
       - CLASIFICADOREXCHANGEEOF=ClasificadorExchangeEof
-      - ID=2
-      - CANTIDADNODOS=3
-      - RAFTPORT=5050
-      - RAFTHOSTS=clasificador_0,clasificador_1
 
   img_descargador_0:
     build:
@@ -739,3 +727,43 @@ services:
       - EXCHANGETOPGLOBAL=ExchangeTopGlobal
       - TOTALTOPPARCIAL=3
       - ID=2
+
+
+  maestro_0:
+    build:
+      context: ./src/
+      dockerfile: maestro/Dockerfile
+    container_name: maestro_0
+    # Deberia depender de todos los servicios
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ID=0
+      - RAFTPORT=5050
+      - RAFTHOSTS=maestro_1,maestro_2
+      - CANTIDADNODOS=3
+
+  maestro_1:
+    build:
+      context: ./src/
+      dockerfile: maestro/Dockerfile
+    container_name: maestro_1
+    # Deberia depender de todos los servicios
+    environment:
+      - PYTHONUNBUFFERED=1 
+      - ID=1
+      - RAFTPORT=5050
+      - RAFTHOSTS=maestro_0,maestro_2
+      - CANTIDADNODOS=3
+
+  maestro_2:
+    build:
+      context: ./src/
+      dockerfile: maestro/Dockerfile
+    container_name: maestro_2
+    # Deberia depender de todos los servicios
+    environment:
+      - PYTHONUNBUFFERED=1
+      - ID=2
+      - RAFTPORT=5050
+      - RAFTHOSTS=maestro_0,maestro_2
+      - CANTIDADNODOS=3

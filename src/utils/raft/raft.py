@@ -1,7 +1,8 @@
 import os
 import socket
 import random
-import asyncio 
+import asyncio
+import logging 
 from protocolo.mensajesRaft import recvMensaje, VotacionMensaje, VotoMensaje, LatidoMensaje, RespuestaLatidoMensaje, LiderMensaje, RaftMensaje
 
 ID = int(os.environ["ID"])
@@ -71,7 +72,7 @@ class Raft():
         self.estado = CANDIDATO
         self.votos = 1
         self.voto = self.id
-        print(f"soy {self.id} e inicie la votacion")
+        logging.info(f"Soy {self.id} e inicie la votacion en termino {self.term}")
         for nodo in self.nodos:
             try:
                 nodo[ESCRITURA].write(VotacionMensaje(self.id, self.term, self.index).aBytes())
@@ -85,7 +86,7 @@ class Raft():
 
     async def contarVotos(self):
         if self.votos >= (CANTIDADNODOS // 2) + 1:
-            print(f"soy {self.id} y gane")
+            logging.info(f"Soy {self.id} y gane en termino {self.term} con {self.votos} votos")
             self.estado = LIDER
             for nodo in self.nodos:
                 try:
@@ -98,7 +99,7 @@ class Raft():
             self.timer.setearCorto(self.latido)
         else:
             self.timer.setearLargo(self.iniciarVotacion)
-            print(f"soy {self.id} y perdi, me votaron {self.votos}")
+            logging.info(f"Soy {self.id} y perdi en termino {self.term} con {self.votos} votos")
             self.estado = SEGUIDOR
 
 
@@ -119,7 +120,7 @@ class Raft():
         self.timer.setearLargo(self.iniciarVotacion)
         
         if (self.voto is None or self.term < mensaje.term) and self.index <= mensaje.index:
-            print(f"soy {self.id} y voto por {mensaje.candidatoId}")
+            logging.info(f"Soy {self.id} y voto por {mensaje.candidatoId} en termino {self.term}")
             self.term = mensaje.term
             self.voto = mensaje.candidatoId
             self.estado = SEGUIDOR
@@ -130,7 +131,7 @@ class Raft():
 
     def nuevoLider(self, mensaje: LiderMensaje):
         self.timer.setearLargo(self.iniciarVotacion)
-        print(f"soy {self.id} y gano como lider {mensaje.liderId}")
+        logging.info(f"Soy {self.id} y gano como lider {mensaje.liderId} en termino {mensaje.term}")
         self.liderId = mensaje.liderId
         self.term = mensaje.term
         self.voto = None
@@ -144,6 +145,7 @@ class Raft():
             clientWriter.write(self.votacion(mensaje).aBytes())
             await clientWriter.drain()          
         elif isinstance(mensaje, LatidoMensaje):
+            logging.debug(f"Recibo latido de {self.liderId} ")
             self.timer.setearLargo(self.iniciarVotacion)
             # TODO: procesar mensaje
         elif isinstance(mensaje, LiderMensaje):
@@ -180,7 +182,7 @@ class Raft():
             if host is not None and host != "":
                 try:
                     reader, writer = await asyncio.open_connection(host, RAFTPORT)
-                    print(f"me conecto con {host}")
+                    logging.info(f"me conecto con {host}")
                     asyncio.create_task(self.procesarConexion(reader, writer))
                 except Exception:
                     continue

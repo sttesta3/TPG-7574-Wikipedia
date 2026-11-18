@@ -1,4 +1,3 @@
-import socket
 from abc import ABC, abstractmethod
 from protocolo.mensajesSistema import MensajeSistema, recvMensajeSistema
 

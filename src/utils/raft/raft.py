@@ -145,7 +145,8 @@ class Raft():
             clientWriter.write(self.votacion(mensaje).aBytes())
             await clientWriter.drain()          
         elif isinstance(mensaje, LatidoMensaje):
-            logging.debug(f"Recibo latido de {self.liderId} ")
+            self.liderId = mensaje.liderId
+            logging.debug(f"Recibo latido de {self.liderId}")
             self.timer.setearLargo(self.iniciarVotacion)
             # TODO: procesar mensaje
         elif isinstance(mensaje, LiderMensaje):

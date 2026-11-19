@@ -1,5 +1,4 @@
 import os
-import sys
 import logging
 import signal
 import threading
@@ -7,6 +6,7 @@ from contadorDistribuido import contadorDistribuido
 from middleware import MessageMiddlewareQueue
 from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, LoteDataMensajeSistema, ImgMensajeSistema, ImgLoteMensajeSistema, Respuesta1MensajeSistema, TransformadorMensajeSistema, TransformadorLoteMensajeSistema
 from protocolo.mensajesCliente import LENGUAJEINGLES, LENGUAJEFRANCES
+
 
 MOMHOST = os.environ["MOMHOST"]
 COLADATOS = os.environ["COLADATOS"]

@@ -22,7 +22,7 @@ def safeRecv(socket: socket.socket, size):
     logging.debug("[safe socket][recv] FIN")
     return bytes
 
-def safeSend(socket: socket.socket, bytes):
+def safeSend(socket: socket.socket, bytes: bytes):
     bytes_send = 0 
     len_bytes = len(bytes)
     while bytes_send < len(bytes):

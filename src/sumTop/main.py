@@ -1,9 +1,9 @@
 import os
-import sys
-import logging
 import signal
+import logging
 import traceback
 import threading
+from wal import Wal
 from contadorDistribuido import contadorDistribuido
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
 from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, PalabrasMensajeSistema
@@ -25,6 +25,7 @@ class SumTop:
         self.contador = contadorDistribuido(MOMHOST, EXCHANGESUMTOPEOF, self._finalizarCliente, self.colaSumTop.remote_execution)
 
         self.clientes = {}
+        self.wal = Wal()
 
 
     def _procesarData(self, mensajes: PalabrasLoteMensajeSistema) -> None:
@@ -56,6 +57,7 @@ class SumTop:
                 self.excahangeTopParciales[i].send(parcial.aBytes())
             self.excahangeTopParciales[i].send(FinMensajeSistema(clienteId).aBytes())
 
+        self.wal.borrarLog(clienteId)
         logging.info(f"Mando parciales y EOF de {clienteId}")
 
 
@@ -64,11 +66,14 @@ class SumTop:
             mensaje = recvMensajeSistema(bytes)
             if isinstance(mensaje, FinMensajeSistema):
                 self.contador.eofRecibido(mensaje)
+                self.wal.guardarMensaje(bytes, mensaje.clienteId)
             elif self.contador.yaFinalizado(mensaje.clienteId):
                 logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
             else:
-                self._procesarData(mensaje)
+                # TODO: esta bien esta secuencia?
+                self.wal.guardarMensaje(bytes, mensaje.clienteId)
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
+                self._procesarData(mensaje)
             ack()
         except Exception as e:
             logging.warning(e)
@@ -76,7 +81,13 @@ class SumTop:
             nack()
 
 
+    def _recuperarLog(self):
+        for log in self.wal.recuperarLogs():
+            self._procesarData(log)
+
+
     def iniciar(self):
+        self._recuperarLog()
         thread_contador = threading.Thread(target=self.contador.iniciar, daemon=True)
         thread_contador.start()
         self.colaSumTop.start_consuming(self.procesarMensaje)

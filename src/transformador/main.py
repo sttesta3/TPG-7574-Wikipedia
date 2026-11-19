@@ -34,6 +34,7 @@ class Transformador:
         for i in range(TOTALPROMEDIO):
             self.exchangePromedio.append(MessageMiddlewareExchange(MOMHOST, EXCHANGEPROMEDIO, [EXCHANGEPROMEDIO + "_" + str(i)]))
 
+        # TODO: unico dato en memoria (es necesario logear??)
         self.contador = contadorDistribuido(MOMHOST, EXCHANGETRANSFORMADOREOF, self._finalizarCliente, self.colaTransformador.remote_execution)
 
 

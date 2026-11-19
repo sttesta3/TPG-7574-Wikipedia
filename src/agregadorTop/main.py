@@ -1,8 +1,8 @@
 import os
-import sys
-import logging
 import signal
+import logging
 import traceback
+from wal import Wal
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
 from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, PalabrasMensajeSistema, Respuesta3MensajeSistema
 
@@ -44,6 +44,7 @@ class PalabrasPorIdioma:
             result[clave] = valor[0]
         return result
     
+
 class AgregadorTop:
     def __init__(self):
         self.exchangeTopParcial = MessageMiddlewareExchange(MOMHOST, EXCHANGETOPPARCIAL, [EXCHANGETOPPARCIAL+"_"+str(ID)])
@@ -53,6 +54,7 @@ class AgregadorTop:
         self.colaRespuestas = MessageMiddlewareQueue(MOMHOST, COLARESPUESTAS)
          
         self.clientes = {}
+        self.wal = Wal()
 
 
     def _procesarData(self, mensajes: PalabrasLoteMensajeSistema) -> None:
@@ -77,6 +79,7 @@ class AgregadorTop:
         top = sorted(palabras.items(), key=lambda item: item[1], reverse=True)
         return dict(top[:TOP_SIZE])
 
+
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
         if mensaje.clienteId not in self.clientes:
             self.clientes[mensaje.clienteId] = [0, PalabrasPorIdioma()]
@@ -89,13 +92,15 @@ class AgregadorTop:
             self.exchangeTopGlobal[nodo].send(PalabrasLoteMensajeSistema(mensaje.clienteId, [PalabrasMensajeSistema( palabras=self._top20(self.clientes[mensaje.clienteId][1].mergeTop()), url="", lenguaje=0)]).aBytes())    
             self.exchangeTopGlobal[nodo].send(FinMensajeSistema(mensaje.clienteId).aBytes())
             
+            self.wal.borrarLog(mensaje.clienteId)
             del self.clientes[mensaje.clienteId]
             
 
     def procesarMensaje(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
-            if isinstance(mensaje, FinMensajeSistema): # TODO: esta bien esto?
+            self.wal.guardarMensaje(bytes, mensaje.clienteId)
+            if isinstance(mensaje, FinMensajeSistema):
                 self._procesarEOF(mensaje)
             else:
                 self._procesarData(mensaje)
@@ -105,7 +110,17 @@ class AgregadorTop:
             logging.warning(traceback.format_exc())
             nack()
 
+
+    def _recuperarLog(self):
+        for log in self.wal.recuperarLogs():
+            if isinstance(log, FinMensajeSistema):
+                self._procesarEOF(log)
+            else:
+                self._procesarData(log)
+
+
     def iniciar(self):
+        self._recuperarLog()
         self.exchangeTopParcial.start_consuming(self.procesarMensaje)
         self._close_connections()
 

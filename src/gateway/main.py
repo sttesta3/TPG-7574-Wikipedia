@@ -69,7 +69,6 @@ def manejarRespuesta(clientes: dict) -> None:
                 clientes[clienteId] = cliente
                 if cliente[EOFS_RECIBIDOS] == TOTAL_EOFS_ESPERADOS:
                     FinMensaje(clienteSocket).send()
-                    print("llego eofs")
                     del clientes[clienteId]
             else:
                 sendRespuesta(clienteSocket, respuesta.aRespuestaGateway())
@@ -91,6 +90,7 @@ def manejarSigterm(clientes: dict, serverSocket: socket.socket, sigtermRecivida)
 def main() -> None:
     logging.basicConfig(level=logging.INFO)
     with multiprocessing.Manager() as manager:
+        # TODO: unico dato en memoria (se puede caer el gateway??)
         clientes = manager.dict()
         sigtermRecivida = manager.Value("c_short", 0)
         with multiprocessing.Pool(processes=os.process_cpu_count()) as processes_pool:

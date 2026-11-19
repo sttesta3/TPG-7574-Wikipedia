@@ -1,8 +1,8 @@
 import os
-import sys
-import logging
 import signal
+import logging
 import traceback
+from wal import Wal
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
 from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, Respuesta4MensajeSistema
 
@@ -20,6 +20,7 @@ class JoinTop:
         self.exchangeTopGlobal = MessageMiddlewareExchange(MOMHOST, EXCHANGETOPGLOBAL, [EXCHANGETOPGLOBAL+"_"+ID])
 
         self.clientes = {}
+        self.wal = Wal()
 
 
     def _procesarData(self, mensajes: PalabrasLoteMensajeSistema) -> None:
@@ -42,14 +43,15 @@ class JoinTop:
         if self.clientes[mensaje.clienteId][0] == TOTALTOPPARCIAL:
             self.colaRespuestas.send(Respuesta4MensajeSistema(mensaje.clienteId, self._top20(self.clientes[mensaje.clienteId][1])).aBytes())
             self.colaRespuestas.send(mensaje.aBytes())
-            print("EOF")
+            self.wal.borrarLog(mensaje.clienteId)
             del self.clientes[mensaje.clienteId]
 
 
     def procesarMensaje(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
-            if isinstance(mensaje, FinMensajeSistema): # TODO: esta bien esto?
+            self.wal.guardarMensaje(bytes, mensaje.clienteId)
+            if isinstance(mensaje, FinMensajeSistema):
                 self._procesarEOF(mensaje)
             else:
                 self._procesarData(mensaje)
@@ -60,7 +62,16 @@ class JoinTop:
             nack()
 
 
+    def _recuperarLog(self):
+        for log in self.wal.recuperarLogs():
+            if isinstance(log, FinMensajeSistema):
+                self._procesarEOF(log)
+            else:
+                self._procesarData(log)
+
+
     def iniciar(self):
+        self._recuperarLog()
         self.exchangeTopGlobal.start_consuming(self.procesarMensaje)
         self._close_connections()
 

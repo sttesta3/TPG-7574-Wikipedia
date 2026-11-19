@@ -1,7 +1,7 @@
 import signal
 import logging
 import threading
-from raft.raft import Raft
+from raft import Raft
 
 class Maestro:
     def __init__(self):

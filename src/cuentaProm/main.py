@@ -1,10 +1,9 @@
 import os
-import sys
 import signal
 import logging
 import threading
-from contadorDistribuido import contadorDistribuido
 from middleware import MessageMiddlewareQueue
+from contadorDistribuido import contadorDistribuido
 from protocolo.mensajesSistema import recvMensajeSistema, FinPromMensajeSistema, CantidadPalabrasLoteMensajeSistema, Respuesta5MensajeSistema, FinMensajeSistema
 
 MOMHOST = os.environ["MOMHOST"]
@@ -22,7 +21,7 @@ class CuentaProm:
 
         self.contador = contadorDistribuido(MOMHOST, EXCHANGECUENTAPROMEOF, self._finalizarCliente, self.colaCuentaProm.remote_execution)
 
-
+    # TODO: este no tiene nada en memoria. Con esto alcanza (?
     def _procesarData(self, mensajes: CantidadPalabrasLoteMensajeSistema) -> None:
         with open(str(mensajes.clienteId), "a", encoding="utf-8") as f:
             for mensaje in mensajes.mensajes:

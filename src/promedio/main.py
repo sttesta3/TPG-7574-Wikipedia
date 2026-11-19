@@ -1,8 +1,8 @@
 import os
-import sys
-import logging
 import signal
+import logging
 import traceback
+from wal import Wal
 from middleware import MessageMiddlewareExchange, MessageMiddlewareQueue
 from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, CantidadPalabrasLoteMensajeSistema, FinPromMensajeSistema
 
@@ -22,14 +22,18 @@ CUENTA_INICIAL = 0
 
 class Promedio:
     def __init__(self):
-        self.clientes = {}
         self.exchangePromedio = MessageMiddlewareExchange(MOMHOST, EXCHANGEPROMEDIO, [EXCHANGEPROMEDIO + "_" + ID])
         self.colaCuentaProm = MessageMiddlewareQueue(MOMHOST, COLACUENTAPROM)
+
+        self.clientes = {}
+        self.wal = Wal()
+
 
     def _estado(self, clienteId: str) -> list:
         if clienteId not in self.clientes:
             self.clientes[clienteId] = [0, CUENTA_INICIAL, 0]
         return self.clientes[clienteId]
+
 
     def _procesarData(self, mensajes: CantidadPalabrasLoteMensajeSistema) -> None:
         estado = self._estado(str(mensajes.clienteId))
@@ -56,11 +60,13 @@ class Promedio:
             self.colaCuentaProm.send(FinPromMensajeSistema(mensaje.clienteId, promedio, mensaje.totalMsg).aBytes())
 
             del self.clientes[clienteId]
+            self.wal.borrarLog(clienteId)
         
     
     def procesarMensaje(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
+            self.wal.guardarMensaje(bytes, mensaje.clienteId)
             if isinstance(mensaje, FinMensajeSistema):
                 self._procesarEOF(mensaje)
             else:
@@ -72,12 +78,22 @@ class Promedio:
             nack()
 
 
+    def _recuperarLogs(self):
+        for log in self.wal.recuperarLogs():
+            if isinstance(log, FinMensajeSistema):
+                self._procesarEOF(log)
+            else:
+                self._procesarData(log)
+
+
     def iniciar(self):
+        self._recuperarLogs()
         self.exchangePromedio.start_consuming(self.procesarMensaje)
         self._close_connections()
 
 
     def manejarSigterm(self) -> None:
+        self.wal.close()
         self.exchangePromedio.remote_stop()
 
 

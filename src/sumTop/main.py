@@ -64,14 +64,12 @@ class SumTop:
     def procesarMensaje(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
+            self.wal.guardarMensaje(bytes, mensaje.clienteId)
             if isinstance(mensaje, FinMensajeSistema):
                 self.contador.eofRecibido(mensaje)
-                self.wal.guardarMensaje(bytes, mensaje.clienteId)
             elif self.contador.yaFinalizado(mensaje.clienteId):
                 logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
             else:
-                # TODO: esta bien esta secuencia?
-                self.wal.guardarMensaje(bytes, mensaje.clienteId)
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
                 self._procesarData(mensaje)
             ack()
@@ -83,7 +81,13 @@ class SumTop:
 
     def _recuperarLog(self):
         for log in self.wal.recuperarLogs():
-            self._procesarData(log)
+            if isinstance(log, FinMensajeSistema):
+                self.contador.eofRecibido(log)
+            elif self.contador.yaFinalizado(log.clienteId):
+                logging.info(f"Descarto lote {log.secuencia} de {log.clienteId}: cliente ya finalizado")
+            else:
+                self.contador.procesado(log.clienteId, log.secuencia)
+                self._procesarData(log)
 
 
     def iniciar(self):

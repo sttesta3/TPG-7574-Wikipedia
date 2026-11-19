@@ -88,6 +88,7 @@ class Raft():
         if self.votos >= (CANTIDADNODOS // 2) + 1:
             logging.info(f"Soy {self.id} y gane en termino {self.term} con {self.votos} votos")
             self.estado = LIDER
+            self.timer.setearCorto(self.latido)
             for nodo in self.nodos:
                 try:
                     nodo[ESCRITURA].write(LiderMensaje(self.id, self.term).aBytes()) 
@@ -96,7 +97,6 @@ class Raft():
                     pos = self.nodos.index(nodo)
                     self.nodos.pop(pos)
                     break
-            self.timer.setearCorto(self.latido)
         else:
             self.timer.setearLargo(self.iniciarVotacion)
             logging.info(f"Soy {self.id} y perdi en termino {self.term} con {self.votos} votos")
@@ -121,7 +121,7 @@ class Raft():
         
         if (self.voto is None or self.term < mensaje.term) and self.index <= mensaje.index:
             logging.info(f"Soy {self.id} y voto por {mensaje.candidatoId} en termino {self.term}")
-            self.term = mensaje.term
+            self.term = mensaje.termsetearCorto
             self.voto = mensaje.candidatoId
             self.estado = SEGUIDOR
             return VotoMensaje(1, self.term)
@@ -199,6 +199,7 @@ class Raft():
         async with server:
             await self.conectarNodos()
             await server.serve_forever()
+
 
     def iniciarRaft(self):
         asyncio.run(self.iniciar())

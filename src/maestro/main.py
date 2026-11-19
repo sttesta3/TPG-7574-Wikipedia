@@ -1,3 +1,4 @@
+import sys
 import signal
 import logging
 import threading
@@ -7,14 +8,15 @@ class Maestro:
     def __init__(self):
         self.raft = Raft()
 
-    
+
     def iniciar(self):
         raft = threading.Thread(target=self.raft.iniciarRaft, daemon=True)
         raft.start()
         raft.join()
 
+
     def manejarSigterm(self) -> None:
-        pass
+        sys.exit(0)
 
 
 def main() -> int:

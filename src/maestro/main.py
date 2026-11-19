@@ -16,7 +16,7 @@ class Maestro:
 
 
     def manejarSigterm(self) -> None:
-        sys.exit(0)
+        pass
 
 
 def main() -> int:

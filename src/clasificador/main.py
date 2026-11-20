@@ -2,8 +2,9 @@ import os
 import logging
 import signal
 import threading
-from contadorDistribuido import contadorDistribuido
+from latido import Latido
 from middleware import MessageMiddlewareQueue
+from contadorDistribuido import contadorDistribuido
 from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, LoteDataMensajeSistema, ImgMensajeSistema, ImgLoteMensajeSistema, Respuesta1MensajeSistema, TransformadorMensajeSistema, TransformadorLoteMensajeSistema
 from protocolo.mensajesCliente import LENGUAJEINGLES, LENGUAJEFRANCES
 
@@ -69,6 +70,10 @@ class Clasificador:
     def iniciar(self):
         thread_contador = threading.Thread(target=self.contador.iniciar, daemon=True)
         thread_contador.start()
+
+        latido = Latido(self.colaDatos.connection)
+        thread_latido = threading.Thread(target=latido.start, daemon=True)
+  
         self.colaDatos.start_consuming(self.procesarMensaje)
         thread_contador.join()
         self._close_connections()

@@ -146,7 +146,7 @@ class Raft():
             await clientWriter.drain()          
         elif isinstance(mensaje, LatidoMensaje):
             logging.debug(f"Recibo latido de {self.liderId} ")
-            self.timer.setearLargo(self.iniciarVotacion)
+            self.timer.setearLprocesarMensajeargo(self.iniciarVotacion)
             # TODO: procesar mensaje
         elif isinstance(mensaje, LiderMensaje):
             self.nuevoLider(mensaje)
@@ -154,9 +154,7 @@ class Raft():
             if mensaje.term == self.term and self.estado == CANDIDATO:
                 self.votos += mensaje.voto
         elif isinstance(mensaje, RespuestaLatidoMensaje):
-                
                 # TODO: procesar mensaje
-
                 pass
 
     
@@ -172,7 +170,7 @@ class Raft():
                 nodo = self.nodos.index((reader, writer))
                 self.nodos.pop(nodo)
                 break
-            except Exception:
+            except Exception as e:
                 continue
                 
             

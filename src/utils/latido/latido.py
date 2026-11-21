@@ -32,3 +32,5 @@ def latir(maestroSocket: socket.socket):
         safeSend(maestroSocket, LATIDO_MENSAJE)
     except Exception:
         maestroSocket.close()
+
+# TODO: donde sea q esta instanciado hay que corroborar y borrar los recursos al hacer sigtemr

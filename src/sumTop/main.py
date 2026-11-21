@@ -4,6 +4,7 @@ import logging
 import traceback
 import threading
 from wal import Wal
+from latido import Latido
 from contadorDistribuido import contadorDistribuido
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
 from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, PalabrasMensajeSistema
@@ -91,6 +92,10 @@ class SumTop:
 
 
     def iniciar(self):
+        latido = Latido(self.colaDatos.connection)
+        thread_latido = threading.Thread(target=latido.start, daemon=True)
+        thread_latido.start()
+
         self._recuperarLog()
         thread_contador = threading.Thread(target=self.contador.iniciar, daemon=True)
         thread_contador.start()

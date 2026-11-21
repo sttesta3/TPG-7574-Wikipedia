@@ -1,14 +1,14 @@
 import os
-import sys
-import logging
 import signal
 import random
-import email.utils
-from datetime import datetime, timezone
 import aiohttp
 import asyncio
+import logging
 import traceback
 import threading
+import email.utils
+from latido import Latido
+from datetime import datetime, timezone
 from contadorDistribuido import contadorDistribuido
 from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, ImgMensajeSistema, ImgLoteMensajeSistema, Respuesta2MensajeSistema
 from middleware import MessageMiddlewareQueue
@@ -154,6 +154,10 @@ class ImgDescargador:
 
 
     def iniciar(self):
+        latido = Latido(self.colaDatos.connection)
+        thread_latido = threading.Thread(target=latido.start, daemon=True)
+        thread_latido.start()
+
         thread_event_loop = threading.Thread(target=self._iniciarEventLoop, daemon=True)
         thread_contador = threading.Thread(target=self.contador.iniciar, daemon=True)
 

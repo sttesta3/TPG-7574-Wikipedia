@@ -104,7 +104,7 @@ class Raft():
 
     def nuevoLider(self, mensaje: LiderMensaje):
         self.timer.setearLargo(self.iniciarVotacion)
-        logging.info(f"Soy {self.id} y gano como lider {mensaje.liderId} en termino {mensaje.term}")
+        logging.debug(f"Soy {self.id} y gano como lider {mensaje.liderId} en termino {mensaje.term}")
         self.liderId = mensaje.liderId
         self.term = mensaje.term
         self.voto = None

@@ -2,7 +2,9 @@ import os
 import signal
 import logging
 import traceback
+import threading
 from wal import Wal
+from latido import Latido
 from middleware import MessageMiddlewareExchange, MessageMiddlewareQueue
 from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, CantidadPalabrasLoteMensajeSistema, FinPromMensajeSistema
 
@@ -87,6 +89,10 @@ class Promedio:
 
 
     def iniciar(self):
+        latido = Latido(self.colaDatos.connection)
+        thread_latido = threading.Thread(target=latido.start, daemon=True)
+        thread_latido.start()
+        
         self._recuperarLogs()
         self.exchangePromedio.start_consuming(self.procesarMensaje)
         self._close_connections()

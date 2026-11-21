@@ -2,6 +2,7 @@ import os
 import signal
 import logging
 import threading
+from latido import Latido
 from middleware import MessageMiddlewareQueue
 from contadorDistribuido import contadorDistribuido
 from protocolo.mensajesSistema import recvMensajeSistema, FinPromMensajeSistema, CantidadPalabrasLoteMensajeSistema, Respuesta5MensajeSistema, FinMensajeSistema
@@ -65,8 +66,13 @@ class CuentaProm:
 
 
     def iniciar(self):
+        latido = Latido(self.colaDatos.connection)
+        thread_latido = threading.Thread(target=latido.start, daemon=True)
+        thread_latido.start()
+
         thread_contador = threading.Thread(target=self.contador.iniciar, daemon=True)
         thread_contador.start()
+
         self.colaCuentaProm.start_consuming(self.procesarMensaje)
         thread_contador.join()
         self._close_connections()

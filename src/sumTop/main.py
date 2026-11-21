@@ -58,7 +58,7 @@ class SumTop:
             self.excahangeTopParciales[i].send(FinMensajeSistema(clienteId).aBytes())
 
         self.wal.borrarLog(clienteId)
-        logging.info(f"Mando parciales y EOF de {clienteId}")
+        logging.debug(f"Mando parciales y EOF de {clienteId}")
 
 
     def procesarMensaje(self, bytes, ack, nack):
@@ -68,7 +68,7 @@ class SumTop:
             if isinstance(mensaje, FinMensajeSistema):
                 self.contador.eofRecibido(mensaje)
             elif self.contador.yaFinalizado(mensaje.clienteId):
-                logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
+                logging.debug(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
             else:
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
                 self._procesarData(mensaje)
@@ -84,7 +84,7 @@ class SumTop:
             if isinstance(log, FinMensajeSistema):
                 self.contador.eofRecibido(log)
             elif self.contador.yaFinalizado(log.clienteId):
-                logging.info(f"Descarto lote {log.secuencia} de {log.clienteId}: cliente ya finalizado")
+                logging.debug(f"Descarto lote {log.secuencia} de {log.clienteId}: cliente ya finalizado")
             else:
                 self.contador.procesado(log.clienteId, log.secuencia)
                 self._procesarData(log)

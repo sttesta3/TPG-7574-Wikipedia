@@ -29,7 +29,7 @@ class JoinTop:
             self.clientes[clienteId] = [0, {}]
 
         for mensaje in mensajes.mensajes:
-            logging.info(f"[join] Recibi {clienteId} top parcial {mensaje.palabras}")
+            logging.debug(f"[join] Recibi {clienteId} top parcial {mensaje.palabras}")
             self.clientes[clienteId][1] = self.clientes[clienteId][1] | mensaje.palabras
 
     def _top20(self, palabras: dict[str, int]) -> dict[str, int]:
@@ -37,7 +37,7 @@ class JoinTop:
         return dict(top[:20])
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
-        logging.info(f"[join] Recibi {mensaje.clienteId} EOF")
+        logging.debug(f"[join] Recibi {mensaje.clienteId} EOF")
         self.clientes[mensaje.clienteId][0] += 1
 
         if self.clientes[mensaje.clienteId][0] == TOTALTOPPARCIAL:

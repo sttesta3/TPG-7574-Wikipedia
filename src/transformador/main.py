@@ -80,7 +80,7 @@ class Transformador:
         self.exchangePromedio[nodo].send(FinMensajeSistema(clienteId, fin.totalMsg).aBytes())
 
         if originador:
-            logging.info(f"Mando EOF de {clienteId} con total {fin.totalMsg}")
+            logging.debug(f"Mando EOF de {clienteId} con total {fin.totalMsg}")
             self.colaSumTop.send(FinMensajeSistema(clienteId, fin.totalMsg).aBytes())
 
 
@@ -90,7 +90,7 @@ class Transformador:
             if isinstance(mensaje, FinMensajeSistema):
                 self.contador.eofRecibido(mensaje)
             elif self.contador.yaFinalizado(mensaje.clienteId):
-                logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
+                logging.debug(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
             else:
                 self._procesarData(mensaje)
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)

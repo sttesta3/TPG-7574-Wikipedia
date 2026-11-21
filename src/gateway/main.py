@@ -29,7 +29,7 @@ EOFS_RECIBIDOS = 1
 
 def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
     logging.basicConfig(level=logging.INFO)
-    logging.info(f"manejando cliente {clienteId}")
+    logging.debug(f"manejando cliente {clienteId}")
     try:
         colaDatos = MessageMiddlewareQueue(MOMHOST, COLADATOS)
         
@@ -38,7 +38,7 @@ def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
         while not eof:
             mensaje = recvMensaje(clientSocket)
             if mensaje is None:
-                logging.info(f"EOF de {clienteId}")
+                logging.debug(f"EOF de {clienteId}")
                 eof = True
                 colaDatos.send(FinMensajeSistema(clienteId, contador_mensajes).aBytes())
             else:
@@ -61,7 +61,7 @@ def manejarRespuesta(clientes: dict) -> None:
             clienteId = respuesta.clienteId
             clienteSocket = clientes[clienteId][SOCKET]
 
-            logging.info(f"Respuesta {clienteId}")
+            logging.debug(f"Respuesta {clienteId}")
             if isinstance(respuesta, FinMensajeSistema):
                 # Es un manager.dict: hay que copiar, modificar y reasignar para que se propague
                 cliente = clientes[clienteId]

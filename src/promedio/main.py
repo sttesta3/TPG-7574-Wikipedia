@@ -52,10 +52,10 @@ class Promedio:
         if estado[EOFS_RECIBIDOS] == TOTALTRANSFORMADORES:
             promedio_float = estado[SUMA] / estado[CUENTA]
             promedio = estado[SUMA] // estado[CUENTA]
-            logging.info(f"Total: {estado[SUMA]}")
-            logging.info(f"Cuenta: {estado[CUENTA]}")
-            logging.info(f"Promedio flotante: {promedio_float}")
-            logging.info(f"Promedio : {promedio}")
+            logging.debug(f"Total: {estado[SUMA]}")
+            logging.debug(f"Cuenta: {estado[CUENTA]}")
+            logging.debug(f"Promedio flotante: {promedio_float}")
+            logging.debug(f"Promedio : {promedio}")
 
             self.colaCuentaProm.send(FinPromMensajeSistema(mensaje.clienteId, promedio, mensaje.totalMsg).aBytes())
 

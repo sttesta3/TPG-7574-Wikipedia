@@ -91,7 +91,7 @@ class ImgDescargador:
                     return b''
                 retryAfter = e.retryAfter if isinstance(e, DescargaReintentable) else 0
                 espera = min(max(retryAfter, BACKOFF_BASE * (2 ** intento)) * random.uniform(1, 1.2), ESPERA_MAXIMA)
-                logging.info(f"Reintento {intento + 1} de {mensaje.imgUrl} en {espera:.2f}s (Retry-After={retryAfter}): {e!r}")
+                logging.debug(f"Reintento {intento + 1} de {mensaje.imgUrl} en {espera:.2f}s (Retry-After={retryAfter}): {e!r}")
                 await asyncio.sleep(espera)
 
 
@@ -110,14 +110,14 @@ class ImgDescargador:
         resultados = await asyncio.gather(*[self._descargar(mensaje) for mensaje in lote.mensajes], return_exceptions=True)
         for resultado in resultados:
             if isinstance(resultado, Exception):
-                logging.info(f"Fallo una descarga del lote {secuencia} de {clienteId}: {resultado}")
+                logging.debug(f"Fallo una descarga del lote {secuencia} de {clienteId}: {resultado}")
 
         self.colaImgDescarga.remote_execution(lambda: self.contador.procesado(clienteId, secuencia))
 
 
     def _enviarFin(self, clienteId) -> None:
         self.colaRespuestas.send(FinMensajeSistema(clienteId).aBytes())
-        logging.info(f"Mando EOF de {clienteId}")
+        logging.debug(f"Mando EOF de {clienteId}")
 
 
     def _finalizarCliente(self, clienteId, fin: FinMensajeSistema, originador: bool) -> None:
@@ -138,7 +138,7 @@ class ImgDescargador:
             if isinstance(mensaje, FinMensajeSistema):
                 self.contador.eofRecibido(mensaje)
             elif self.contador.yaFinalizado(mensaje.clienteId):
-                logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
+                logging.debug(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
             else:
                 asyncio.run_coroutine_threadsafe(self._procesarLote(mensaje), self.eventLoop)
             ack()

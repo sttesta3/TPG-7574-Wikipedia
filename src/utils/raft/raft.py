@@ -44,7 +44,7 @@ class Raft():
         self.estado = CANDIDATO
         self.votos = 1
         self.voto = self.id
-        logging.info(f"Soy {self.id} e inicie la votacion en termino {self.term}")
+        logging.debug(f"Soy {self.id} e inicie la votacion en termino {self.term}")
         for nodo in self.nodos:
             try:
                 nodo[ESCRITURA].write(VotacionMensaje(self.id, self.term, self.index).aBytes())
@@ -58,7 +58,7 @@ class Raft():
 
     async def contarVotos(self):
         if self.votos >= (CANTIDADNODOS // 2) + 1:
-            logging.info(f"Soy {self.id} y gane en termino {self.term} con {self.votos} votos")
+            logging.debug(f"Soy {self.id} y gane en termino {self.term} con {self.votos} votos")
             self.estado = LIDER
             for nodo in self.nodos:
                 try:
@@ -72,7 +72,7 @@ class Raft():
             self.callback()
         else:
             self.timer.setearLargo(self.iniciarVotacion)
-            logging.info(f"Soy {self.id} y perdi en termino {self.term} con {self.votos} votos")
+            logging.debug(f"Soy {self.id} y perdi en termino {self.term} con {self.votos} votos")
             self.estado = SEGUIDOR
 
 
@@ -93,7 +93,7 @@ class Raft():
         self.timer.setearLargo(self.iniciarVotacion)
         
         if (self.voto is None or self.term < mensaje.term) and self.index <= mensaje.index:
-            logging.info(f"Soy {self.id} y voto por {mensaje.candidatoId} en termino {self.term}")
+            logging.debug(f"Soy {self.id} y voto por {mensaje.candidatoId} en termino {self.term}")
             self.term = mensaje.term
             self.voto = mensaje.candidatoId
             self.estado = SEGUIDOR
@@ -155,7 +155,7 @@ class Raft():
             if host is not None and host != "":
                 try:
                     reader, writer = await asyncio.open_connection(host, RAFTPORT)
-                    logging.info(f"me conecto con {host}")
+                    logging.debug(f"me conecto con {host}")
                     asyncio.create_task(self.procesarConexion(reader, writer))
                 except Exception:
                     continue

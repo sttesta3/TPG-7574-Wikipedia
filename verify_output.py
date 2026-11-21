@@ -220,7 +220,7 @@ def diff_files(id_query, id_cliente, sort=True) -> bool:
         logging.warning(f"diff error: {result.stderr.strip()}")
         return False
     elif result.returncode == 1:
-        logging.info(f"Los archivos son diferentes:\n{result.stdout.strip()}")
+        logging.debug(f"Los archivos son diferentes:\n{result.stdout.strip()}")
         return False
     else:
         return True

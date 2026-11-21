@@ -47,7 +47,7 @@ class contadorDistribuido():
             if clienteId in self.finalizados:
                 return
             self._estado(clienteId).originador_eof = True
-        logging.info(f"[contador] EOF de {clienteId} con total {mensaje.totalMsg}")
+        logging.debug(f"[contador] EOF de {clienteId} con total {mensaje.totalMsg}")
         self.publicador.send(mensaje.aBytes())
 
 
@@ -61,7 +61,7 @@ class contadorDistribuido():
             estado.secuencias_propias.add(secuencia)
             anunciar = estado.anunciado
         if anunciar:
-            logging.info(f"[procesado] Anuncio {clienteId}, {[secuencia]}")
+            logging.debug(f"[procesado] Anuncio {clienteId}, {[secuencia]}")
             self.publicador.send(AnuncioMensajeSistema(clienteId, [secuencia]).aBytes())
 
 
@@ -72,7 +72,7 @@ class contadorDistribuido():
             estado = self._estado(clienteId)
             estado.anunciado = True
             secuencias = list(estado.secuencias_propias)
-        logging.info(f"[_anunciarPropias] Anuncio {clienteId}, {secuencias}")
+        logging.debug(f"[_anunciarPropias] Anuncio {clienteId}, {secuencias}")
         self.publicador.send(AnuncioMensajeSistema(clienteId, secuencias).aBytes())
 
 
@@ -82,7 +82,7 @@ class contadorDistribuido():
                 return
             estado = self.secuencias.pop(clienteId)
             self.finalizados.add(clienteId)
-        logging.info(f"[contador] Cliente {clienteId} finalizado: total={estado.total} originador={estado.originador_eof}")
+        logging.debug(f"[contador] Cliente {clienteId} finalizado: total={estado.total} originador={estado.originador_eof}")
         self.fnFinalizar(clienteId, estado.fin, estado.originador_eof)
 
 

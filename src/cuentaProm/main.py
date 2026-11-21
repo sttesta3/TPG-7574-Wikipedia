@@ -45,7 +45,7 @@ class CuentaProm:
             os.remove(archivo)
 
         self.colaRespuestas.send(FinMensajeSistema(clienteId).aBytes())
-        logging.info(f"Mando EOF de {clienteId}")
+        logging.debug(f"Mando EOF de {clienteId}")
 
 
     def procesarMensaje(self, bytes, ack, nack):
@@ -54,7 +54,7 @@ class CuentaProm:
             if isinstance(mensaje, FinPromMensajeSistema):
                 self.contador.eofRecibido(mensaje)
             elif self.contador.yaFinalizado(mensaje.clienteId):
-                logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
+                logging.debug(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
             else:
                 self._procesarData(mensaje)
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)

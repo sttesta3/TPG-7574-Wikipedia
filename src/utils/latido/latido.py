@@ -2,12 +2,11 @@ import os
 import socket
 from safeSocket import safeSend, safeRecv
 
-NOMBRE = os.environ["NOMBRE"]
 LATIDOPORT = int(os.environ["LATIDOPORT"])
 
 LATIDO_MENSAJE = b'\x01'
 
-class latido():
+class Latido():
     def __init__(self, pikaConnection) -> None:
         self.pikaConnection = pikaConnection
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -18,6 +17,7 @@ class latido():
         self.socket.listen()
         while True:
             maestroSocket, _ = self.socket.accept()
+            print("se conecto un lider")
             while True:
                 try:
                     _ = safeRecv(maestroSocket, 1)
@@ -28,4 +28,7 @@ class latido():
                 
 
 def latir(maestroSocket: socket.socket):
-    safeSend(maestroSocket, LATIDO_MENSAJE)
+    try:
+        safeSend(maestroSocket, LATIDO_MENSAJE)
+    except Exception:
+        maestroSocket.close()

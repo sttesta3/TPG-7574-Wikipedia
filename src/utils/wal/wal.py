@@ -9,6 +9,7 @@ class Wal():
 
 
     def guardarMensaje(self, mensaje: bytes, clienteId: uuid.UUID) -> None:
+        return
         if clienteId not in self.logs:
             self.logs[clienteId] = open("log/"+str(clienteId), "ab")
 
@@ -16,6 +17,7 @@ class Wal():
 
 
     def recuperarLogs(self) -> Iterator[bytes]:
+        return
         logsName = os.listdir("log")
 
         for logName in logsName:
@@ -24,7 +26,8 @@ class Wal():
                     yield line.rstrip(b"\n").deBytes()
 
     
-    def borrarLog(self, clienteId: uuid.UUID):    
+    def borrarLog(self, clienteId: uuid.UUID):  
+        return  
         os.remove("log/"+str(clienteId))
         del self.logs[clienteId]
 

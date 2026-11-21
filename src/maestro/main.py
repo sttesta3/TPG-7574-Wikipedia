@@ -28,39 +28,56 @@ class Maestro:
 
 
     def iniciarControl(self):
-        self.threadControl = threading.Thread(target=self.controlar, daemon=True)
+        self.threadControl = threading.Thread(target=lambda: asyncio.run(self.controlar()), daemon=True)
+        self.threadControl.start()
 
 
     async def reiniciarServicio(self, servicio):
+        print(f"reinicio {servicio}")
         subprocess.run(["docker", "restart", servicio], check=True)
-
-        reader, writer = await asyncio.open_connection(servicio, MAESTROPORT)
+        conectado = False
+        while not conectado:
+            try:
+                reader, writer = await asyncio.open_connection(servicio, MAESTROPORT)
+                conectado = True
+            except Exception as e:
+                asyncio.sleep(1)
 
         self.nodos[servicio].setearMedio(lambda: self.pedirLatido(servicio, writer, reader))
         
 
     async def pedirLatido(self, servicio, writer, reader):
-        writer.write(LATIDO_MENSAJE)
-        await writer.drain() 
+        try:
+            self.nodos[servicio].setearLargo(lambda: self.reiniciarServicio(servicio))
+            writer.write(LATIDO_MENSAJE)
+            await writer.drain() 
 
-        self.nodos[servicio].setearLargo(lambda: self.reiniciarServicio(servicio))
+            self.nodos[servicio].setearLargo(lambda: self.reiniciarServicio(servicio))
 
-        await reader.readexactly(1)
 
-        self.nodos[servicio].setearMedio(lambda: self.pedirLatido(servicio, writer, reader))
-        
+            await reader.readexactly(1)
+            print(f"Latio {servicio}")
+            self.nodos[servicio].setearMedio(lambda: self.pedirLatido(servicio, writer, reader))
+
+        except Exception:
+            return
 
     async def controlar(self):
+        print("soy lider")
         for servicio in SERVICIOS.split(","):
             try:
                 reader, writer = await asyncio.open_connection(servicio, MAESTROPORT)
                 self.nodos[servicio] = Timer()
+                print(f"me conecto a {servicio}")
                 asyncio.create_task(self.pedirLatido(servicio, writer, reader))
-            except Exception:
+            except Exception as e:
+                logging.info(e)
                 asyncio.create_task(self.reiniciarServicio(servicio))
-            
+        
+        await asyncio.Event().wait()
 
     def manejarSigterm(self) -> None:
+        # TODO: hay q matar todo lo que queda dando vueltas
         pass
 
 

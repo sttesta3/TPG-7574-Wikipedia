@@ -79,62 +79,6 @@ services:
     - ./datasets:/datasets
     - ./output:/output
 
-  cliente_2:
-    build:
-      context: ./src/
-      dockerfile: cliente/Dockerfile
-    container_name: cliente_2
-    depends_on:
-      gateway:
-        condition: service_healthy
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: "0.5"
-#          memory: 512M
-    environment:
-    - DATASETPATHEN=/datasets/enwiki_namespace_0_
-    - DATASETPATHFR=/datasets/frwiki_namespace_0_
-    - TOTALDATASETSEN=1
-    - TOTALDATASETSFR=1
-    - GATEWAYHOST=gateway
-    - GATEWAYPORT=8000
-    - LOTE=256
-    - PYTHONUNBUFFERED=1
-    - ID=2
-    - DATASETINICIO=2
-    volumes:
-    - ./datasets:/datasets
-    - ./output:/output
-
-
-  cliente_3:
-    build:
-      context: ./src/
-      dockerfile: cliente/Dockerfile
-    container_name: cliente_3
-    depends_on:
-      gateway:
-        condition: service_healthy
-#    deploy:
-#      resources:
-#        limits:
-#          cpus: "0.5"
-#          memory: 512M
-    environment:
-    - DATASETPATHEN=/datasets/enwiki_namespace_0_
-    - DATASETPATHFR=/datasets/frwiki_namespace_0_
-    - TOTALDATASETSEN=1
-    - TOTALDATASETSFR=1
-    - GATEWAYHOST=gateway
-    - GATEWAYPORT=8000
-    - LOTE=256
-    - PYTHONUNBUFFERED=1
-    - ID=3
-    - DATASETINICIO=3
-    volumes:
-    - ./datasets:/datasets
-    - ./output:/output
 
   clasificador_0:
     build:
@@ -156,6 +100,7 @@ services:
       - COLAIMGDESCARGA=ImgDescarga
       - COLATRANSFORMADOR=ColaTransformador
       - CLASIFICADOREXCHANGEEOF=ClasificadorExchangeEof
+      - LATIDOPORT=6060
 
   clasificador_1:
     build:
@@ -179,6 +124,7 @@ services:
       - COLAIMGDESCARGA=ImgDescarga
       - COLATRANSFORMADOR=ColaTransformador
       - CLASIFICADOREXCHANGEEOF=ClasificadorExchangeEof
+      - LATIDOPORT=6060
 
   clasificador_2:
     build:
@@ -202,6 +148,7 @@ services:
       - COLAIMGDESCARGA=ImgDescarga
       - COLATRANSFORMADOR=ColaTransformador
       - CLASIFICADOREXCHANGEEOF=ClasificadorExchangeEof
+      - LATIDOPORT=6060
 
   img_descargador_0:
     build:
@@ -791,7 +738,28 @@ services:
       context: ./src/
       dockerfile: maestro/Dockerfile
     container_name: maestro_0
-    # Deberia depender de todos los servicios
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        nodo-base:
+          condition: service_started
+        clasificador_0:
+          condition: service_started
+        transformador_0:
+          condition: service_started
+        join_top_0:
+          condition: service_started
+        agregador_top_0:
+          condition: service_started
+        sum_top_0:
+          condition: service_started
+        cuenta_prom_0:
+          condition: service_started
+        promedio_0:
+          condition: service_started
+
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
@@ -800,13 +768,35 @@ services:
       - RAFTPORT=5050
       - RAFTHOSTS=maestro_1,maestro_2
       - CANTIDADNODOS=3
+      - MAESTROPORT=6060
+      - SERVICIOS=clasificador_0,clasificador_1,clasificador_2
 
   maestro_1:
     build:
       context: ./src/
       dockerfile: maestro/Dockerfile
     container_name: maestro_1
-    # Deberia depender de todos los servicios
+    depends_on:
+        rabbitmq:
+          condition: service_healthy
+        gateway:
+          condition: service_started
+        nodo-base:
+          condition: service_started
+        clasificador_0:
+          condition: service_started
+        transformador_0:
+          condition: service_started
+        join_top_0:
+          condition: service_started
+        agregador_top_0:
+          condition: service_started
+        sum_top_0:
+          condition: service_started
+        cuenta_prom_0:
+          condition: service_started
+        promedio_0:
+          condition: service_started
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
@@ -815,13 +805,35 @@ services:
       - RAFTPORT=5050
       - RAFTHOSTS=maestro_0,maestro_2
       - CANTIDADNODOS=3
+      - MAESTROPORT=6060
+      - SERVICIOS=clasificador_0,clasificador_1,clasificador_2
 
   maestro_2:
     build:
       context: ./src/
       dockerfile: maestro/Dockerfile
     container_name: maestro_2
-    # Deberia depender de todos los servicios
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      gateway:
+        condition: service_started
+      nodo-base:
+        condition: service_started
+      clasificador_0:
+        condition: service_started
+      transformador_0:
+        condition: service_started
+      join_top_0:
+        condition: service_started
+      agregador_top_0:
+        condition: service_started
+      sum_top_0:
+        condition: service_started
+      cuenta_prom_0:
+        condition: service_started
+      promedio_0:
+        condition: service_started
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
@@ -830,3 +842,5 @@ services:
       - RAFTPORT=5050
       - RAFTHOSTS=maestro_0,maestro_1
       - CANTIDADNODOS=3
+      - MAESTROPORT=6060
+      - SERVICIOS=clasificador_0,clasificador_1,clasificador_2

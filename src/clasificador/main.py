@@ -27,7 +27,7 @@ class Clasificador:
 
 
     def _procesarData(self, loteMensaje: LoteDataMensajeSistema) -> None:
-        logging.info(f"Recibo lote {loteMensaje.secuencia} de {loteMensaje.clienteId}")
+        logging.debug(f"Recibo lote {loteMensaje.secuencia} de {loteMensaje.clienteId}")
         imgMensajes = []
         transformadorMensajes = []
         for mensaje in loteMensaje.lote:
@@ -46,7 +46,7 @@ class Clasificador:
         self.colaRespuestas.send(FinMensajeSistema(clienteId).aBytes())
 
         if originador:
-            logging.info(f"Mando EOF de {clienteId} con total {fin.totalMsg}")
+            logging.debug(f"Mando EOF de {clienteId} con total {fin.totalMsg}")
             self.colaImgDescarga.send(FinMensajeSistema(clienteId, fin.totalMsg).aBytes())
             self.colaTransformador.send(FinMensajeSistema(clienteId, fin.totalMsg).aBytes())
 
@@ -57,7 +57,7 @@ class Clasificador:
             if isinstance(mensaje, FinMensajeSistema):
                 self.contador.eofRecibido(mensaje)
             elif self.contador.yaFinalizado(mensaje.clienteId):
-                logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
+                logging.debug(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
             else:
                 self._procesarData(mensaje)
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
@@ -73,7 +73,9 @@ class Clasificador:
 
         latido = Latido(self.colaDatos.connection)
         thread_latido = threading.Thread(target=latido.start, daemon=True)
-  
+        thread_latido.start()
+
+
         self.colaDatos.start_consuming(self.procesarMensaje)
         thread_contador.join()
         self._close_connections()

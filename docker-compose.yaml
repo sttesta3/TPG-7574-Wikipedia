@@ -732,7 +732,6 @@ services:
       - TOTALTOPPARCIAL=3
       - ID=2
 
-
   maestro_0:
     build:
       context: ./src/
@@ -769,7 +768,7 @@ services:
       - RAFTHOSTS=maestro_1,maestro_2
       - CANTIDADNODOS=3
       - MAESTROPORT=6060
-      - SERVICIOS=clasificador_0,clasificador_1,clasificador_2
+      - SERVICIOS=clasificador_0,clasificador_1,clasificador_2,transformador_0,transformador_1,transformador_2,img_descargador_0,img_descargador_1,promedio_0,promedio_1,promedio_2,cuenta_prom_0,cuenta_prom_1,cuenta_prom_2,sum_top_0,sum_top_1,sum_top_2,agregador_top_0,agregador_top_1,agregador_top_2,join_top_0,join_top_1,join_top_2
 
   maestro_1:
     build:
@@ -806,7 +805,7 @@ services:
       - RAFTHOSTS=maestro_0,maestro_2
       - CANTIDADNODOS=3
       - MAESTROPORT=6060
-      - SERVICIOS=clasificador_0,clasificador_1,clasificador_2
+      - SERVICIOS=clasificador_0,clasificador_1,clasificador_2,transformador_0,transformador_1,transformador_2,img_descargador_0,img_descargador_1,promedio_0,promedio_1,promedio_2,cuenta_prom_0,cuenta_prom_1,cuenta_prom_2,sum_top_0,sum_top_1,sum_top_2,agregador_top_0,agregador_top_1,agregador_top_2,join_top_0,join_top_1,join_top_2
 
   maestro_2:
     build:
@@ -843,4 +842,4 @@ services:
       - RAFTHOSTS=maestro_0,maestro_1
       - CANTIDADNODOS=3
       - MAESTROPORT=6060
-      - SERVICIOS=clasificador_0,clasificador_1,clasificador_2
+      - SERVICIOS=clasificador_0,clasificador_1,clasificador_2,transformador_0,transformador_1,transformador_2,img_descargador_0,img_descargador_1,promedio_0,promedio_1,promedio_2,cuenta_prom_0,cuenta_prom_1,cuenta_prom_2,sum_top_0,sum_top_1,sum_top_2,agregador_top_0,agregador_top_1,agregador_top_2,join_top_0,join_top_1,join_top_2

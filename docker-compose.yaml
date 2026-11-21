@@ -792,6 +792,8 @@ services:
       dockerfile: maestro/Dockerfile
     container_name: maestro_0
     # Deberia depender de todos los servicios
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - PYTHONUNBUFFERED=1
       - ID=0
@@ -805,6 +807,8 @@ services:
       dockerfile: maestro/Dockerfile
     container_name: maestro_1
     # Deberia depender de todos los servicios
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - PYTHONUNBUFFERED=1 
       - ID=1
@@ -818,6 +822,8 @@ services:
       dockerfile: maestro/Dockerfile
     container_name: maestro_2
     # Deberia depender de todos los servicios
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - PYTHONUNBUFFERED=1
       - ID=2

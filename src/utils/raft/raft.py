@@ -1,8 +1,8 @@
 import os
 import socket
-import random
 import asyncio
-import logging 
+import logging
+from timer import Timer 
 from protocolo.mensajesRaft import recvMensaje, VotacionMensaje, VotoMensaje, LatidoMensaje, RespuestaLatidoMensaje, LiderMensaje, RaftMensaje
 
 ID = int(os.environ["ID"])
@@ -16,36 +16,6 @@ LIDER = b'\x03'
 
 LECTURA = 0
 ESCRITURA = 1
-
-class Timer():
-    def __init__(self) -> None:
-        self.loop = asyncio.get_running_loop()
-        self.timer = None
-
-    
-    def _setear(self, min, max, fn):
-        if self.timer is not None:
-            self.timer.cancel()
-
-        self.timer = self.loop.call_later(random.randint(min, max) / 1000,  lambda: asyncio.create_task(fn()))
-    
-
-    def setearLargo(self, fn):
-        self._setear(500, 1000, fn)
-
-
-    def setearMedio(self, fn):
-        self._setear(150, 250, fn)
-        
-
-    def setearCorto(self, fn):
-        self._setear(50, 100, fn)
-
-
-    def cancelar(self):
-        if self.timer is not None:
-            self.timer.cancel()
-        self.timer = None
 
 
 class Raft():
@@ -65,6 +35,8 @@ class Raft():
 
         self.index = 0
         self.mensajes = []
+
+        self.callback = None
 
 
     async def iniciarVotacion(self):
@@ -97,6 +69,7 @@ class Raft():
                     self.nodos.pop(pos)
                     break
             self.timer.setearCorto(self.latido)
+            self.callback()
         else:
             self.timer.setearLargo(self.iniciarVotacion)
             logging.info(f"Soy {self.id} y perdi en termino {self.term} con {self.votos} votos")
@@ -146,7 +119,7 @@ class Raft():
             await clientWriter.drain()          
         elif isinstance(mensaje, LatidoMensaje):
             logging.debug(f"Recibo latido de {self.liderId} ")
-            self.timer.setearLprocesarMensajeargo(self.iniciarVotacion)
+            self.timer.setearLargo(self.iniciarVotacion)
             # TODO: procesar mensaje
         elif isinstance(mensaje, LiderMensaje):
             self.nuevoLider(mensaje)
@@ -154,7 +127,9 @@ class Raft():
             if mensaje.term == self.term and self.estado == CANDIDATO:
                 self.votos += mensaje.voto
         elif isinstance(mensaje, RespuestaLatidoMensaje):
+                
                 # TODO: procesar mensaje
+
                 pass
 
     
@@ -170,7 +145,7 @@ class Raft():
                 nodo = self.nodos.index((reader, writer))
                 self.nodos.pop(nodo)
                 break
-            except Exception as e:
+            except Exception:
                 continue
                 
             
@@ -197,5 +172,6 @@ class Raft():
             await self.conectarNodos()
             await server.serve_forever()
 
-    def iniciarRaft(self):
+    def iniciarRaft(self, fn):
+        self.callback = fn
         asyncio.run(self.iniciar())

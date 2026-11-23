@@ -2,15 +2,14 @@ import os
 import sys
 import signal
 import logging
-import threading
-from contadorDistribuido import contadorDistribuido
+from contadorEof import contadorEof
 from middleware import MessageMiddlewareQueue
-from protocolo.mensajesSistema import recvMensajeSistema, FinPromMensajeSistema, CantidadPalabrasLoteMensajeSistema, Respuesta5MensajeSistema, FinMensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinPromMensajeSistema, CantidadPalabrasLoteMensajeSistema, Respuesta5MensajeSistema, FinMensajeSistema, ETAPA_CUENTAPROM, origenGateway
 
 MOMHOST = os.environ["MOMHOST"]
 COLARESPUESTAS = os.environ["COLARESPUESTAS"]
 COLACUENTAPROM = os.environ["COLACUENTAPROM"]
-EXCHANGECUENTAPROMEOF = os.environ["EXCHANGECUENTAPROMEOF"]
+TOTALTRANSFORMADORES = int(os.environ["TOTALTRANSFORMADORES"])
 ID = os.environ["ID"]
 LOTE = 100
 
@@ -20,7 +19,10 @@ class CuentaProm:
         self.colaRespuestas = MessageMiddlewareQueue(MOMHOST, COLARESPUESTAS)
         self.colaCuentaProm = MessageMiddlewareQueue(MOMHOST, COLACUENTAPROM + "_" + ID)
 
-        self.contador = contadorDistribuido(MOMHOST, EXCHANGECUENTAPROMEOF, self._finalizarCliente, self.colaCuentaProm.remote_execution)
+        self.contador = contadorEof(TOTALTRANSFORMADORES)
+        # Para cerrar un cliente hacen falta los EOF de todos los transformadores y el promedio
+        self.eofsCompletos = set()
+        self.promedios = {}
 
 
     def _procesarData(self, mensajes: CantidadPalabrasLoteMensajeSistema) -> None:
@@ -29,33 +31,49 @@ class CuentaProm:
                 f.write(f"{mensaje.url};;;;;{mensaje.cantidad}\n")
 
 
-    def _finalizarCliente(self, clienteId, fin: FinPromMensajeSistema, originador: bool) -> None:
+    def _intentarFinalizar(self, clienteId) -> None:
+        if clienteId in self.eofsCompletos and clienteId in self.promedios:
+            self.eofsCompletos.discard(clienteId)
+            self._finalizarCliente(clienteId, self.promedios.pop(clienteId))
+            self.contador.finalizar(clienteId)
+
+
+    def _finalizarCliente(self, clienteId, fin: FinPromMensajeSistema) -> None:
         archivo = str(clienteId)
         if os.path.exists(archivo):
             with open(archivo, "r", encoding="utf-8") as f:
                 data = {}
+                tanda = 0
                 for linea in f.readlines():
                     url, cantidad = linea.strip().split(";;;;;", 1)
                     if int(cantidad) > fin.promedio:
                         data[url] = int(cantidad)
                         if len(data) == LOTE:
-                            self.colaRespuestas.send(Respuesta5MensajeSistema(clienteId, data).aBytes())
+                            idRespuesta = (ETAPA_CUENTAPROM, int(ID), 0, tanda)
+                            self.colaRespuestas.send(Respuesta5MensajeSistema(clienteId, data, idRespuesta).aBytes())
                             data = {}
+                            tanda += 1
                 if len(data) > 0:
-                    self.colaRespuestas.send(Respuesta5MensajeSistema(clienteId, data).aBytes())
+                    idRespuesta = (ETAPA_CUENTAPROM, int(ID), 0, tanda)
+                    self.colaRespuestas.send(Respuesta5MensajeSistema(clienteId, data, idRespuesta).aBytes())
             os.remove(archivo)
 
-        self.colaRespuestas.send(FinMensajeSistema(clienteId).aBytes())
+        self.colaRespuestas.send(FinMensajeSistema(clienteId, origen=origenGateway(ETAPA_CUENTAPROM, int(ID))).aBytes())
         logging.info(f"Mando EOF de {clienteId}")
 
 
     def procesarMensaje(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
-            if isinstance(mensaje, FinPromMensajeSistema):
-                self.contador.eofRecibido(mensaje)
-            elif self.contador.yaFinalizado(mensaje.clienteId):
-                logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
+            if self.contador.yaFinalizado(mensaje.clienteId):
+                logging.info(f"Descarto mensaje de {mensaje.clienteId}: cliente ya finalizado")
+            elif isinstance(mensaje, FinPromMensajeSistema):
+                self.promedios[mensaje.clienteId] = mensaje
+                self._intentarFinalizar(mensaje.clienteId)
+            elif isinstance(mensaje, FinMensajeSistema):
+                if self.contador.eofRecibido(mensaje.clienteId, mensaje.origen):
+                    self.eofsCompletos.add(mensaje.clienteId)
+                    self._intentarFinalizar(mensaje.clienteId)
             elif self.contador.yaProcesado(mensaje.clienteId, mensaje.secuencia):
                 logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: duplicado")
             else:
@@ -68,22 +86,17 @@ class CuentaProm:
 
 
     def iniciar(self):
-        thread_contador = threading.Thread(target=self.contador.iniciar, daemon=True)
-        thread_contador.start()
         self.colaCuentaProm.start_consuming(self.procesarMensaje)
-        thread_contador.join()
         self._close_connections()
 
 
     def manejarSigterm(self) -> None:
-        self.contador.detener()
         self.colaCuentaProm.remote_stop()
 
 
     def _close_connections(self):
         self.colaCuentaProm.close()
         self.colaRespuestas.close()
-        self.contador.cerrar()
 
 
 def main() -> int:

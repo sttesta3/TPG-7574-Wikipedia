@@ -9,14 +9,15 @@ import aiohttp
 import asyncio
 import traceback
 import threading
-from contadorDistribuido import contadorDistribuido
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, ImgMensajeSistema, ImgLoteMensajeSistema, Respuesta2MensajeSistema
+from contadorEof import contadorEof
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, ImgMensajeSistema, ImgLoteMensajeSistema, Respuesta2MensajeSistema, ETAPA_IMG, origenGateway
 from middleware import MessageMiddlewareQueue
 
 MOMHOST = os.environ["MOMHOST"]
 COLAIMGDESCARGA = os.environ["COLAIMGDESCARGA"]
 COLARESPUESTAS = os.environ["COLARESPUESTAS"]
-EXCHANGEIMGEOF = os.environ["EXCHANGEIMGEOF"]
+TOTALCLASIFICADORES = int(os.environ["TOTALCLASIFICADORES"])
+ID = int(os.environ["ID"])
 MAXCLIENTES = int(os.environ["MAXCLIENTES"])
 DESCARGASPORMINUTO = float(os.environ["DESCARGASPORMINUTO"])
 USER_AGENT = f"TpFiubaWikiBot/0.1 (https://fi.uba.ar/; shenseler@fi.uba.ar) aiohttp/{aiohttp.__version__}"
@@ -54,10 +55,12 @@ class ImgDescargador:
         self.turnoPedidos = asyncio.Lock()
         self.proximoPedido = 0.0
 
-        self.colaImgDescarga = MessageMiddlewareQueue(MOMHOST, COLAIMGDESCARGA)
+        self.colaImgDescarga = MessageMiddlewareQueue(MOMHOST, COLAIMGDESCARGA + "_" + str(ID))
         self.colaRespuestas = MessageMiddlewareQueue(MOMHOST, COLARESPUESTAS)
 
-        self.contador = contadorDistribuido(MOMHOST, EXCHANGEIMGEOF, self._finalizarCliente, self.colaImgDescarga.remote_execution)
+        # Solo se usan desde el hilo de pika
+        self.contador = contadorEof(TOTALCLASIFICADORES)
+        self.lotesEnCurso = {}  # clienteId -> futures de los lotes que se estan descargando
 
 
     async def _esperarTurno(self) -> None:
@@ -95,33 +98,35 @@ class ImgDescargador:
                 await asyncio.sleep(espera)
 
 
-    async def _descargar(self, mensaje: ImgMensajeSistema) -> None:
+    async def _descargar(self, mensaje: ImgMensajeSistema, idRespuesta: tuple) -> None:
         imgBytes = b''
         if mensaje.imgUrl != "":
             imgBytes = await self._descargarConReintentos(mensaje)
 
-        self.colaRespuestas.send(Respuesta2MensajeSistema(mensaje.clienteId, mensaje.url, mensaje.nombre, imgBytes).aBytes())
+        self.colaRespuestas.send(Respuesta2MensajeSistema(mensaje.clienteId, mensaje.url, mensaje.nombre, imgBytes, idRespuesta).aBytes())
 
 
     async def _procesarLote(self, lote: ImgLoteMensajeSistema) -> None:
         clienteId = lote.clienteId
         secuencia = lote.secuencia
 
-        resultados = await asyncio.gather(*[self._descargar(mensaje) for mensaje in lote.mensajes], return_exceptions=True)
+        resultados = await asyncio.gather(*[self._descargar(mensaje, (ETAPA_IMG, ID, secuencia, indice)) for indice, mensaje in enumerate(lote.mensajes)], return_exceptions=True)
         for resultado in resultados:
             if isinstance(resultado, Exception):
                 logging.info(f"Fallo una descarga del lote {secuencia} de {clienteId}: {resultado}")
 
-        self.colaImgDescarga.remote_execution(lambda: self.contador.procesado(clienteId, secuencia))
 
-
-    def _enviarFin(self, clienteId) -> None:
-        self.colaRespuestas.send(FinMensajeSistema(clienteId).aBytes())
+    async def _enviarFin(self, clienteId, lotesEnCurso: list) -> None:
+        # Las descargas son asincronas: el EOF puede llegar con lotes todavia descargandose
+        await asyncio.gather(*[asyncio.wrap_future(lote) for lote in lotesEnCurso], return_exceptions=True)
+        self.colaRespuestas.send(FinMensajeSistema(clienteId, origen=origenGateway(ETAPA_IMG, ID)).aBytes())
         logging.info(f"Mando EOF de {clienteId}")
 
 
-    def _finalizarCliente(self, clienteId, fin: FinMensajeSistema, originador: bool) -> None:
-        self.eventLoop.call_soon_threadsafe(lambda: self._enviarFin(clienteId))
+    def _finalizarCliente(self, clienteId) -> None:
+        lotesEnCurso = self.lotesEnCurso.pop(clienteId, [])
+        asyncio.run_coroutine_threadsafe(self._enviarFin(clienteId, lotesEnCurso), self.eventLoop)
+        self.contador.finalizar(clienteId)
 
 
     async def _cancelarDescargas(self) -> None:
@@ -136,11 +141,16 @@ class ImgDescargador:
         try:
             mensaje = recvMensajeSistema(bytes)
             if isinstance(mensaje, FinMensajeSistema):
-                self.contador.eofRecibido(mensaje)
+                if self.contador.eofRecibido(mensaje.clienteId, mensaje.origen):
+                    self._finalizarCliente(mensaje.clienteId)
             elif self.contador.yaFinalizado(mensaje.clienteId):
                 logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
+            elif self.contador.yaProcesado(mensaje.clienteId, mensaje.secuencia):
+                logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: duplicado")
             else:
-                asyncio.run_coroutine_threadsafe(self._procesarLote(mensaje), self.eventLoop)
+                lote = asyncio.run_coroutine_threadsafe(self._procesarLote(mensaje), self.eventLoop)
+                self.lotesEnCurso.setdefault(mensaje.clienteId, []).append(lote)
+                self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
             ack()
         except Exception as e:
             logging.info(e)
@@ -155,14 +165,11 @@ class ImgDescargador:
 
     def iniciar(self):
         thread_event_loop = threading.Thread(target=self._iniciarEventLoop, daemon=True)
-        thread_contador = threading.Thread(target=self.contador.iniciar, daemon=True)
 
         thread_event_loop.start()
-        thread_contador.start()
         self.colaImgDescarga.start_consuming(self.procesarMensaje)
 
         asyncio.run_coroutine_threadsafe(self._cancelarDescargas(), self.eventLoop).result(timeout=5)
-        thread_contador.join()
         self.eventLoop.call_soon_threadsafe(self.eventLoop.stop)
         thread_event_loop.join()
         self.eventLoop.close()
@@ -170,14 +177,12 @@ class ImgDescargador:
 
 
     def manejarSigterm(self) -> None:
-        self.contador.detener()
         self.colaImgDescarga.remote_stop()
 
 
     def _close_connections(self):
         self.colaImgDescarga.close()
         self.colaRespuestas.close()
-        self.contador.cerrar()
 
 
 def main() -> int:

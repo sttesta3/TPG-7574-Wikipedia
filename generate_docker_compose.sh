@@ -92,6 +92,7 @@ echo "services:
       - COLADATOS=EntradaDatos
       - COLARESPUESTAS=Respuestas
       - LOTE=$lote
+      - TOTALCLASIFICADORES=$cant_clasif
       - TOTALCLASIFEOF=$cant_clasif
       - TOTALIMGEOF=$cant_descarg
       - TOTALAGRTOPEOF=$cant_agr_top
@@ -151,7 +152,9 @@ for ((i=0; i<$cant_clasif; i++)); do
       - COLARESPUESTAS=Respuestas
       - COLAIMGDESCARGA=ImgDescarga
       - COLATRANSFORMADOR=ColaTransformador
-      - CLASIFICADOREXCHANGEEOF=ClasificadorExchangeEof" >> $archivo_salida
+      - TOTALTRANSFORMADORES=$cant_transf
+      - TOTALIMGDESCARGADORES=$cant_descarg
+      - ID=$i" >> $archivo_salida
 done
 
 for ((i=0; i<$cant_descarg; i++)); do 
@@ -163,9 +166,10 @@ for ((i=0; i<$cant_descarg; i++)); do
       - MOMHOST=rabbitmq
       - COLARESPUESTAS=Respuestas
       - COLAIMGDESCARGA=ImgDescarga
-      - EXCHANGEIMGEOF=ExchangeImgEof
+      - TOTALCLASIFICADORES=$cant_clasif
       - MAXCLIENTES=1
-      - DESCARGASPORMINUTO=$descargas_por_minuto_nodo" >> $archivo_salida
+      - DESCARGASPORMINUTO=$descargas_por_minuto_nodo
+      - ID=$i" >> $archivo_salida
 done
 
 for ((i=0; i<$cant_transf; i++)); do 
@@ -177,12 +181,13 @@ for ((i=0; i<$cant_transf; i++)); do
       - MOMHOST=rabbitmq
       - COLATRANSFORMADOR=ColaTransformador
       - COLASUMTOP=ColaSumTop
-      - EXCHANGEPROMEDIO=ExchangePromedio
+      - COLAPROMEDIO=ColaPromedio
       - COLACUENTAPROM=ColaCuentaProm
-      - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
+      - TOTALCLASIFICADORES=$cant_clasif
       - TOTALCUENTAPROM=$cant_cuenta_promedio
       - TOTALSUMTOP=$cant_sum_top
-      - TOTALPROMEDIO=$cant_promedio" >> $archivo_salida
+      - TOTALPROMEDIO=$cant_promedio
+      - ID=$i" >> $archivo_salida
 done 
 
 for ((i=0; i<$cant_promedio; i++)); do 
@@ -194,7 +199,7 @@ for ((i=0; i<$cant_promedio; i++)); do
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLACUENTAPROM=ColaCuentaProm
-      - EXCHANGEPROMEDIO=ExchangePromedio
+      - COLAPROMEDIO=ColaPromedio
       - TOTALCUENTAPROM=$cant_cuenta_promedio
       - TOTALTRANSFORMADORES=$cant_transf
       - ID=$i" >> $archivo_salida
@@ -210,7 +215,7 @@ for ((i=0; i<$cant_cuenta_promedio; i++)); do
       - MOMHOST=rabbitmq
       - COLACUENTAPROM=ColaCuentaProm
       - COLARESPUESTAS=Respuestas
-      - EXCHANGECUENTAPROMEOF=ExchangeCuentaPromEof
+      - TOTALTRANSFORMADORES=$cant_transf
       - ID=$i" >> $archivo_salida
 done 
 
@@ -222,9 +227,9 @@ for ((i=0; i<$cant_sum_top; i++)); do
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLASUMTOP=ColaSumTop
-      - EXCHANGESUMTOPEOF=ExchangeSumTopEof
-      - EXCHANGETOPPARCIAL=ExchangeTopParcial
+      - COLATOPPARCIAL=ColaTopParcial
       - TOTALTOPPARCIAL=$cant_agr_top
+      - TOTALTRANSFORMADORES=$cant_transf
       - ID=$i" >> $archivo_salida
 done
 
@@ -237,9 +242,8 @@ for ((i=0; i<$cant_agr_top; i++)); do
       - MOMHOST=rabbitmq
       - COLASUMTOP=ColaSumTop
       - COLARESPUESTAS=Respuestas
-      - EXCHANGESUMTOPEOF=ExchangeSumTopEof
-      - EXCHANGETOPPARCIAL=ExchangeTopParcial
-      - EXCHANGETOPGLOBAL=ExchangeTopGlobal
+      - COLATOPPARCIAL=ColaTopParcial
+      - COLATOPGLOBAL=ColaTopGlobal
       - TOTALTOPGLOBAL=$cant_join_top
       - TOTALSUMTOP=$cant_sum_top
       - ID=$i" >> $archivo_salida
@@ -253,7 +257,7 @@ for ((i=0; i<$cant_join_top; i++)); do
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLARESPUESTAS=Respuestas
-      - EXCHANGETOPGLOBAL=ExchangeTopGlobal
+      - COLATOPGLOBAL=ColaTopGlobal
       - TOTALTOPPARCIAL=$cant_agr_top
       - ID=$i" >> $archivo_salida
 done

@@ -3,27 +3,25 @@ import sys
 import logging
 import signal
 import traceback
-import threading
-from contadorDistribuido import contadorDistribuido
-from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
+from contadorEof import contadorEof
+from middleware import MessageMiddlewareQueue
 from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, PalabrasMensajeSistema
 
 MOMHOST = os.environ["MOMHOST"]
 COLASUMTOP = os.environ["COLASUMTOP"]
-EXCHANGESUMTOPEOF = os.environ["EXCHANGESUMTOPEOF"]
-EXCHANGETOPPARCIAL = os.environ["EXCHANGETOPPARCIAL"]
+TOTALTRANSFORMADORES = int(os.environ["TOTALTRANSFORMADORES"])
+COLATOPPARCIAL = os.environ["COLATOPPARCIAL"]
 TOTALTOPPARCIAL = int(os.environ["TOTALTOPPARCIAL"])
 ID = os.environ["ID"]
+CANT_LENGUAJES = 2
 
 
 class SumTop:
     def __init__(self):
         self.colaSumTop = MessageMiddlewareQueue(MOMHOST, COLASUMTOP + "_" + ID)
-        self.excahangeTopParciales = []
-        for i in range(TOTALTOPPARCIAL):
-            self.excahangeTopParciales.append(MessageMiddlewareExchange(MOMHOST, EXCHANGETOPPARCIAL, [EXCHANGETOPPARCIAL+ "_"+str(i)]))
+        self.colaTopParcial = [MessageMiddlewareQueue(MOMHOST, COLATOPPARCIAL + "_" + str(i)) for i in range(TOTALTOPPARCIAL)]
 
-        self.contador = contadorDistribuido(MOMHOST, EXCHANGESUMTOPEOF, self._finalizarCliente, self.colaSumTop.remote_execution)
+        self.contador = contadorEof(TOTALTRANSFORMADORES)
 
         self.clientes = {}
 
@@ -41,7 +39,7 @@ class SumTop:
                 self.clientes[clienteId][mensaje.lenguaje][clave] = self.clientes[clienteId][mensaje.lenguaje].get(clave, 0) + valor
 
 
-    def _finalizarCliente(self, clienteId, fin: FinMensajeSistema, originador: bool) -> None:
+    def _finalizarCliente(self, clienteId) -> None:
         palabrasCliente = self.clientes.pop(clienteId, {})
 
         nodos = [{} for _ in range(TOTALTOPPARCIAL)]
@@ -53,9 +51,11 @@ class SumTop:
 
         for i in range(TOTALTOPPARCIAL):
             for lenguaje, palabras in nodos[i].items():
-                parcial = PalabrasLoteMensajeSistema(clienteId=clienteId, mensajes=[PalabrasMensajeSistema(palabras=palabras, url="", lenguaje=lenguaje)])
-                self.excahangeTopParciales[i].send(parcial.aBytes())
-            self.excahangeTopParciales[i].send(FinMensajeSistema(clienteId).aBytes())
+                # La secuencia identifica (nodo, lenguaje), para que el agregador descarte parciales duplicados
+                secuencia = int(ID) * CANT_LENGUAJES + lenguaje
+                parcial = PalabrasLoteMensajeSistema(clienteId=clienteId, mensajes=[PalabrasMensajeSistema(palabras=palabras, url="", lenguaje=lenguaje)], secuencia=secuencia)
+                self.colaTopParcial[i].send(parcial.aBytes())
+            self.colaTopParcial[i].send(FinMensajeSistema(clienteId, origen=int(ID)).aBytes())
 
         logging.info(f"Mando parciales y EOF de {clienteId}")
 
@@ -64,7 +64,9 @@ class SumTop:
         try:
             mensaje = recvMensajeSistema(bytes)
             if isinstance(mensaje, FinMensajeSistema):
-                self.contador.eofRecibido(mensaje)
+                if self.contador.eofRecibido(mensaje.clienteId, mensaje.origen):
+                    self._finalizarCliente(mensaje.clienteId)
+                    self.contador.finalizar(mensaje.clienteId)
             elif self.contador.yaFinalizado(mensaje.clienteId):
                 logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
             elif self.contador.yaProcesado(mensaje.clienteId, mensaje.secuencia):
@@ -80,23 +82,18 @@ class SumTop:
 
 
     def iniciar(self):
-        thread_contador = threading.Thread(target=self.contador.iniciar, daemon=True)
-        thread_contador.start()
         self.colaSumTop.start_consuming(self.procesarMensaje)
-        thread_contador.join()
         self._close_connections()
 
 
     def manejarSigterm(self) -> None:
-        self.contador.detener()
         self.colaSumTop.remote_stop()
 
 
     def _close_connections(self):
         self.colaSumTop.close()
         for i in range(TOTALTOPPARCIAL):
-            self.excahangeTopParciales[i].close()
-        self.contador.cerrar()
+            self.colaTopParcial[i].close()
 
 
 

@@ -41,6 +41,12 @@ class contadorDistribuido():
             return clienteId in self.finalizados
 
 
+    def yaProcesado(self, clienteId: uuid.UUID, secuencia: int) -> bool:
+        with self.lock:
+            estado = self.secuencias.get(clienteId)
+            return estado is not None and secuencia in estado.secuencias_propias
+
+
     def eofRecibido(self, mensaje: FinMensajeSistema | FinPromMensajeSistema) -> None:
         clienteId = mensaje.clienteId
         with self.lock:

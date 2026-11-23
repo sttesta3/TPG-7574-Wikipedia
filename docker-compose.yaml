@@ -284,6 +284,7 @@ services:
       - COLACUENTAPROM=ColaCuentaProm
       - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
       - TOTALCUENTAPROM=3
+      - TOTALSUMTOP=3
       - TOTALPROMEDIO=3
 
   transformador_1:
@@ -313,6 +314,7 @@ services:
       - COLACUENTAPROM=ColaCuentaProm
       - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
       - TOTALCUENTAPROM=3
+      - TOTALSUMTOP=3
       - TOTALPROMEDIO=3
 
   transformador_2:
@@ -342,6 +344,7 @@ services:
       - COLACUENTAPROM=ColaCuentaProm
       - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
       - TOTALCUENTAPROM=3
+      - TOTALSUMTOP=3
       - TOTALPROMEDIO=3
 
   promedio_0:
@@ -564,6 +567,7 @@ services:
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
       - TOTALTOPPARCIAL=3
+      - ID=0
 
   sum_top_1:
     build:
@@ -590,6 +594,7 @@ services:
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
       - TOTALTOPPARCIAL=3
+      - ID=1
 
   sum_top_2:
     build:
@@ -616,6 +621,7 @@ services:
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
       - TOTALTOPPARCIAL=3
+      - ID=2
 
   agregador_top_0:
     build:

@@ -24,7 +24,7 @@ class Promedio:
     def __init__(self):
         self.clientes = {}
         self.exchangePromedio = MessageMiddlewareExchange(MOMHOST, EXCHANGEPROMEDIO, [EXCHANGEPROMEDIO + "_" + ID])
-        self.colaCuentaProm = MessageMiddlewareQueue(MOMHOST, COLACUENTAPROM)
+        self.colaCuentaProm = [MessageMiddlewareQueue(MOMHOST, COLACUENTAPROM + "_" + str(i)) for i in range(TOTALCUENTAPROM)]
 
     def _estado(self, clienteId: str) -> list:
         if clienteId not in self.clientes:
@@ -53,7 +53,7 @@ class Promedio:
             logging.info(f"Promedio flotante: {promedio_float}")
             logging.info(f"Promedio : {promedio}")
 
-            self.colaCuentaProm.send(FinPromMensajeSistema(mensaje.clienteId, promedio, mensaje.totalMsg).aBytes())
+            self.colaCuentaProm[mensaje.clienteId.int % TOTALCUENTAPROM].send(FinPromMensajeSistema(mensaje.clienteId, promedio, mensaje.totalMsg).aBytes())
 
             del self.clientes[clienteId]
         
@@ -83,7 +83,8 @@ class Promedio:
 
     def _close_connections(self):
         self.exchangePromedio.close()
-        self.colaCuentaProm.close()
+        for cola in self.colaCuentaProm:
+            cola.close()
 
 
 def main() -> int:

@@ -106,7 +106,7 @@ echo "services:
 
   rabbitmq:
       build:
-        context: ./src/middleware
+        context: ./src/utils/middleware
         dockerfile: Dockerfile
       container_name: rabbitmq
       environment:
@@ -181,6 +181,7 @@ for ((i=0; i<$cant_transf; i++)); do
       - COLACUENTAPROM=ColaCuentaProm
       - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
       - TOTALCUENTAPROM=$cant_cuenta_promedio
+      - TOTALSUMTOP=$cant_sum_top
       - TOTALPROMEDIO=$cant_promedio" >> $archivo_salida
 done 
 
@@ -223,7 +224,8 @@ for ((i=0; i<$cant_sum_top; i++)); do
       - COLASUMTOP=ColaSumTop
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
-      - TOTALTOPPARCIAL=$cant_agr_top" >> $archivo_salida
+      - TOTALTOPPARCIAL=$cant_agr_top
+      - ID=$i" >> $archivo_salida
 done
 
 for ((i=0; i<$cant_agr_top; i++)); do

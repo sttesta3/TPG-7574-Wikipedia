@@ -18,6 +18,8 @@ COLACUENTAPROM = os.environ["COLACUENTAPROM"]
 EXCHANGEPROMEDIO = os.environ["EXCHANGEPROMEDIO"]
 EXCHANGETRANSFORMADOREOF = os.environ["EXCHANGETRANSFORMADOREOF"]
 TOTALPROMEDIO = int(os.environ["TOTALPROMEDIO"])
+TOTALSUMTOP = int(os.environ["TOTALSUMTOP"])
+TOTALCUENTAPROM = int(os.environ["TOTALCUENTAPROM"])
 
 WORD_REGEX = r'\b\w+\b'
 NUMBER_REGEX = r'[+-]?((\d+\.?\d*)|(\.\d+))'
@@ -27,8 +29,8 @@ class Transformador:
     def __init__(self):
         self.stopWords = set(stopwords.words('english')) | set(stopwords.words('french'))
         self.colaTransformador = MessageMiddlewareQueue(MOMHOST, COLATRANSFORMADOR)
-        self.colaSumTop = MessageMiddlewareQueue(MOMHOST, COLASUMTOP)
-        self.colaCuentaProm = MessageMiddlewareQueue(MOMHOST, COLACUENTAPROM)
+        self.colaSumTop = [MessageMiddlewareQueue(MOMHOST, COLASUMTOP + "_" + str(i)) for i in range(TOTALSUMTOP)]
+        self.colaCuentaProm = [MessageMiddlewareQueue(MOMHOST, COLACUENTAPROM + "_" + str(i)) for i in range(TOTALCUENTAPROM)]
         self.exchangePromedio = []
 
         for i in range(TOTALPROMEDIO):
@@ -69,9 +71,11 @@ class Transformador:
 
         secuencia = mensajeLote.secuencia
         nodo = mensajeLote.clienteId.int % TOTALPROMEDIO
-        self.colaCuentaProm.send(CantidadPalabrasLoteMensajeSistema(mensajeLote.clienteId, cuentaPromedio, secuencia).aBytes())
+        # Se suma el clienteId para que la misma secuencia de distintos clientes no caiga siempre en el mismo nodo
+        particion = mensajeLote.clienteId.int + secuencia
+        self.colaCuentaProm[particion % TOTALCUENTAPROM].send(CantidadPalabrasLoteMensajeSistema(mensajeLote.clienteId, cuentaPromedio, secuencia).aBytes())
         self.exchangePromedio[nodo].send(CantidadPalabrasLoteMensajeSistema(mensajeLote.clienteId, promedio, secuencia).aBytes())
-        self.colaSumTop.send(PalabrasLoteMensajeSistema(mensajeLote.clienteId, palabrasSumTop, secuencia).aBytes())
+        self.colaSumTop[particion % TOTALSUMTOP].send(PalabrasLoteMensajeSistema(mensajeLote.clienteId, palabrasSumTop, secuencia).aBytes())
 
 
     def _finalizarCliente(self, clienteId, fin: FinMensajeSistema, originador: bool) -> None:
@@ -80,7 +84,7 @@ class Transformador:
 
         if originador:
             logging.info(f"Mando EOF de {clienteId} con total {fin.totalMsg}")
-            self.colaSumTop.send(FinMensajeSistema(clienteId, fin.totalMsg).aBytes())
+            self.colaSumTop[clienteId.int % TOTALSUMTOP].send(FinMensajeSistema(clienteId, fin.totalMsg).aBytes())
 
 
     def procesarMensaje(self, bytes, ack, nack):
@@ -110,8 +114,10 @@ class Transformador:
 
     def _close_connections(self):
         self.colaTransformador.close()
-        self.colaSumTop.close()
-        self.colaCuentaProm.close()
+        for cola in self.colaSumTop:
+            cola.close()
+        for cola in self.colaCuentaProm:
+            cola.close()
         for i in range(TOTALPROMEDIO):
             self.exchangePromedio[i].close()
         self.contador.cerrar()

@@ -18,7 +18,7 @@ LOTE = 100
 class CuentaProm:
     def __init__(self):
         self.colaRespuestas = MessageMiddlewareQueue(MOMHOST, COLARESPUESTAS)
-        self.colaCuentaProm = MessageMiddlewareQueue(MOMHOST, COLACUENTAPROM)
+        self.colaCuentaProm = MessageMiddlewareQueue(MOMHOST, COLACUENTAPROM + "_" + ID)
 
         self.contador = contadorDistribuido(MOMHOST, EXCHANGECUENTAPROMEOF, self._finalizarCliente, self.colaCuentaProm.remote_execution)
 
@@ -56,6 +56,8 @@ class CuentaProm:
                 self.contador.eofRecibido(mensaje)
             elif self.contador.yaFinalizado(mensaje.clienteId):
                 logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
+            elif self.contador.yaProcesado(mensaje.clienteId, mensaje.secuencia):
+                logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: duplicado")
             else:
                 self._procesarData(mensaje)
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)

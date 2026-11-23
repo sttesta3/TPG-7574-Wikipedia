@@ -3,7 +3,7 @@ import signal
 import logging
 import traceback
 import threading
-from wal import Wal
+from wal import Wal, LineaLog
 from latido import Latido
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
 from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, PalabrasMensajeSistema, Respuesta3MensajeSistema
@@ -47,6 +47,18 @@ class PalabrasPorIdioma:
         return result
     
 
+class WalAgregadorTop(Wal):
+    def __init__():
+        super().__init__()
+
+    def guardarEstado():
+        # Guarda en un archivo temporal
+        # Hace el recambio de archivos 
+        pass
+
+    def recuperarEstado():
+        pass
+
 class AgregadorTop:
     def __init__(self):
         self.exchangeTopParcial = MessageMiddlewareExchange(MOMHOST, EXCHANGETOPPARCIAL, [EXCHANGETOPPARCIAL+"_"+str(ID)])
@@ -56,7 +68,7 @@ class AgregadorTop:
         self.colaRespuestas = MessageMiddlewareQueue(MOMHOST, COLARESPUESTAS)
          
         self.clientes = {}
-        self.wal = Wal()
+        self.wal = WalAgregadorTop()
 
 
     def _procesarData(self, mensajes: PalabrasLoteMensajeSistema) -> None:
@@ -101,15 +113,20 @@ class AgregadorTop:
     def procesarMensaje(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
-            self.wal.guardarMensaje(bytes, mensaje.clienteId)
+            self.wal.guardarMensaje(bytes)
+            ack()   
+            # Caso borde en ESTA LINEA: Hice ACK del mensaje y no pude logear el ack. 
+            # Al leer log no se si este mensaje sera procesado por otro nodo o no. 
+            # Problema sin solucion: Se asume que el proceso de log es inmediato y que esta falla no puede darse
+            self.wal.log(LineaLog.RABBITACKMSG)
             if isinstance(mensaje, FinMensajeSistema):
                 self._procesarEOF(mensaje)
             else:
                 self._procesarData(mensaje)
-            ack()
         except Exception as e:
             logging.warning(e)
             logging.warning(traceback.format_exc())
+            self.wal.log(LineaLog.RABBITNACKMSG)
             nack()
 
 

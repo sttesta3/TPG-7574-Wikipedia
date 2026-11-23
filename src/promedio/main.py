@@ -68,12 +68,12 @@ class Promedio:
     def procesarMensaje(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
-            self.wal.guardarMensaje(bytes, mensaje.clienteId)
+            self.wal.guardarMensaje(bytes)
+            ack()
             if isinstance(mensaje, FinMensajeSistema):
                 self._procesarEOF(mensaje)
             else:
                 self._procesarData(mensaje)
-            ack()
         except Exception as e:
             logging.info(e)
             logging.info(traceback.format_exc())

@@ -65,7 +65,8 @@ class SumTop:
     def procesarMensaje(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
-            self.wal.guardarMensaje(bytes, mensaje.clienteId)
+            self.wal.guardarMensaje(bytes)
+            ack()
             if isinstance(mensaje, FinMensajeSistema):
                 self.contador.eofRecibido(mensaje)
             elif self.contador.yaFinalizado(mensaje.clienteId):
@@ -73,7 +74,6 @@ class SumTop:
             else:
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
                 self._procesarData(mensaje)
-            ack()
         except Exception as e:
             logging.warning(e)
             logging.warning(traceback.format_exc())

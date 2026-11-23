@@ -78,7 +78,7 @@ services:
     volumes:
     - ./datasets:/datasets
     - ./output:/output
-
+    - ./output:/log
 
   clasificador_0:
     build:

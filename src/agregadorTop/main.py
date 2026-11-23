@@ -21,8 +21,17 @@ LOTE = 100
 ID = os.environ["ID"]
 
 class PalabrasPorIdioma:
-    def __init__(self):
+    def __init__(self, bytes=None):
         self.palabras = {}
+        if bytes:
+            for registro in bytes.split('\2'):
+                campos = registro.split('\1')
+                palabra = campos[0]
+                conteo = campos[1]
+                idiomas = {}
+                for idioma in campos[2:]:
+                    idiomas[idioma] = 1
+                self.palabras[palabra] = [conteo, idiomas]
 
     def add(self, cantidad: int, lenguaje, palabra: str) -> bool:
         '''
@@ -44,23 +53,23 @@ class PalabrasPorIdioma:
         for clave, valor in self.palabras.items():
             result[clave] = valor[0]
         return result
-    
+
+    def devolverEstado(self) -> bytes:
+        # Devuelve bytes para guardar en log. palabra \1 conteo \1 idioma 1 \1 idioma 2 \1 ... \0  
+        # \2 es el marcador de nuevo registro y \1 el separador de campos 
+        resultado = b''
+        for palabra, contador in self.palabras.values():
+            apariciones = contador[0]
+            resultado += palabra + '\1' + apariciones 
+            for idioma in contador[1].keys():
+                resultado += '\1' + idioma 
+            resultado += '\2'
+        return resultado                         
+
 
 class WalAgregadorTop(Wal):
     def __init__():
         super().__init__()
-
-    def guardarEstado(self):
-        # 0. Log checkpoint
-        # 1. Guarda todo el estado en un archivo temporal
-        # 2. Logea que guardo el estado
-        # 3. mv log_temporal log permanante (renombra log_temporal -> log_permanente, borrando el temporal)
-        # 4. Borrar mensajes 
-        # 5. Log END CHECKPOINT
-        self.wal_log(LineaLog.STARTCHECKPOINT)
-        
-        self.wal_log(LineaLog.ENDCHECKPOINT)
-        pass
 
     def recuperarEstado(self):
         # Misma operacion que guardarEstado
@@ -121,22 +130,34 @@ class AgregadorTop:
     def procesarMensaje(self, bytes, ack, nack):
         try:
             self.wal.guardarMensaje(bytes)
-            ack()   
-            # Caso borde en ESTA LINEA: Hice ACK del mensaje y no pude logear el ack. 
-            # Al leer log no se si este mensaje sera procesado por otro nodo o no. 
-            # Problema sin solucion: Se asume que el proceso de log es inmediato y que esta falla no puede darse
-            self.wal.log(LineaLog.RABBITACKMSG)
             mensaje = recvMensajeSistema(bytes)
             if isinstance(mensaje, FinMensajeSistema):
                 self._procesarEOF(mensaje)
             else:
                 self._procesarData(mensaje)
+            ack()   
         except Exception as e:
             logging.warning(e)
             logging.warning(traceback.format_exc())
-            self.wal.log(LineaLog.RABBITNACKMSG)
+#            self.wal.log(LineaLog.RABBITNACKMSG)
             nack()
 
+    def devolverEstado(self) -> bytes :
+        resultado = b""
+        for cliente, values in self.clientes.items():            
+            conteo_eofs: int = values[0]
+            resultado += cliente + '\1' + conteo_eofs + '\1'
+            palabras: PalabrasPorIdioma = values[1]
+            resultado += palabras.devolverEstado() + '\0'
+        return resultado
+
+    def cargarEstado(self, bytes):
+        for registro_cliente in bytes.split('\0'):
+            campos = registro_cliente.split('\1')
+            cliente = campos[0]
+            conteo_eofs = campos[1]
+            palabras = PalabrasPorIdioma.cargarEstado(campos[2:])
+            self.clientes[cliente] = [conteo_eofs, palabras]
 
     def _recuperarLog(self):
         for log in self.wal.recuperarLogs():

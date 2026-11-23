@@ -27,16 +27,18 @@ class Wal(ABC):
         self.mensajes = open(PATH_MSG,"ab")
         self.cuenta_mensajes = 0
 
-    @abstractmethod
-    def guardarEstado(self):
-        pass
+    def guardarEstado(self, bytes):
+        self.wal_log(LineaLog.STARTCHECKPOINT)
+                
+        self.wal_log(LineaLog.ENDCHECKPOINT)
+
 
     @abstractmethod
-    def recuperarEstado(self):
-        pass
+    def recuperarEstado(self, function):
+        function
 
     def guardarMensaje(self, mensaje: bytes, entrante:bool=True) -> None:
-        self.mensajes.write(self.cuenta_mensajes + b"\1" + mensaje + b"\0")
+        self.mensajes.write(self.cuenta_mensajes + "\1" + mensaje + b"\0")
         self.cuenta_mensajes += 1
 
 
@@ -45,7 +47,7 @@ class Wal(ABC):
 
         with open(PATH_LOGS, "rb",newline='\0') as log:
             for line in log.readlines():
-                yield line.rstrip(b"\0").deBytes()
+                yield line.rstrip(b"\0").split(b"\1")[1].deBytes()
 
     
     def borrarLog(self):  

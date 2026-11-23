@@ -3,7 +3,7 @@ import signal
 import logging
 import traceback
 import threading
-from wal import Wal, LineaLog
+from wal import Wal, LineaLog, Recipient
 from latido import Latido
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
 from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, PalabrasMensajeSistema, Respuesta3MensajeSistema
@@ -97,14 +97,21 @@ class AgregadorTop:
 
         duplicadas = []
         for clave, valor in mensaje.palabras.items():
+            self.wal.log(LineaLog.REDOLOG, f"{clienteId},add,{clave},{valor},{mensaje.lenguaje}")
             if self.clientes[clienteId][1].add(palabra=clave, cantidad=valor, lenguaje=mensaje.lenguaje):
                 # Palabra duplicada. 
                 duplicadas.append(clave)
                 if len(duplicadas) == LOTE:
-                    self.colaRespuestas.send(Respuesta3MensajeSistema(clienteId=clienteId, palabras=duplicadas).aBytes())
+                    mensaje = Respuesta3MensajeSistema(clienteId=clienteId, palabras=duplicadas).aBytes()
+                    self.wal.guardarMensaje(mensaje, Recipient.COLARESPUESTAS)
+                    self.colaRespuestas.send(mensaje)
                     duplicadas = []
+        
+        self.wal.log(LineaLog.REDOLOG, f"{clienteId},FINLOTE")
         if len(duplicadas) > 0:
-            self.colaRespuestas.send(Respuesta3MensajeSistema(clienteId=clienteId, palabras=duplicadas).aBytes())
+            mensaje = Respuesta3MensajeSistema(clienteId=clienteId, palabras=duplicadas).aBytes()
+            self.wal.guardarMensaje(mensaje, Recipient.COLARESPUESTAS)
+            self.colaRespuestas.send(mensaje)
 
 
     def _top20(self, palabras: dict[str, int]) -> dict[str, int]:
@@ -116,20 +123,26 @@ class AgregadorTop:
             self.clientes[mensaje.clienteId] = [0, PalabrasPorIdioma()]
 
         self.clientes[mensaje.clienteId][0] += 1
+        self.wal.log(LineaLog.RECVEOF,f"{mensaje.clienteId}")
         if self.clientes[mensaje.clienteId][0] == TOTALSUMTOP:
-            self.colaRespuestas.send(FinMensajeSistema(mensaje.clienteId).aBytes())
+            mensaje_eof = FinMensajeSistema(mensaje.clienteId).aBytes()
+            self.wal.guardarMensaje(mensaje_eof, Recipient.COLARESPUESTAS)
+            self.colaRespuestas.send(mensaje_eof)
 
             nodo = mensaje.clienteId.int % TOTALTOPGLOBAL
-            self.exchangeTopGlobal[nodo].send(PalabrasLoteMensajeSistema(mensaje.clienteId, [PalabrasMensajeSistema( palabras=self._top20(self.clientes[mensaje.clienteId][1].mergeTop()), url="", lenguaje=0)]).aBytes())    
-            self.exchangeTopGlobal[nodo].send(FinMensajeSistema(mensaje.clienteId).aBytes())
+            mensaje_exchange = PalabrasLoteMensajeSistema(mensaje.clienteId, [PalabrasMensajeSistema( palabras=self._top20(self.clientes[mensaje.clienteId][1].mergeTop()), url="", lenguaje=0)]).aBytes()
+            self.wal.guardarMensaje(mensaje_exchange, Recipient.EXCHANGETOPGLOBAL)
+            self.exchangeTopGlobal[nodo].send()    
+
+            self.wal.guardarMensaje(mensaje_eof, Recipient.EXCHANGETOPGLOBAL)
+            self.exchangeTopGlobal[nodo].send(mensaje_eof)
             
-            self.wal.borrarLog(mensaje.clienteId)
+            self.wal.log(LineaLog.FINEOF,f"{mensaje.clienteId}")
             del self.clientes[mensaje.clienteId]
             
 
     def procesarMensaje(self, bytes, ack, nack):
         try:
-            self.wal.guardarMensaje(bytes)
             mensaje = recvMensajeSistema(bytes)
             if isinstance(mensaje, FinMensajeSistema):
                 self._procesarEOF(mensaje)
@@ -139,7 +152,6 @@ class AgregadorTop:
         except Exception as e:
             logging.warning(e)
             logging.warning(traceback.format_exc())
-#            self.wal.log(LineaLog.RABBITNACKMSG)
             nack()
 
     def devolverEstado(self) -> bytes :

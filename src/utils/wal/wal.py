@@ -10,37 +10,40 @@ PATH_LOG = "logs/wal_log"
 PATH_TMP = "logs/wal_log_tmp"
 MENSAJES_PARA_CHECKPOINT = 100 
 
+class Recipient(Enum):
+    COLARESPUESTAS = 0
+    EXCHANGETOPGLOBAL = 1
+
 class LineaLog(Enum):
-    RECVMSG = 0
-    RABBITACKMSG = 1
-    RABBITNACKMSG = 2
-    MUTATESTATE = 3
-    STOREMSG = 4 
-    SENDMSG = 5
-    STARTCHECKPOINT = 6
-    ENDCHECKPOINT = 7
+    REDOLOG = 0
+    MSGSENT = 1
+    RECVEOF = 2
+    FINEOF = 3
+    STARTCHECKPOINT = 4
+    OKCHECKPOINT = 5
+    ENDCHECKPOINT = 6
 
 
 class Wal(ABC):
     def __init__(self) -> None:
-        self.log = open(PATH_LOG,"ab")
+        self.log_f = open(PATH_LOG,"ab")
         self.mensajes = open(PATH_MSG,"ab")
         self.cuenta_mensajes = 0
 
     def guardarEstado(self, bytes):
-        self.wal_log(LineaLog.STARTCHECKPOINT)
+        self.log(LineaLog.STARTCHECKPOINT)
                 
-        self.wal_log(LineaLog.ENDCHECKPOINT)
+        self.log(LineaLog.ENDCHECKPOINT)
 
 
     @abstractmethod
     def recuperarEstado(self, function):
         function
 
-    def guardarMensaje(self, mensaje: bytes, entrante:bool=True) -> None:
-        self.mensajes.write(self.cuenta_mensajes + "\1" + mensaje + b"\0")
+    def guardarMensaje(self, mensaje: bytes, to: Recipient) -> None:
+        self.mensajes.write(f"{self.cuenta_mensajes},{to},{mensaje}\n")
+        self.log_f.write(f"{LineaLog.MSGSENT},{self.cuenta_mensajes}")
         self.cuenta_mensajes += 1
-
 
     def recuperarMensajes(self) -> Iterator[bytes]:
         return
@@ -57,7 +60,8 @@ class Wal(ABC):
 
     def cerrar(self):
         self.mensajes.close()
-        self.log.close()
+        self.log_f.close()
 
-    def wal_log(self, linea: LineaLog):
-        self.log.write(linea+'\0')
+    def log(self, linea: LineaLog, contenido: str | None ):
+        write = f"{linea},{contenido}\n" if contenido else f"{linea}\n"
+        self.log_f.write(write)

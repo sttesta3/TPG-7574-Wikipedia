@@ -1,13 +1,12 @@
 from abc import ABC, abstractmethod
 import os
-import uuid
 from collections.abc import Iterator
-from protocolo.mensajesSistema import MensajeSistema
 from enum import Enum
 
 PATH_MSG = "logs/mensajes"
 PATH_LOG = "logs/wal_log"
-PATH_TMP = "logs/wal_log_tmp"
+PATH_EST = "logs/estado"
+PATH_EST_TMP = f"{PATH_EST}_TMP"
 MENSAJES_PARA_CHECKPOINT = 100 
 
 class Recipient(Enum):
@@ -31,9 +30,17 @@ class Wal(ABC):
         self.cuenta_mensajes = 0
 
     def guardarEstado(self, bytes):
-        self.log(LineaLog.STARTCHECKPOINT)
-                
-        self.log(LineaLog.ENDCHECKPOINT)
+        with open(PATH_EST_TMP,"ab") as f:
+            f.write(bytes)
+
+    def estadoTemporalAPermanente(self):
+        os.rename(PATH_EST_TMP,PATH_EST)
+
+    def truncarRedoLog(self):
+        with open(PATH_MSG,"w") as f:
+            f.truncate(0)
+        with open(PATH_LOG,"w") as f:
+            f.truncate(0)
 
 
     @abstractmethod
@@ -65,3 +72,7 @@ class Wal(ABC):
     def log(self, linea: LineaLog, contenido: str | None ):
         write = f"{linea},{contenido}\n" if contenido else f"{linea}\n"
         self.log_f.write(write)
+
+
+    def tiempoDeCheckpoint(self) -> bool:
+        return self.cuenta_mensajes == MENSAJES_PARA_CHECKPOINT

@@ -149,10 +149,19 @@ class AgregadorTop:
             else:
                 self._procesarData(mensaje)
             ack()   
+            if self.wal.tiempoDeCheckpoint():
+                self.wal.log(LineaLog.STARTCHECKPOINT)
+                self.guardarEstado(self.devolverEstado())
+                self.wal.log(LineaLog.OKCHECKPOINT)
+                self.wal.estadoTemporalAPermanente()
+                self.wal.log(LineaLog.ENDCHECKPOINT)
+                self.wal.truncarRedoLog()
+                
         except Exception as e:
             logging.warning(e)
             logging.warning(traceback.format_exc())
-            nack()
+            if not self.wal.tiempoDeCheckpoint():
+                nack()
 
     def devolverEstado(self) -> bytes :
         resultado = b""

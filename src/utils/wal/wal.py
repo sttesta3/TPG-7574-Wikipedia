@@ -5,8 +5,11 @@ from collections.abc import Iterator
 from protocolo.mensajesSistema import MensajeSistema
 from enum import Enum
 
-PATH_LOGS = "logs/mensajes"
- 
+PATH_MSG = "logs/mensajes"
+PATH_LOG = "logs/wal_log"
+PATH_TMP = "logs/wal_log_tmp"
+MENSAJES_PARA_CHECKPOINT = 100 
+
 class LineaLog(Enum):
     RECVMSG = 0
     RABBITACKMSG = 1
@@ -14,11 +17,15 @@ class LineaLog(Enum):
     MUTATESTATE = 3
     STOREMSG = 4 
     SENDMSG = 5
+    STARTCHECKPOINT = 6
+    ENDCHECKPOINT = 7
 
 
 class Wal(ABC):
     def __init__(self) -> None:
-        self.log_mensajes = {}
+        self.log = open(PATH_LOG,"ab")
+        self.mensajes = open(PATH_MSG,"ab")
+        self.cuenta_mensajes = 0
 
     @abstractmethod
     def guardarEstado(self):
@@ -29,12 +36,11 @@ class Wal(ABC):
         pass
 
     def guardarMensaje(self, mensaje: bytes, entrante:bool=True) -> None:
-        if not self.log_mensajes:
-            self.log_mensajes = open(PATH_LOGS,"ab")
-        self.log_mensajes.write(mensaje + b"\0")
+        self.mensajes.write(self.cuenta_mensajes + b"\1" + mensaje + b"\0")
+        self.cuenta_mensajes += 1
 
 
-    def recuperarLogs(self) -> Iterator[bytes]:
+    def recuperarMensajes(self) -> Iterator[bytes]:
         return
 
         with open(PATH_LOGS, "rb",newline='\0') as log:
@@ -43,8 +49,13 @@ class Wal(ABC):
 
     
     def borrarLog(self):  
-        os.remove(PATH_LOGS)
+        os.remove(PATH_LOG)
+        os.remove(PATH_MSG)
 
 
     def cerrar(self):
-        self.log_mensajes.close()
+        self.mensajes.close()
+        self.log.close()
+
+    def wal_log(self, linea: LineaLog):
+        self.log.write(linea+'\0')

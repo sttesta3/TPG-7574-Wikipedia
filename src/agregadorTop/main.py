@@ -20,7 +20,6 @@ TOP_SIZE=20
 LOTE = 100
 ID = os.environ["ID"]
 
-
 class PalabrasPorIdioma:
     def __init__(self):
         self.palabras = {}
@@ -51,12 +50,22 @@ class WalAgregadorTop(Wal):
     def __init__():
         super().__init__()
 
-    def guardarEstado():
-        # Guarda en un archivo temporal
-        # Hace el recambio de archivos 
+    def guardarEstado(self):
+        # 0. Log checkpoint
+        # 1. Guarda todo el estado en un archivo temporal
+        # 2. Logea que guardo el estado
+        # 3. mv log_temporal log permanante (renombra log_temporal -> log_permanente, borrando el temporal)
+        # 4. Borrar mensajes 
+        # 5. Log END CHECKPOINT
+        self.wal_log(LineaLog.STARTCHECKPOINT)
+        
+        self.wal_log(LineaLog.ENDCHECKPOINT)
         pass
 
-    def recuperarEstado():
+    def recuperarEstado(self):
+        # Misma operacion que guardarEstado
+        # Nota: Si no esta la linea 2. ,el checkpoint es invalido y debes recrear el estado desde el estado anterior + mensajes 
+        #       Si esta la linea 2. , es valido y tenes que ejecutar 3-4-5 y seguir con tu vida 
         pass
 
 class AgregadorTop:
@@ -93,7 +102,6 @@ class AgregadorTop:
         top = sorted(palabras.items(), key=lambda item: item[1], reverse=True)
         return dict(top[:TOP_SIZE])
 
-
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
         if mensaje.clienteId not in self.clientes:
             self.clientes[mensaje.clienteId] = [0, PalabrasPorIdioma()]
@@ -112,13 +120,13 @@ class AgregadorTop:
 
     def procesarMensaje(self, bytes, ack, nack):
         try:
-            mensaje = recvMensajeSistema(bytes)
             self.wal.guardarMensaje(bytes)
             ack()   
             # Caso borde en ESTA LINEA: Hice ACK del mensaje y no pude logear el ack. 
             # Al leer log no se si este mensaje sera procesado por otro nodo o no. 
             # Problema sin solucion: Se asume que el proceso de log es inmediato y que esta falla no puede darse
             self.wal.log(LineaLog.RABBITACKMSG)
+            mensaje = recvMensajeSistema(bytes)
             if isinstance(mensaje, FinMensajeSistema):
                 self._procesarEOF(mensaje)
             else:

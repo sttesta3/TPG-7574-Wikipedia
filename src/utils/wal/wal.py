@@ -42,11 +42,6 @@ class Wal(ABC):
         with open(PATH_LOG,"w") as f:
             f.truncate(0)
 
-
-    @abstractmethod
-    def recuperarEstado(self, function):
-        function
-
     def guardarMensaje(self, mensaje: bytes, to: Recipient) -> None:
         self.mensajes.write(f"{self.cuenta_mensajes},{to},{mensaje}\n")
         self.log_f.write(f"{LineaLog.MSGSENT},{self.cuenta_mensajes}")
@@ -55,10 +50,9 @@ class Wal(ABC):
     def recuperarMensajes(self) -> Iterator[bytes]:
         return
 
-        with open(PATH_LOGS, "rb",newline='\0') as log:
+        with open(PATH_LOGS, "rb") as log:
             for line in log.readlines():
                 yield line.rstrip(b"\0").split(b"\1")[1].deBytes()
-
     
     def borrarLog(self):  
         os.remove(PATH_LOG)

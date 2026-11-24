@@ -187,9 +187,11 @@ class AgregadorTop:
             else:
                 self._procesarData(log)
 
+    def _recuperarEstado(self):
+        pass
 
     def iniciar(self):
-        self._recuperarLog()
+        self._recuperarEstado()
         
         latido = Latido(self.colaDatos.connection)
         thread_latido = threading.Thread(target=latido.start, daemon=True)

@@ -33,6 +33,10 @@ class Wal(ABC):
         with open(PATH_EST_TMP,"ab") as f:
             f.write(bytes)
 
+    def recuperarEstado(self):
+        with open(PATH_EST,"ab") as f:
+            f.write(bytes)
+
     def estadoTemporalAPermanente(self):
         os.rename(PATH_EST_TMP,PATH_EST)
 

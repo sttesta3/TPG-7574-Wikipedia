@@ -176,6 +176,7 @@ services:
       - EXCHANGEIMGEOF=ExchangeImgEof
       - MAXCLIENTES=1
       - DESCARGASPORMINUTO=75
+      - LATIDOPORT=6060
 
   img_descargador_1:
     build:
@@ -203,6 +204,7 @@ services:
       - EXCHANGEIMGEOF=ExchangeImgEof
       - MAXCLIENTES=1
       - DESCARGASPORMINUTO=75
+      - LATIDOPORT=6060
 
   transformador_0:
     build:
@@ -232,6 +234,7 @@ services:
       - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
       - TOTALCUENTAPROM=3
       - TOTALPROMEDIO=3
+      - LATIDOPORT=6060
 
   transformador_1:
     build:
@@ -261,6 +264,7 @@ services:
       - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
       - TOTALCUENTAPROM=3
       - TOTALPROMEDIO=3
+      - LATIDOPORT=6060
 
   transformador_2:
     build:
@@ -290,6 +294,7 @@ services:
       - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
       - TOTALCUENTAPROM=3
       - TOTALPROMEDIO=3
+      - LATIDOPORT=6060
 
   promedio_0:
     build:
@@ -323,6 +328,7 @@ services:
       - TOTALCUENTAPROM=3
       - TOTALTRANSFORMADORES=3
       - ID=0
+      - LATIDOPORT=6060
 
   promedio_1:
     build:
@@ -356,6 +362,7 @@ services:
       - TOTALCUENTAPROM=3
       - TOTALTRANSFORMADORES=3
       - ID=1
+      - LATIDOPORT=6060
 
   promedio_2:
     build:
@@ -389,6 +396,7 @@ services:
       - TOTALCUENTAPROM=3
       - TOTALTRANSFORMADORES=3
       - ID=2
+      - LATIDOPORT=6060
 
   cuenta_prom_0:
     build:
@@ -421,6 +429,7 @@ services:
       - COLARESPUESTAS=Respuestas
       - EXCHANGECUENTAPROMEOF=ExchangeCuentaPromEof
       - ID=0
+      - LATIDOPORT=6060
 
   cuenta_prom_1:
     build:
@@ -453,6 +462,7 @@ services:
       - COLARESPUESTAS=Respuestas
       - EXCHANGECUENTAPROMEOF=ExchangeCuentaPromEof
       - ID=1
+      - LATIDOPORT=6060
 
   cuenta_prom_2:
     build:
@@ -485,6 +495,7 @@ services:
       - COLARESPUESTAS=Respuestas
       - EXCHANGECUENTAPROMEOF=ExchangeCuentaPromEof
       - ID=2
+      - LATIDOPORT=6060
 
   sum_top_0:
     build:
@@ -511,6 +522,7 @@ services:
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
       - TOTALTOPPARCIAL=3
+      - LATIDOPORT=6060
 
   sum_top_1:
     build:
@@ -537,6 +549,7 @@ services:
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
       - TOTALTOPPARCIAL=3
+      - LATIDOPORT=6060
 
   sum_top_2:
     build:
@@ -563,6 +576,7 @@ services:
       - EXCHANGESUMTOPEOF=ExchangeSumTopEof
       - EXCHANGETOPPARCIAL=ExchangeTopParcial
       - TOTALTOPPARCIAL=3
+      - LATIDOPORT=6060
 
   agregador_top_0:
     build:
@@ -593,6 +607,7 @@ services:
       - TOTALTOPGLOBAL=3
       - TOTALSUMTOP=3
       - ID=0
+      - LATIDOPORT=6060
 
   agregador_top_1:
     build:
@@ -623,6 +638,7 @@ services:
       - TOTALTOPGLOBAL=3
       - TOTALSUMTOP=3
       - ID=1
+      - LATIDOPORT=6060
 
   agregador_top_2:
     build:
@@ -653,6 +669,7 @@ services:
       - TOTALTOPGLOBAL=3
       - TOTALSUMTOP=3
       - ID=2
+      - LATIDOPORT=6060
 
   join_top_0:
     build:
@@ -679,6 +696,7 @@ services:
       - EXCHANGETOPGLOBAL=ExchangeTopGlobal
       - TOTALTOPPARCIAL=3
       - ID=0
+      - LATIDOPORT=6060
 
   join_top_1:
     build:
@@ -705,6 +723,7 @@ services:
       - EXCHANGETOPGLOBAL=ExchangeTopGlobal
       - TOTALTOPPARCIAL=3
       - ID=1
+      - LATIDOPORT=6060
 
   join_top_2:
     build:
@@ -731,6 +750,7 @@ services:
       - EXCHANGETOPGLOBAL=ExchangeTopGlobal
       - TOTALTOPPARCIAL=3
       - ID=2
+      - LATIDOPORT=6060
 
   maestro_0:
     build:

@@ -66,7 +66,7 @@ class CuentaProm:
 
 
     def iniciar(self):
-        latido = Latido(self.colaDatos.connection)
+        latido = Latido(self.colaCuentaProm.connection)
         thread_latido = threading.Thread(target=latido.start, daemon=True)
         thread_latido.start()
 

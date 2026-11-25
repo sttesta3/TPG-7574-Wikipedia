@@ -89,7 +89,7 @@ class Promedio:
 
 
     def iniciar(self):
-        latido = Latido(self.colaDatos.connection)
+        latido = Latido(self.exchangePromedio.connection)
         thread_latido = threading.Thread(target=latido.start, daemon=True)
         thread_latido.start()
         

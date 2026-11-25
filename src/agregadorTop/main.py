@@ -149,7 +149,7 @@ class AgregadorTop:
     def iniciar(self):
         self._recuperarLog()
         
-        latido = Latido(self.colaDatos.connection)
+        latido = Latido(self.exchangeTopParcial.connection)
         thread_latido = threading.Thread(target=latido.start, daemon=True)
         thread_latido.start()
 

@@ -134,6 +134,7 @@ class ImgDescargador:
 
     def procesarMensaje(self, bytes, ack, nack):
         try:
+            # TODO: agregar el ClienteMuertoMensajeSistema
             mensaje = recvMensajeSistema(bytes)
             if isinstance(mensaje, FinMensajeSistema):
                 self.contador.eofRecibido(mensaje)

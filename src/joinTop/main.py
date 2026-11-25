@@ -6,7 +6,7 @@ import threading
 from wal import Wal
 from latido import Latido
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, Respuesta4MensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, Respuesta4MensajeSistema, ClienteMuertoMensajeSistema
 
 
 MOMHOST = os.environ["MOMHOST"]
@@ -56,6 +56,8 @@ class JoinTop:
             ack()
             if isinstance(mensaje, FinMensajeSistema):
                 self._procesarEOF(mensaje)
+            elif isinstance(mensaje, ClienteMuertoMensajeSistema):
+                del self.clientes[mensaje.clientId]
             else:
                 self._procesarData(mensaje)
         except Exception as e:

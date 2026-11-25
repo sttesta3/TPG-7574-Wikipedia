@@ -5,8 +5,8 @@ import threading
 from latido import Latido
 from middleware import MessageMiddlewareQueue
 from contadorDistribuido import contadorDistribuido
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, LoteDataMensajeSistema, ImgMensajeSistema, ImgLoteMensajeSistema, Respuesta1MensajeSistema, TransformadorMensajeSistema, TransformadorLoteMensajeSistema
 from protocolo.mensajesCliente import LENGUAJEINGLES, LENGUAJEFRANCES
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, ClienteMuertoMensajeSistema, LoteDataMensajeSistema, ImgMensajeSistema, ImgLoteMensajeSistema, Respuesta1MensajeSistema, TransformadorMensajeSistema, TransformadorLoteMensajeSistema
 
 
 MOMHOST = os.environ["MOMHOST"]
@@ -58,6 +58,9 @@ class Clasificador:
                 self.contador.eofRecibido(mensaje)
             elif self.contador.yaFinalizado(mensaje.clienteId):
                 logging.debug(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
+            elif isinstance(mensaje, ClienteMuertoMensajeSistema):
+                self.colaImgDescarga.send(bytes)
+                self.colaTransformador.send(bytes)
             else:
                 self._procesarData(mensaje)
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)

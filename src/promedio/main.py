@@ -6,7 +6,7 @@ import threading
 from wal import Wal
 from latido import Latido
 from middleware import MessageMiddlewareExchange, MessageMiddlewareQueue
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, CantidadPalabrasLoteMensajeSistema, FinPromMensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, CantidadPalabrasLoteMensajeSistema, FinPromMensajeSistema, ClienteMuertoMensajeSistema
 
 
 MOMHOST = os.environ["MOMHOST"]
@@ -72,6 +72,9 @@ class Promedio:
             ack()
             if isinstance(mensaje, FinMensajeSistema):
                 self._procesarEOF(mensaje)
+            elif isinstance(mensaje, ClienteMuertoMensajeSistema):
+                del self.clientes[mensaje.clienteId]
+                self.colaCuentaProm.send(bytes)
             else:
                 self._procesarData(mensaje)
         except Exception as e:

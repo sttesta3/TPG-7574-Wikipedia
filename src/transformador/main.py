@@ -9,7 +9,7 @@ from latido import Latido
 from nltk.corpus import stopwords
 from contadorDistribuido import contadorDistribuido
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, TransformadorLoteMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema, PalabrasLoteMensajeSistema, CantidadPalabrasLoteMensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, ClienteMuertoMensajeSistema, TransformadorLoteMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema, PalabrasLoteMensajeSistema, CantidadPalabrasLoteMensajeSistema
 
 MOMHOST = os.environ["MOMHOST"]
 COLATRANSFORMADOR = os.environ["COLATRANSFORMADOR"]
@@ -91,6 +91,11 @@ class Transformador:
                 self.contador.eofRecibido(mensaje)
             elif self.contador.yaFinalizado(mensaje.clienteId):
                 logging.debug(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
+            elif isinstance(mensaje, ClienteMuertoMensajeSistema):
+                self.colaCuentaProm.send(bytes)
+                self.colaSumTop.send(bytes)
+                for i in range(TOTALPROMEDIO):
+                    self.exchangePromedio[i].send(bytes)
             else:
                 self._procesarData(mensaje)
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)

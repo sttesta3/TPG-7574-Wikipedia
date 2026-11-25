@@ -7,7 +7,7 @@ from wal import Wal
 from latido import Latido
 from contadorDistribuido import contadorDistribuido
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, PalabrasMensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, PalabrasMensajeSistema, ClienteMuertoMensajeSistema
 
 MOMHOST = os.environ["MOMHOST"]
 COLASUMTOP = os.environ["COLASUMTOP"]
@@ -58,6 +58,7 @@ class SumTop:
                 self.excahangeTopParciales[i].send(parcial.aBytes())
             self.excahangeTopParciales[i].send(FinMensajeSistema(clienteId).aBytes())
 
+        del self.clientes[clienteId]
         self.wal.borrarLog(clienteId)
         logging.debug(f"Mando parciales y EOF de {clienteId}")
 
@@ -71,6 +72,10 @@ class SumTop:
                 self.contador.eofRecibido(mensaje)
             elif self.contador.yaFinalizado(mensaje.clienteId):
                 logging.debug(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
+            elif isinstance(mensaje, ClienteMuertoMensajeSistema):
+                for i in range(TOTALTOPPARCIAL):
+                    self.excahangeTopParciales[i].send(bytes)
+                del self.clientes[mensaje.clienteId]
             else:
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
                 self._procesarData(mensaje)

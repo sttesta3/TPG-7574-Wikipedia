@@ -6,7 +6,7 @@ import threading
 from wal import Wal, LineaLog
 from latido import Latido
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, PalabrasMensajeSistema, Respuesta3MensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, PalabrasMensajeSistema, Respuesta3MensajeSistema, ClienteMuertoMensajeSistema
 
 
 MOMHOST = os.environ["MOMHOST"]
@@ -129,6 +129,10 @@ class AgregadorTop:
             mensaje = recvMensajeSistema(bytes)
             if isinstance(mensaje, FinMensajeSistema):
                 self._procesarEOF(mensaje)
+            elif isinstance(mensaje, ClienteMuertoMensajeSistema):
+                for i in range(EXCHANGETOPGLOBAL):
+                    self.exchangeTopGlobal[i].send(bytes)
+                del self.clientes[mensaje.clienteId]
             else:
                 self._procesarData(mensaje)
         except Exception as e:

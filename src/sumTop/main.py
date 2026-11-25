@@ -21,6 +21,7 @@ class WalSumtop(Wal):
     def __init__():
         super().__init__()
 
+
     def guardarEstado(self, estado: dict[uuid.UUID,  dict[str,int]]):
         self.wal_log(LineaLog.STARTCHECKPOINT)
         

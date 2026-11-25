@@ -1,9 +1,10 @@
 import os
+import uuid
 import signal
 import logging
 import traceback
 import threading
-from wal import Wal
+from wal import Wal, LineaLog
 from latido import Latido
 from middleware import MessageMiddlewareExchange, MessageMiddlewareQueue
 from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, CantidadPalabrasLoteMensajeSistema, FinPromMensajeSistema, ClienteMuertoMensajeSistema
@@ -20,6 +21,40 @@ SUMA = 0
 CUENTA = 1
 EOFS_RECIBIDOS = 2
 CUENTA_INICIAL = 0
+
+class WalPromedio(Wal):
+    def __init__():
+        super().__init__()
+
+    def guardarEstado(self, estado: dict[uuid.UUID, list]):
+        self.wal_log(LineaLog.STARTCHECKPOINT)
+        
+        tmp = open("tmp", "a")
+
+        for cliente, lista in estado.items():
+            tmp.write(str(cliente) + ":" + lista[0] + ":" +lista[1] + ":" + lista[2] )
+
+        tmp.flush()
+        tmp.close()
+        os.replace("tmp", "checkpoint")
+
+        self.wal_log(LineaLog.ENDCHECKPOINT)
+
+
+    def recuperarEstado(self) -> dict[uuid.UUID, list]:
+        
+        rta = {}
+        
+        with open("estado", "r") as f:
+            for line in f.readlines():
+
+                splited  = line.split(":")
+                clienteId = uuid.UUID(splited[0])
+                
+                rta[clienteId] = [splited[1], splited[2], splited[3]]
+                        
+        return rta
+
 
 
 class Promedio:

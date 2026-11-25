@@ -134,6 +134,7 @@ class ImgDescargador:
 
     def procesarMensaje(self, bytes, ack, nack):
         try:
+            # TODO: agregar el ClienteMuertoMensajeSistema
             mensaje = recvMensajeSistema(bytes)
             if isinstance(mensaje, FinMensajeSistema):
                 self.contador.eofRecibido(mensaje)
@@ -154,7 +155,7 @@ class ImgDescargador:
 
 
     def iniciar(self):
-        latido = Latido(self.colaDatos.connection)
+        latido = Latido(self.colaImgDescarga.connection)
         thread_latido = threading.Thread(target=latido.start, daemon=True)
         thread_latido.start()
 

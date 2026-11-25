@@ -1,19 +1,60 @@
 import os
+import uuid
 import signal
 import logging
 import traceback
 import threading
-from wal import Wal
+from wal import Wal, LineaLog
 from latido import Latido
 from contadorDistribuido import contadorDistribuido
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, PalabrasMensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, PalabrasMensajeSistema, ClienteMuertoMensajeSistema
 
 MOMHOST = os.environ["MOMHOST"]
 COLASUMTOP = os.environ["COLASUMTOP"]
 EXCHANGESUMTOPEOF = os.environ["EXCHANGESUMTOPEOF"]
 EXCHANGETOPPARCIAL = os.environ["EXCHANGETOPPARCIAL"]
 TOTALTOPPARCIAL = int(os.environ["TOTALTOPPARCIAL"])
+
+
+class WalSumtop(Wal):
+    def __init__():
+        super().__init__()
+
+
+    def guardarEstado(self, estado: dict[uuid.UUID,  dict[str,int]]):
+        self.wal_log(LineaLog.STARTCHECKPOINT)
+        
+        tmp = open("tmp", "a")
+
+        for cliente, palabras in estado.items():
+            tmp.write(str(cliente) + ":")
+            for palabra, cantidad in palabras.items():
+                tmp.write("|" +palabra + ":" + cantidad)
+            tmp.write("\n")
+        
+        tmp.flush()
+        tmp.close()
+        os.replace("tmp", "checkpoint")
+
+        self.wal_log(LineaLog.ENDCHECKPOINT)
+
+
+    def recuperarEstado(self) -> dict[uuid.UUID,  dict[str,int]]:
+        
+        rta = {}
+        
+        with open("estado", "r") as f:
+            for line in f.readlines():
+
+                splited  = line.split(":|")
+                clienteId = uuid.UUID(splited[0])
+                
+                for x in splited[1].split("|"):
+                    palabra, cantidad = x.split(":", 1)
+                    rta[clienteId][palabra] = cantidad
+                        
+        return rta
 
 
 class SumTop:
@@ -26,7 +67,7 @@ class SumTop:
         self.contador = contadorDistribuido(MOMHOST, EXCHANGESUMTOPEOF, self._finalizarCliente, self.colaSumTop.remote_execution)
 
         self.clientes = {}
-        self.wal = Wal()
+        self.wal = WalSumtop()
 
 
     def _procesarData(self, mensajes: PalabrasLoteMensajeSistema) -> None:
@@ -58,6 +99,7 @@ class SumTop:
                 self.excahangeTopParciales[i].send(parcial.aBytes())
             self.excahangeTopParciales[i].send(FinMensajeSistema(clienteId).aBytes())
 
+        del self.clientes[clienteId]
         self.wal.borrarLog(clienteId)
         logging.debug(f"Mando parciales y EOF de {clienteId}")
 
@@ -71,6 +113,10 @@ class SumTop:
                 self.contador.eofRecibido(mensaje)
             elif self.contador.yaFinalizado(mensaje.clienteId):
                 logging.debug(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
+            elif isinstance(mensaje, ClienteMuertoMensajeSistema):
+                for i in range(TOTALTOPPARCIAL):
+                    self.excahangeTopParciales[i].send(bytes)
+                del self.clientes[mensaje.clienteId]
             else:
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
                 self._procesarData(mensaje)
@@ -92,7 +138,7 @@ class SumTop:
 
 
     def iniciar(self):
-        latido = Latido(self.colaDatos.connection)
+        latido = Latido(self.colaSumTop.connection)
         thread_latido = threading.Thread(target=latido.start, daemon=True)
         thread_latido.start()
 

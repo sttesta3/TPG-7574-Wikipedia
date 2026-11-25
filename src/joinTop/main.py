@@ -1,12 +1,13 @@
 import os
+import uuid
 import signal
 import logging
 import traceback
 import threading
-from wal import Wal
+from wal import Wal, LineaLog
 from latido import Latido
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, Respuesta4MensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, Respuesta4MensajeSistema, ClienteMuertoMensajeSistema
 
 
 MOMHOST = os.environ["MOMHOST"]
@@ -16,13 +17,56 @@ TOTALTOPPARCIAL = int(os.environ["TOTALTOPPARCIAL"])
 ID = os.environ["ID"]
 
 
+class WalJoinTop(Wal):
+    def __init__():
+        super().__init__()
+
+
+    def guardarEstado(self, estado: dict[uuid.UUID, list[int, dict[str, int]]]):
+        self.wal_log(LineaLog.STARTCHECKPOINT)
+        
+        tmp = open("tmp", "a")
+
+        for cliente, EofYPalabras in estado.items():
+            tmp.write(str(cliente) + "|" + EofYPalabras[0] + ":")
+            for palabra, cantidad in EofYPalabras[1].items():
+                tmp.write("|" +palabra + ":" + cantidad)
+            tmp.write("\n")
+        
+        tmp.flush()
+        tmp.close()
+        os.replace("tmp", "checkpoint")
+
+        self.wal_log(LineaLog.ENDCHECKPOINT)
+
+
+    def recuperarEstado(self) -> dict[uuid.UUID, list[int, dict[str, int]]]:
+        
+        rta = {}
+        
+        with open("estado", "r") as f:
+            for line in f.readlines():
+
+                splited  = line.split(":|")
+                clienteId = uuid.UUID(splited[0].split("|")[0])
+                
+                tmp = {}
+                for x in splited[1].split("|"):
+                    palabra, cantidad = x.split(":", 1)
+                    tmp[palabra] = cantidad
+
+                rta[clienteId] = [splited[0].split("|")[1], tmp]
+                        
+        return rta
+
+
 class JoinTop:
     def __init__(self):
         self.colaRespuestas = MessageMiddlewareQueue(MOMHOST, COLARESPUESTAS)
         self.exchangeTopGlobal = MessageMiddlewareExchange(MOMHOST, EXCHANGETOPGLOBAL, [EXCHANGETOPGLOBAL+"_"+ID])
 
         self.clientes = {}
-        self.wal = Wal()
+        self.wal = JoinTop()
 
 
     def _procesarData(self, mensajes: PalabrasLoteMensajeSistema) -> None:
@@ -56,6 +100,8 @@ class JoinTop:
             ack()
             if isinstance(mensaje, FinMensajeSistema):
                 self._procesarEOF(mensaje)
+            elif isinstance(mensaje, ClienteMuertoMensajeSistema):
+                del self.clientes[mensaje.clientId]
             else:
                 self._procesarData(mensaje)
         except Exception as e:
@@ -73,7 +119,7 @@ class JoinTop:
 
 
     def iniciar(self):
-        latido = Latido(self.colaDatos.connection)
+        latido = Latido(self.exchangeTopGlobal.connection)
         thread_latido = threading.Thread(target=latido.start, daemon=True)
         thread_latido.start()
 

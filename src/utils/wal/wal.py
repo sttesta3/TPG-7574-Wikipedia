@@ -1,7 +1,9 @@
-from abc import ABC, abstractmethod
 import os
-from collections.abc import Iterator
+import uuid
 from enum import Enum
+from abc import ABC, abstractmethod
+from collections.abc import Iterator
+from protocolo.mensajesSistema import MensajeSistema
 
 PATH_MSG = "logs/mensajes"
 PATH_LOG = "logs/wal_log"

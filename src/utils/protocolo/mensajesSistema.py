@@ -18,6 +18,8 @@ FIN_PROM_MENSAJE = b'\x0B'
 LOTE_IMG_MENSAJE = b'\x0C'
 ANUNCIO_MENSAJE = b'\x0D'
 
+CLIENTE_MUERTO_MENSAJE = b'\x0E'
+
 
 class MensajeSistema(ABC):
     @abstractmethod
@@ -44,6 +46,20 @@ class FinMensajeSistema(MensajeSistema):
     def deBytes(self, bytes):
         self.totalMsg = int.from_bytes(bytes[0:4], byteorder="big")
         self.clienteId = uuid.UUID(bytes = bytes[4:20])
+
+
+class ClienteMuertoMensajeSistema(MensajeSistema):
+    def __init__(self, clienteId: uuid.UUID = None) -> None:
+        self.clienteId = clienteId  
+
+    def aBytes(self) -> bytes:
+        mensajeBytes = CLIENTE_MUERTO_MENSAJE
+        mensajeBytes += self.clienteId.bytes
+        return mensajeBytes
+    
+
+    def deBytes(self, bytes):
+        self.clienteId = uuid.UUID(bytes)
 
 
 class AnuncioMensajeSistema(MensajeSistema):
@@ -638,6 +654,8 @@ def recvMensajeSistema(mensaje: bytes) -> MensajeSistema:
         rta = Respuesta4MensajeSistema()
     elif type == RESPUESTA5_MENSAJE:
         rta = Respuesta5MensajeSistema()
+    elif type == CLIENTE_MUERTO_MENSAJE:
+        rta = ClienteMuertoMensajeSistema()
     else:
         rta = None
     

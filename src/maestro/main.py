@@ -54,7 +54,6 @@ class Maestro:
 
             self.nodos[servicio].setearLargo(lambda: self.reiniciarServicio(servicio))
 
-
             await reader.readexactly(1)
             print(f"Latio {servicio}")
             self.nodos[servicio].setearMedio(lambda: self.pedirLatido(servicio, writer, reader))

@@ -1,13 +1,15 @@
 import os
 import uuid
-import logging
 import socket
 import signal
+import logging
+import threading
 import multiprocessing
-from protocolo.mensajesCliente import recvMensaje, FinMensaje
-from protocolo.mensajesGateway import sendRespuesta
-from protocolo.mensajesSistema import FinMensajeSistema, LoteDataMensajeSistema, recvMensajeSistema
+from latido import Latido
 from middleware import MessageMiddlewareQueue
+from protocolo.mensajesGateway import sendRespuesta
+from protocolo.mensajesCliente import recvMensaje, FinMensaje
+from protocolo.mensajesSistema import FinMensajeSistema, LoteDataMensajeSistema, recvMensajeSistema, ClienteMuertoMensajeSistema
 
 GATEWAYHOST = os.environ["GATEWAYHOST"]
 GATEWAYPORT = int(os.environ["GATEWAYPORT"])
@@ -15,6 +17,7 @@ LOTE = int(os.environ["LOTE"])
 MOMHOST = os.environ["MOMHOST"]
 COLADATOS = os.environ["COLADATOS"]
 COLARESPUESTAS = os.environ["COLARESPUESTAS"]
+LATIDOPORT = int(os.environ["LATIDOPORT"])
 
 TOTALCLASIFEOF = int(os.environ["TOTALCLASIFEOF"])
 TOTALIMGEOF = int(os.environ["TOTALIMGEOF"])
@@ -45,7 +48,8 @@ def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
                 contador_mensajes += 1
                 colaDatos.send(LoteDataMensajeSistema(clienteId, mensaje, contador_mensajes).aBytes())
     except socket.error:
-        logging.error("The connection with the server was lost")
+        # TODO: si se cae el gateway hacer lo mismo
+        colaDatos.send(ClienteMuertoMensajeSistema(clienteId).aBytes())
     except Exception as e:
         print(e)
         logging.warning(e)
@@ -87,8 +91,7 @@ def manejarSigterm(clientes: dict, serverSocket: socket.socket, sigtermRecivida)
         cliente.shutdown(socket.SHUT_RDWR)
 
 
-def main() -> None:
-    logging.basicConfig(level=logging.INFO)
+def iniciar():
     with multiprocessing.Manager() as manager:
         # TODO: unico dato en memoria (se puede caer el gateway??)
         clientes = manager.dict()
@@ -119,6 +122,19 @@ def main() -> None:
                         logging.warning(e)
                         return 2
     return 0
+
+
+
+def main() -> None:
+    logging.basicConfig(level=logging.INFO)
+
+    latido = Latido()
+    thread_latido = threading.Thread(target=latido.start, daemon=True)
+    thread_latido.start()
+
+    
+
+    iniciar()
 
 
 if __name__ == "__main__":

@@ -7,7 +7,7 @@ LATIDOPORT = int(os.environ["LATIDOPORT"])
 LATIDO_MENSAJE = b'\x01'
 
 class Latido():
-    def __init__(self, pikaConnection) -> None:
+    def __init__(self, pikaConnection = None) -> None:
         self.pikaConnection = pikaConnection
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -21,7 +21,10 @@ class Latido():
             while True:
                 try:
                     _ = safeRecv(maestroSocket, 1)
-                    self.pikaConnection.add_callback_threadsafe(lambda: latir(maestroSocket))
+                    if self.pikaConnection != None:
+                        self.pikaConnection.add_callback_threadsafe(lambda: latir(maestroSocket))
+                    else:
+                        latir(maestroSocket)
                 except Exception:
                     maestroSocket.close()
                     break

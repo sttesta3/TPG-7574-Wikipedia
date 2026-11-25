@@ -1,9 +1,10 @@
 import os
+import uuid
 import signal
 import logging
 import traceback
 import threading
-from wal import Wal
+from wal import Wal, LineaLog
 from latido import Latido
 from contadorDistribuido import contadorDistribuido
 from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
@@ -16,6 +17,45 @@ EXCHANGETOPPARCIAL = os.environ["EXCHANGETOPPARCIAL"]
 TOTALTOPPARCIAL = int(os.environ["TOTALTOPPARCIAL"])
 
 
+class WalSumtop(Wal):
+    def __init__():
+        super().__init__()
+
+    def guardarEstado(self, estado: dict[uuid.UUID,  dict[str,int]]):
+        self.wal_log(LineaLog.STARTCHECKPOINT)
+        
+        tmp = open("tmp", "a")
+
+        for cliente, palabras in estado.items():
+            tmp.write(str(cliente) + ":")
+            for palabra, cantidad in palabras.items():
+                tmp.write("|" +palabra + ":" + cantidad)
+            tmp.write("\n")
+        
+        tmp.flush()
+        tmp.close()
+        os.replace("tmp", "checkpoint")
+
+        self.wal_log(LineaLog.ENDCHECKPOINT)
+
+
+    def recuperarEstado(self) -> dict[uuid.UUID,  dict[str,int]]:
+        
+        rta = {}
+        
+        with open("estado", "r") as f:
+            for line in f.readlines():
+
+                splited  = line.split(":|")
+                clienteId = uuid.UUID(splited[0])
+                
+                for x in splited[1].split("|"):
+                    palabra, cantidad = x.split(":", 1)
+                    rta[clienteId][palabra] = cantidad
+                        
+        return rta
+
+
 class SumTop:
     def __init__(self):
         self.colaSumTop = MessageMiddlewareQueue(MOMHOST, COLASUMTOP)
@@ -26,7 +66,7 @@ class SumTop:
         self.contador = contadorDistribuido(MOMHOST, EXCHANGESUMTOPEOF, self._finalizarCliente, self.colaSumTop.remote_execution)
 
         self.clientes = {}
-        self.wal = Wal()
+        self.wal = WalSumtop()
 
 
     def _procesarData(self, mensajes: PalabrasLoteMensajeSistema) -> None:

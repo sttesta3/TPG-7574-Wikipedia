@@ -48,6 +48,7 @@ def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
                 contador_mensajes += 1
                 colaDatos.send(LoteDataMensajeSistema(clienteId, mensaje, contador_mensajes).aBytes())
     except socket.error:
+        # TODO: si se cae el gateway hacer lo mismo
         colaDatos.send(ClienteMuertoMensajeSistema(clienteId).aBytes())
     except Exception as e:
         print(e)

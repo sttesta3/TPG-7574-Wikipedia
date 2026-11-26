@@ -17,12 +17,22 @@ logs:
 	docker compose -f docker-compose.yaml logs
 .PHONY: logs
 
-test:
+VENV := .venv
+PYTHON := $(VENV)/bin/python
+
+$(PYTHON):
+	python3 -m venv $(VENV)
+	$(PYTHON) -m pip install --timeout 120 pandas pyarrow nltk pyyaml
+
+venv: $(PYTHON)
+.PHONY: venv
+
+test: $(PYTHON)
 	docker compose -f docker-compose.yaml build nodo-base
 	mkdir -p output
 	rm ./output/test*.csv -f
 	COMPOSE_HTTP_TIMEOUT=300 docker compose -f docker-compose.yaml up --build --remove-orphans --detach
-	PYTHONPATH="$(PWD)/src/common" python3 ./verify_output.py; EXIT_CODE=$$?; \
+	PYTHONPATH="$(PWD)/src/common" $(PYTHON) ./verify_output.py; EXIT_CODE=$$?; \
 	exit $$EXIT_CODE
 .PHONY: test
 

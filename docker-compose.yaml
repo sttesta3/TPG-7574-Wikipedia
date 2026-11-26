@@ -26,6 +26,7 @@ services:
       - TOTALAGRTOPEOF=3
       - TOTALTOPEOF=1
       - TOTALCUENTAPROMEOF=3
+      - TOTALCLASIFICADORES=3
 
     healthcheck:
       test: ['CMD', 'python3', '-c', "import socket; s=socket.create_connection(('127.0.0.1', 8000), timeout=2); s.close()"]
@@ -155,7 +156,9 @@ services:
       - COLARESPUESTAS=Respuestas
       - COLAIMGDESCARGA=ImgDescarga
       - COLATRANSFORMADOR=ColaTransformador
-      - CLASIFICADOREXCHANGEEOF=ClasificadorExchangeEof
+      - TOTALTRANSFORMADORES=3
+      - TOTALIMGDESCARGADORES=2
+      - ID=0
 
   clasificador_1:
     build:
@@ -178,7 +181,9 @@ services:
       - COLARESPUESTAS=Respuestas
       - COLAIMGDESCARGA=ImgDescarga
       - COLATRANSFORMADOR=ColaTransformador
-      - CLASIFICADOREXCHANGEEOF=ClasificadorExchangeEof
+      - TOTALTRANSFORMADORES=3
+      - TOTALIMGDESCARGADORES=2
+      - ID=1
 
   clasificador_2:
     build:
@@ -201,7 +206,9 @@ services:
       - COLARESPUESTAS=Respuestas
       - COLAIMGDESCARGA=ImgDescarga
       - COLATRANSFORMADOR=ColaTransformador
-      - CLASIFICADOREXCHANGEEOF=ClasificadorExchangeEof
+      - TOTALTRANSFORMADORES=3
+      - TOTALIMGDESCARGADORES=2
+      - ID=2
 
   img_descargador_0:
     build:
@@ -226,9 +233,10 @@ services:
       - MOMHOST=rabbitmq
       - COLARESPUESTAS=Respuestas
       - COLAIMGDESCARGA=ImgDescarga
-      - EXCHANGEIMGEOF=ExchangeImgEof
       - MAXCLIENTES=1
       - DESCARGASPORMINUTO=75
+      - TOTALCLASIFICADORES=3
+      - ID=0
 
   img_descargador_1:
     build:
@@ -253,9 +261,10 @@ services:
       - MOMHOST=rabbitmq
       - COLARESPUESTAS=Respuestas
       - COLAIMGDESCARGA=ImgDescarga
-      - EXCHANGEIMGEOF=ExchangeImgEof
       - MAXCLIENTES=1
       - DESCARGASPORMINUTO=75
+      - TOTALCLASIFICADORES=3
+      - ID=1
 
   transformador_0:
     build:
@@ -280,11 +289,13 @@ services:
       - MOMHOST=rabbitmq
       - COLATRANSFORMADOR=ColaTransformador
       - COLASUMTOP=ColaSumTop
-      - EXCHANGEPROMEDIO=ExchangePromedio
+      - COLAPROMEDIO=ColaPromedio
       - COLACUENTAPROM=ColaCuentaProm
-      - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
       - TOTALCUENTAPROM=3
+      - TOTALSUMTOP=3
       - TOTALPROMEDIO=3
+      - TOTALCLASIFICADORES=3
+      - ID=0
 
   transformador_1:
     build:
@@ -309,11 +320,13 @@ services:
       - MOMHOST=rabbitmq
       - COLATRANSFORMADOR=ColaTransformador
       - COLASUMTOP=ColaSumTop
-      - EXCHANGEPROMEDIO=ExchangePromedio
+      - COLAPROMEDIO=ColaPromedio
       - COLACUENTAPROM=ColaCuentaProm
-      - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
       - TOTALCUENTAPROM=3
+      - TOTALSUMTOP=3
       - TOTALPROMEDIO=3
+      - TOTALCLASIFICADORES=3
+      - ID=1
 
   transformador_2:
     build:
@@ -338,11 +351,13 @@ services:
       - MOMHOST=rabbitmq
       - COLATRANSFORMADOR=ColaTransformador
       - COLASUMTOP=ColaSumTop
-      - EXCHANGEPROMEDIO=ExchangePromedio
+      - COLAPROMEDIO=ColaPromedio
       - COLACUENTAPROM=ColaCuentaProm
-      - EXCHANGETRANSFORMADOREOF=ExchangeTransformadorEof
       - TOTALCUENTAPROM=3
+      - TOTALSUMTOP=3
       - TOTALPROMEDIO=3
+      - TOTALCLASIFICADORES=3
+      - ID=2
 
   promedio_0:
     build:
@@ -372,7 +387,7 @@ services:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLACUENTAPROM=ColaCuentaProm
-      - EXCHANGEPROMEDIO=ExchangePromedio
+      - COLAPROMEDIO=ColaPromedio
       - TOTALCUENTAPROM=3
       - TOTALTRANSFORMADORES=3
       - ID=0
@@ -405,7 +420,7 @@ services:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLACUENTAPROM=ColaCuentaProm
-      - EXCHANGEPROMEDIO=ExchangePromedio
+      - COLAPROMEDIO=ColaPromedio
       - TOTALCUENTAPROM=3
       - TOTALTRANSFORMADORES=3
       - ID=1
@@ -438,7 +453,7 @@ services:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLACUENTAPROM=ColaCuentaProm
-      - EXCHANGEPROMEDIO=ExchangePromedio
+      - COLAPROMEDIO=ColaPromedio
       - TOTALCUENTAPROM=3
       - TOTALTRANSFORMADORES=3
       - ID=2
@@ -472,8 +487,8 @@ services:
       - MOMHOST=rabbitmq
       - COLACUENTAPROM=ColaCuentaProm
       - COLARESPUESTAS=Respuestas
-      - EXCHANGECUENTAPROMEOF=ExchangeCuentaPromEof
       - ID=0
+      - TOTALTRANSFORMADORES=3
 
   cuenta_prom_1:
     build:
@@ -504,8 +519,8 @@ services:
       - MOMHOST=rabbitmq
       - COLACUENTAPROM=ColaCuentaProm
       - COLARESPUESTAS=Respuestas
-      - EXCHANGECUENTAPROMEOF=ExchangeCuentaPromEof
       - ID=1
+      - TOTALTRANSFORMADORES=3
 
   cuenta_prom_2:
     build:
@@ -536,8 +551,8 @@ services:
       - MOMHOST=rabbitmq
       - COLACUENTAPROM=ColaCuentaProm
       - COLARESPUESTAS=Respuestas
-      - EXCHANGECUENTAPROMEOF=ExchangeCuentaPromEof
       - ID=2
+      - TOTALTRANSFORMADORES=3
 
   sum_top_0:
     build:
@@ -561,9 +576,10 @@ services:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLASUMTOP=ColaSumTop
-      - EXCHANGESUMTOPEOF=ExchangeSumTopEof
-      - EXCHANGETOPPARCIAL=ExchangeTopParcial
+      - COLATOPPARCIAL=ColaTopParcial
       - TOTALTOPPARCIAL=3
+      - ID=0
+      - TOTALTRANSFORMADORES=3
 
   sum_top_1:
     build:
@@ -587,9 +603,10 @@ services:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLASUMTOP=ColaSumTop
-      - EXCHANGESUMTOPEOF=ExchangeSumTopEof
-      - EXCHANGETOPPARCIAL=ExchangeTopParcial
+      - COLATOPPARCIAL=ColaTopParcial
       - TOTALTOPPARCIAL=3
+      - ID=1
+      - TOTALTRANSFORMADORES=3
 
   sum_top_2:
     build:
@@ -613,9 +630,10 @@ services:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLASUMTOP=ColaSumTop
-      - EXCHANGESUMTOPEOF=ExchangeSumTopEof
-      - EXCHANGETOPPARCIAL=ExchangeTopParcial
+      - COLATOPPARCIAL=ColaTopParcial
       - TOTALTOPPARCIAL=3
+      - ID=2
+      - TOTALTRANSFORMADORES=3
 
   agregador_top_0:
     build:
@@ -640,9 +658,8 @@ services:
       - MOMHOST=rabbitmq
       - COLASUMTOP=ColaSumTop
       - COLARESPUESTAS=Respuestas
-      - EXCHANGESUMTOPEOF=ExchangeSumTopEof
-      - EXCHANGETOPPARCIAL=ExchangeTopParcial
-      - EXCHANGETOPGLOBAL=ExchangeTopGlobal
+      - COLATOPPARCIAL=ColaTopParcial
+      - COLATOPGLOBAL=ColaTopGlobal
       - TOTALTOPGLOBAL=3
       - TOTALSUMTOP=3
       - ID=0
@@ -670,9 +687,8 @@ services:
       - MOMHOST=rabbitmq
       - COLASUMTOP=ColaSumTop
       - COLARESPUESTAS=Respuestas
-      - EXCHANGESUMTOPEOF=ExchangeSumTopEof
-      - EXCHANGETOPPARCIAL=ExchangeTopParcial
-      - EXCHANGETOPGLOBAL=ExchangeTopGlobal
+      - COLATOPPARCIAL=ColaTopParcial
+      - COLATOPGLOBAL=ColaTopGlobal
       - TOTALTOPGLOBAL=3
       - TOTALSUMTOP=3
       - ID=1
@@ -700,9 +716,8 @@ services:
       - MOMHOST=rabbitmq
       - COLASUMTOP=ColaSumTop
       - COLARESPUESTAS=Respuestas
-      - EXCHANGESUMTOPEOF=ExchangeSumTopEof
-      - EXCHANGETOPPARCIAL=ExchangeTopParcial
-      - EXCHANGETOPGLOBAL=ExchangeTopGlobal
+      - COLATOPPARCIAL=ColaTopParcial
+      - COLATOPGLOBAL=ColaTopGlobal
       - TOTALTOPGLOBAL=3
       - TOTALSUMTOP=3
       - ID=2
@@ -729,7 +744,7 @@ services:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLARESPUESTAS=Respuestas
-      - EXCHANGETOPGLOBAL=ExchangeTopGlobal
+      - COLATOPGLOBAL=ColaTopGlobal
       - TOTALTOPPARCIAL=3
       - ID=0
 
@@ -755,7 +770,7 @@ services:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLARESPUESTAS=Respuestas
-      - EXCHANGETOPGLOBAL=ExchangeTopGlobal
+      - COLATOPGLOBAL=ColaTopGlobal
       - TOTALTOPPARCIAL=3
       - ID=1
 
@@ -781,7 +796,7 @@ services:
       - PYTHONUNBUFFERED=1
       - MOMHOST=rabbitmq
       - COLARESPUESTAS=Respuestas
-      - EXCHANGETOPGLOBAL=ExchangeTopGlobal
+      - COLATOPGLOBAL=ColaTopGlobal
       - TOTALTOPPARCIAL=3
       - ID=2
 

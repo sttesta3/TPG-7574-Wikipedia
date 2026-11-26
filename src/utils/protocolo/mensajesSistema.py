@@ -16,7 +16,36 @@ LOTE_PALABRAS_MENSAJE = b'\x09'
 LOTE_CANTIDAD_PALABRAS_MENSAJE = b'\x0A'
 FIN_PROM_MENSAJE = b'\x0B'
 LOTE_IMG_MENSAJE = b'\x0C'
-ANUNCIO_MENSAJE = b'\x0D'
+
+ETAPA_CLASIFICADOR = 1
+ETAPA_IMG = 2
+ETAPA_AGREGADOR = 3
+ETAPA_JOIN = 4
+ETAPA_CUENTAPROM = 5
+
+ID_RESPUESTA_VACIO = (0, 0, 0, 0)
+LARGO_ID_RESPUESTA = 16
+
+
+def origenGateway(etapa: int, nodo: int) -> int:
+    return etapa * 1000 + nodo
+
+
+def idRespuestaABytes(idRespuesta: tuple) -> bytes:
+    etapa, nodo, secuencia, indice = idRespuesta
+    bytesId = etapa.to_bytes(4, byteorder="big")
+    bytesId += nodo.to_bytes(4, byteorder="big")
+    bytesId += secuencia.to_bytes(4, byteorder="big")
+    bytesId += indice.to_bytes(4, byteorder="big")
+    return bytesId
+
+
+def idRespuestaDeBytes(bytes: bytes) -> tuple:
+    etapa = int.from_bytes(bytes[0:4], byteorder="big")
+    nodo = int.from_bytes(bytes[4:8], byteorder="big")
+    secuencia = int.from_bytes(bytes[8:12], byteorder="big")
+    indice = int.from_bytes(bytes[12:16], byteorder="big")
+    return (etapa, nodo, secuencia, indice)
 
 
 class MensajeSistema(ABC):
@@ -30,39 +59,24 @@ class MensajeSistema(ABC):
 
 
 class FinMensajeSistema(MensajeSistema):
-    def __init__(self, clienteId: uuid.UUID = None, totalMsg: int = 1) -> None:
+    # origen: ID del nodo que manda el EOF, para que el receptor cuente cada nodo anterior una sola vez
+    def __init__(self, clienteId: uuid.UUID = None, totalMsg: int = 1, origen: int = 0) -> None:
         self.clienteId = clienteId
-        self.totalMsg = totalMsg    
+        self.totalMsg = totalMsg
+        self.origen = origen
 
     def aBytes(self) -> bytes:
         mensajeBytes = FIN_MENSAJE
         mensajeBytes += self.totalMsg.to_bytes(4, byteorder="big")
         mensajeBytes += self.clienteId.bytes
+        mensajeBytes += self.origen.to_bytes(4, byteorder="big")
         return mensajeBytes
     
 
     def deBytes(self, bytes):
         self.totalMsg = int.from_bytes(bytes[0:4], byteorder="big")
         self.clienteId = uuid.UUID(bytes = bytes[4:20])
-
-
-class AnuncioMensajeSistema(MensajeSistema):
-    def __init__(self, clienteId: uuid.UUID = None, secuencias: list[int] = None) -> None:
-        self.clienteId = clienteId
-        self.secuencias = secuencias
-
-    def aBytes(self) -> bytes:
-        mensajeBytes = ANUNCIO_MENSAJE
-        mensajeBytes += self.clienteId.bytes
-        mensajeBytes += len(self.secuencias).to_bytes(4, byteorder="big")
-        for secuencia in self.secuencias:
-            mensajeBytes += secuencia.to_bytes(4, byteorder="big")
-        return mensajeBytes
-
-    def deBytes(self, bytes: bytes) -> None:
-        self.clienteId = uuid.UUID(bytes=bytes[0:16])
-        cantidad = int.from_bytes(bytes[16:20], byteorder="big")
-        self.secuencias = [int.from_bytes(bytes[20+i*4:24+i*4], byteorder="big") for i in range(cantidad)]
+        self.origen = int.from_bytes(bytes[20:24], byteorder="big")
 
 
 class LoteDataMensajeSistema(MensajeSistema):
@@ -453,14 +467,16 @@ class FinPromMensajeSistema(MensajeSistema):
 
 
 class Respuesta1MensajeSistema(MensajeSistema):
-    def __init__(self, clienteId: uuid.UUID = None , url: str = None, fecha: int = None):
+    def __init__(self, clienteId: uuid.UUID = None , url: str = None, fecha: int = None, idRespuesta: tuple = ID_RESPUESTA_VACIO):
         self.url = url
         self.fecha = fecha
         self.clienteId = clienteId
+        self.idRespuesta = idRespuesta
 
 
     def aBytes(self) -> bytes:
         bytesMensaje = RESPUESTA1_MENSAJE
+        bytesMensaje += idRespuestaABytes(self.idRespuesta)
         bytesMensaje += (Respuesta1Mensaje(self.url, self.fecha).aBytes())[1:]
         bytesMensaje += self.clienteId.bytes
 
@@ -468,6 +484,8 @@ class Respuesta1MensajeSistema(MensajeSistema):
 
 
     def deBytes(self, bytes) -> None:
+        self.idRespuesta = idRespuestaDeBytes(bytes[0:LARGO_ID_RESPUESTA])
+        bytes = bytes[LARGO_ID_RESPUESTA:]
         rtaMsg = Respuesta1Mensaje()
         rtaMsg.deBytes(bytes[4:len(bytes)-16])
         self.fecha = rtaMsg.fecha
@@ -480,15 +498,17 @@ class Respuesta1MensajeSistema(MensajeSistema):
 
 
 class Respuesta2MensajeSistema(MensajeSistema):
-    def __init__(self, clienteId: uuid.UUID = None, url: str = None, nombre: str = None, imgBytes: bytes = None):
+    def __init__(self, clienteId: uuid.UUID = None, url: str = None, nombre: str = None, imgBytes: bytes = None, idRespuesta: tuple = ID_RESPUESTA_VACIO):
         self.clienteId = clienteId
         self.url = url
         self.nombre = nombre
         self.imgBytes = imgBytes
+        self.idRespuesta = idRespuesta
 
 
     def aBytes(self) -> bytes:
         bytesMensaje = RESPUESTA2_MENSAJE
+        bytesMensaje += idRespuestaABytes(self.idRespuesta)
         bytesMensaje += (Respuesta2Mensaje(self.nombre, self.url, self.imgBytes).aBytes())[1:]
         bytesMensaje += self.clienteId.bytes
 
@@ -496,6 +516,8 @@ class Respuesta2MensajeSistema(MensajeSistema):
 
 
     def deBytes(self, bytes: bytes) -> None:
+        self.idRespuesta = idRespuestaDeBytes(bytes[0:LARGO_ID_RESPUESTA])
+        bytes = bytes[LARGO_ID_RESPUESTA:]
         rtaMsg = Respuesta2Mensaje()
         rtaMsg.deBytes(bytes[4:len(bytes)-16])
         self.nombre = rtaMsg.nombre
@@ -510,12 +532,14 @@ class Respuesta2MensajeSistema(MensajeSistema):
 
 
 class Respuesta3MensajeSistema(MensajeSistema):
-    def __init__(self, clienteId: uuid.UUID = None, palabras: list[str] = None):
+    def __init__(self, clienteId: uuid.UUID = None, palabras: list[str] = None, idRespuesta: tuple = ID_RESPUESTA_VACIO):
         self.clienteId = clienteId
         self.palabras = palabras
-    
+        self.idRespuesta = idRespuesta
+
     def aBytes(self) -> bytes:
         bytes_mensaje = RESPUESTA3_MENSAJE
+        bytes_mensaje += idRespuestaABytes(self.idRespuesta)
         palabras_bytes = ",".join(self.palabras).encode("UTF-8")
         bytes_mensaje += len(palabras_bytes).to_bytes(4,byteorder="big")
         bytes_mensaje += palabras_bytes
@@ -525,6 +549,8 @@ class Respuesta3MensajeSistema(MensajeSistema):
     
 
     def deBytes(self, bytes) -> None:
+        self.idRespuesta = idRespuestaDeBytes(bytes[0:LARGO_ID_RESPUESTA])
+        bytes = bytes[LARGO_ID_RESPUESTA:]
         palabras_len = int.from_bytes(bytes[0:4],byteorder="big")
         offset_len_palabras = 4 + palabras_len
         self.palabras = bytes[4:offset_len_palabras].decode().split(",")
@@ -539,12 +565,14 @@ class Respuesta3MensajeSistema(MensajeSistema):
 
 
 class Respuesta4MensajeSistema(MensajeSistema):
-    def __init__(self, clienteId: uuid.UUID = None, palabras: dict[str, int] = None):
+    def __init__(self, clienteId: uuid.UUID = None, palabras: dict[str, int] = None, idRespuesta: tuple = ID_RESPUESTA_VACIO):
         self.clienteId = clienteId
         self.palabras = palabras
+        self.idRespuesta = idRespuesta
 
     def aBytes(self) -> bytes:
         mensajeBytes = RESPUESTA4_MENSAJE
+        mensajeBytes += idRespuestaABytes(self.idRespuesta)
 
         palabraTotal = []
         for clave, valor in self.palabras.items():
@@ -561,6 +589,8 @@ class Respuesta4MensajeSistema(MensajeSistema):
     
 
     def deBytes(self, bytes: bytes) -> None:
+        self.idRespuesta = idRespuestaDeBytes(bytes[0:LARGO_ID_RESPUESTA])
+        bytes = bytes[LARGO_ID_RESPUESTA:]
         totalLeido = 0
 
         palabrasLen = int.from_bytes(bytes[totalLeido:totalLeido+4], byteorder="big")
@@ -582,20 +612,24 @@ class Respuesta4MensajeSistema(MensajeSistema):
 
 
 class Respuesta5MensajeSistema(MensajeSistema):
-    def __init__(self, clienteId: uuid.UUID = None, data: dict[str, int] = None):
+    def __init__(self, clienteId: uuid.UUID = None, data: dict[str, int] = None, idRespuesta: tuple = ID_RESPUESTA_VACIO):
         self.clienteId  = clienteId
         self.data = data
+        self.idRespuesta = idRespuesta
 
-    
+
     def aBytes(self) -> bytes:
         bytesMensaje = RESPUESTA5_MENSAJE
+        bytesMensaje += idRespuestaABytes(self.idRespuesta)
         bytesMensaje += (Respuesta5Mensaje(self.data).aBytes())[1:]
         bytesMensaje += self.clienteId.bytes
 
         return bytesMensaje
-    
+
 
     def deBytes(self, bytes) -> None:
+        self.idRespuesta = idRespuestaDeBytes(bytes[0:LARGO_ID_RESPUESTA])
+        bytes = bytes[LARGO_ID_RESPUESTA:]
         rtamsg = Respuesta5Mensaje()
         rtamsg.deBytes(bytes[4:len(bytes)-16])
         self.data = rtamsg.data
@@ -624,8 +658,6 @@ def recvMensajeSistema(mensaje: bytes) -> MensajeSistema:
         rta = ImgMensajeSistema()
     elif type == LOTE_IMG_MENSAJE:
         rta = ImgLoteMensajeSistema()
-    elif type == ANUNCIO_MENSAJE:
-        rta = AnuncioMensajeSistema()
     elif type == FIN_PROM_MENSAJE:
         rta = FinPromMensajeSistema()
     elif type == RESPUESTA1_MENSAJE:

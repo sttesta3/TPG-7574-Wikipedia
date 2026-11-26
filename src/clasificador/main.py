@@ -1,10 +1,12 @@
 import os
 import logging
 import signal
+import threading
+from latido import Latido
 from contadorEof import contadorEof
 from middleware import MessageMiddlewareQueue
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, LoteDataMensajeSistema, ImgMensajeSistema, ImgLoteMensajeSistema, Respuesta1MensajeSistema, TransformadorMensajeSistema, TransformadorLoteMensajeSistema, ETAPA_CLASIFICADOR, origenGateway
 from protocolo.mensajesCliente import LENGUAJEINGLES, LENGUAJEFRANCES
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema,ClienteMuertoMensajeSistema, LoteDataMensajeSistema, ImgMensajeSistema, ImgLoteMensajeSistema, Respuesta1MensajeSistema, TransformadorMensajeSistema, TransformadorLoteMensajeSistema, ETAPA_CLASIFICADOR, origenGateway
 
 
 MOMHOST = os.environ["MOMHOST"]
@@ -28,7 +30,7 @@ class Clasificador:
 
 
     def _procesarData(self, loteMensaje: LoteDataMensajeSistema) -> None:
-        logging.info(f"Recibo lote {loteMensaje.secuencia} de {loteMensaje.clienteId}")
+        logging.debug(f"Recibo lote {loteMensaje.secuencia} de {loteMensaje.clienteId}")
         imgMensajes = []
         transformadorMensajes = []
         for indice, mensaje in enumerate(loteMensaje.lote):
@@ -75,6 +77,14 @@ class Clasificador:
 
 
     def iniciar(self):
+        thread_contador = threading.Thread(target=self.contador.iniciar, daemon=True)
+        thread_contador.start()
+
+        latido = Latido(self.colaDatos.connection)
+        thread_latido = threading.Thread(target=latido.start, daemon=True)
+        thread_latido.start()
+
+
         self.colaDatos.start_consuming(self.procesarMensaje)
         self._close_connections()
 

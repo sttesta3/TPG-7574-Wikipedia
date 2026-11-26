@@ -1,14 +1,16 @@
 import os
 import re
-import logging
-import sys
 import nltk
 import signal
+import logging
+import threading
 import traceback
+from latido import Latido
 from nltk.corpus import stopwords
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, TransformadorLoteMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema, PalabrasLoteMensajeSistema, CantidadPalabrasLoteMensajeSistema
-from middleware import MessageMiddlewareQueue
 from contadorEof import contadorEof
+from middleware import MessageMiddlewareQueue
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema,ClienteMuertoMensajeSistema, TransformadorLoteMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema, PalabrasLoteMensajeSistema, CantidadPalabrasLoteMensajeSistema
+
 
 MOMHOST = os.environ["MOMHOST"]
 COLATRANSFORMADOR = os.environ["COLATRANSFORMADOR"]
@@ -97,6 +99,12 @@ class Transformador:
                 logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
             elif self.contador.yaProcesado(mensaje.clienteId, mensaje.secuencia):
                 logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: duplicado")
+                logging.debug(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
+            elif isinstance(mensaje, ClienteMuertoMensajeSistema):
+                self.colaCuentaProm.send(bytes)
+                self.colaSumTop.send(bytes)
+                for i in range(TOTALPROMEDIO):
+                    self.colaPromedio[i].send(bytes)
             else:
                 self._procesarData(mensaje)
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
@@ -108,6 +116,12 @@ class Transformador:
 
 
     def iniciar(self):
+        latido = Latido(self.colaTransformador.connection)
+        thread_latido = threading.Thread(target=latido.start, daemon=True)
+        thread_latido.start()
+
+        thread_contador = threading.Thread(target=self.contador.iniciar, daemon=True)
+        thread_contador.start()
         self.colaTransformador.start_consuming(self.procesarMensaje)
         self._close_connections()
 

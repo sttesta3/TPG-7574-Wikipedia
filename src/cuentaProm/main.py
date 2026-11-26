@@ -1,10 +1,12 @@
 import os
-import sys
 import signal
 import logging
+import threading
+from latido import Latido
 from contadorEof import contadorEof
 from middleware import MessageMiddlewareQueue
-from protocolo.mensajesSistema import recvMensajeSistema, FinPromMensajeSistema, CantidadPalabrasLoteMensajeSistema, Respuesta5MensajeSistema, FinMensajeSistema, ETAPA_CUENTAPROM, origenGateway
+from protocolo.mensajesSistema import recvMensajeSistema, FinPromMensajeSistema,ClienteMuertoMensajeSistema, CantidadPalabrasLoteMensajeSistema, Respuesta5MensajeSistema, FinMensajeSistema, ETAPA_CUENTAPROM, origenGateway
+
 
 MOMHOST = os.environ["MOMHOST"]
 COLARESPUESTAS = os.environ["COLARESPUESTAS"]
@@ -24,7 +26,7 @@ class CuentaProm:
         self.eofsCompletos = set()
         self.promedios = {}
 
-
+    # TODO: este no tiene nada en memoria. Con esto alcanza (?
     def _procesarData(self, mensajes: CantidadPalabrasLoteMensajeSistema) -> None:
         with open(str(mensajes.clienteId), "a", encoding="utf-8") as f:
             for mensaje in mensajes.mensajes:
@@ -76,6 +78,8 @@ class CuentaProm:
                     self._intentarFinalizar(mensaje.clienteId)
             elif self.contador.yaProcesado(mensaje.clienteId, mensaje.secuencia):
                 logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: duplicado")
+            elif isinstance(mensaje, ClienteMuertoMensajeSistema):
+                os.remove(str(mensaje.clienteId))
             else:
                 self._procesarData(mensaje)
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
@@ -86,6 +90,13 @@ class CuentaProm:
 
 
     def iniciar(self):
+        latido = Latido(self.colaCuentaProm.connection)
+        thread_latido = threading.Thread(target=latido.start, daemon=True)
+        thread_latido.start()
+
+        thread_contador = threading.Thread(target=self.contador.iniciar, daemon=True)
+        thread_contador.start()
+
         self.colaCuentaProm.start_consuming(self.procesarMensaje)
         self._close_connections()
 

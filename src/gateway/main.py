@@ -1,13 +1,15 @@
 import os
 import uuid
-import logging
 import socket
 import signal
+import logging
+import threading
 import multiprocessing
-from protocolo.mensajesCliente import recvMensaje, FinMensaje
-from protocolo.mensajesGateway import sendRespuesta
-from protocolo.mensajesSistema import FinMensajeSistema, LoteDataMensajeSistema, recvMensajeSistema
+from latido import Latido
 from middleware import MessageMiddlewareQueue
+from protocolo.mensajesGateway import sendRespuesta
+from protocolo.mensajesCliente import recvMensaje, FinMensaje
+from protocolo.mensajesSistema import FinMensajeSistema, LoteDataMensajeSistema, recvMensajeSistema, ClienteMuertoMensajeSistema
 
 GATEWAYHOST = os.environ["GATEWAYHOST"]
 GATEWAYPORT = int(os.environ["GATEWAYPORT"])
@@ -16,6 +18,7 @@ MOMHOST = os.environ["MOMHOST"]
 COLADATOS = os.environ["COLADATOS"]
 COLARESPUESTAS = os.environ["COLARESPUESTAS"]
 TOTALCLASIFICADORES = int(os.environ["TOTALCLASIFICADORES"])
+LATIDOPORT = int(os.environ["LATIDOPORT"])
 
 TOTALCLASIFEOF = int(os.environ["TOTALCLASIFEOF"])
 TOTALIMGEOF = int(os.environ["TOTALIMGEOF"])
@@ -29,7 +32,7 @@ SOCKET = 0
 
 def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
     logging.basicConfig(level=logging.INFO)
-    logging.info(f"manejando cliente {clienteId}")
+    logging.debug(f"manejando cliente {clienteId}")
     try:
         colasDatos = [MessageMiddlewareQueue(MOMHOST, COLADATOS + "_" + str(i)) for i in range(TOTALCLASIFICADORES)]
         
@@ -38,7 +41,7 @@ def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
         while not eof:
             mensaje = recvMensaje(clientSocket)
             if mensaje is None:
-                logging.info(f"EOF de {clienteId}")
+                logging.debug(f"EOF de {clienteId}")
                 eof = True
                 for cola in colasDatos:
                     cola.send(FinMensajeSistema(clienteId, contador_mensajes).aBytes())
@@ -47,7 +50,9 @@ def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
                 particion = (clienteId.int + contador_mensajes) % TOTALCLASIFICADORES
                 colasDatos[particion].send(LoteDataMensajeSistema(clienteId, mensaje, contador_mensajes).aBytes())
     except socket.error:
-        logging.error("The connection with the server was lost")
+        # TODO: si se cae el gateway hacer lo mismo
+        for cola in colasDatos:
+            cola.send(ClienteMuertoMensajeSistema(clienteId).aBytes())
     except Exception as e:
         print(e)
         logging.warning(e)
@@ -71,7 +76,7 @@ def manejarRespuesta(clientes: dict) -> None:
                 return
             clienteSocket = clientes[clienteId][SOCKET]
 
-            logging.info(f"Respuesta {clienteId}")
+            logging.debug(f"Respuesta {clienteId}")
             if isinstance(respuesta, FinMensajeSistema):
                 fines = finesRecibidos.setdefault(clienteId, set())
                 if respuesta.origen in fines:
@@ -106,9 +111,9 @@ def manejarSigterm(clientes: dict, serverSocket: socket.socket, sigtermRecivida)
         cliente.shutdown(socket.SHUT_RDWR)
 
 
-def main() -> None:
-    logging.basicConfig(level=logging.INFO)
+def iniciar():
     with multiprocessing.Manager() as manager:
+        # TODO: unico dato en memoria (se puede caer el gateway??)
         clientes = manager.dict()
         sigtermRecivida = manager.Value("c_short", 0)
         with multiprocessing.Pool(processes=os.process_cpu_count()) as processes_pool:
@@ -137,6 +142,19 @@ def main() -> None:
                         logging.warning(e)
                         return 2
     return 0
+
+
+
+def main() -> None:
+    logging.basicConfig(level=logging.INFO)
+
+    latido = Latido()
+    thread_latido = threading.Thread(target=latido.start, daemon=True)
+    thread_latido.start()
+
+    
+
+    iniciar()
 
 
 if __name__ == "__main__":

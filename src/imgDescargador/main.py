@@ -1,14 +1,14 @@
 import os
-import sys
-import logging
 import signal
 import random
-import email.utils
-from datetime import datetime, timezone
 import aiohttp
 import asyncio
+import logging
 import traceback
 import threading
+import email.utils
+from latido import Latido
+from datetime import datetime, timezone
 from contadorEof import contadorEof
 from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, ImgMensajeSistema, ImgLoteMensajeSistema, Respuesta2MensajeSistema, ETAPA_IMG, origenGateway
 from middleware import MessageMiddlewareQueue
@@ -94,7 +94,7 @@ class ImgDescargador:
                     return b''
                 retryAfter = e.retryAfter if isinstance(e, DescargaReintentable) else 0
                 espera = min(max(retryAfter, BACKOFF_BASE * (2 ** intento)) * random.uniform(1, 1.2), ESPERA_MAXIMA)
-                logging.info(f"Reintento {intento + 1} de {mensaje.imgUrl} en {espera:.2f}s (Retry-After={retryAfter}): {e!r}")
+                logging.debug(f"Reintento {intento + 1} de {mensaje.imgUrl} en {espera:.2f}s (Retry-After={retryAfter}): {e!r}")
                 await asyncio.sleep(espera)
 
 
@@ -113,7 +113,7 @@ class ImgDescargador:
         resultados = await asyncio.gather(*[self._descargar(mensaje, (ETAPA_IMG, ID, secuencia, indice)) for indice, mensaje in enumerate(lote.mensajes)], return_exceptions=True)
         for resultado in resultados:
             if isinstance(resultado, Exception):
-                logging.info(f"Fallo una descarga del lote {secuencia} de {clienteId}: {resultado}")
+                logging.debug(f"Fallo una descarga del lote {secuencia} de {clienteId}: {resultado}")
 
 
     async def _enviarFin(self, clienteId, lotesEnCurso: list) -> None:
@@ -139,6 +139,7 @@ class ImgDescargador:
 
     def procesarMensaje(self, bytes, ack, nack):
         try:
+            # TODO: agregar el ClienteMuertoMensajeSistema
             mensaje = recvMensajeSistema(bytes)
             if isinstance(mensaje, FinMensajeSistema):
                 if self.contador.eofRecibido(mensaje.clienteId, mensaje.origen):
@@ -164,6 +165,10 @@ class ImgDescargador:
 
 
     def iniciar(self):
+        latido = Latido(self.colaImgDescarga.connection)
+        thread_latido = threading.Thread(target=latido.start, daemon=True)
+        thread_latido.start()
+
         thread_event_loop = threading.Thread(target=self._iniciarEventLoop, daemon=True)
 
         thread_event_loop.start()

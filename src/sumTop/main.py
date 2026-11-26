@@ -1,11 +1,15 @@
 import os
-import sys
-import logging
+import uuid
 import signal
+import logging
 import traceback
+import threading
+from latido import Latido
+from wal import Wal, LineaLog
 from contadorEof import contadorEof
 from middleware import MessageMiddlewareQueue
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, PalabrasMensajeSistema
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, PalabrasMensajeSistema, ClienteMuertoMensajeSistema
+
 
 MOMHOST = os.environ["MOMHOST"]
 COLASUMTOP = os.environ["COLASUMTOP"]
@@ -16,6 +20,46 @@ ID = os.environ["ID"]
 CANT_LENGUAJES = 2
 
 
+class WalSumtop(Wal):
+    def __init__():
+        super().__init__()
+
+
+    def guardarEstado(self, estado: dict[uuid.UUID,  dict[str,int]]):
+        self.wal_log(LineaLog.STARTCHECKPOINT)
+        
+        tmp = open("tmp", "a")
+
+        for cliente, palabras in estado.items():
+            tmp.write(str(cliente) + ":")
+            for palabra, cantidad in palabras.items():
+                tmp.write("|" +palabra + ":" + cantidad)
+            tmp.write("\n")
+        
+        tmp.flush()
+        tmp.close()
+        os.replace("tmp", "checkpoint")
+
+        self.wal_log(LineaLog.ENDCHECKPOINT)
+
+
+    def recuperarEstado(self) -> dict[uuid.UUID,  dict[str,int]]:
+        
+        rta = {}
+        
+        with open("estado", "r") as f:
+            for line in f.readlines():
+
+                splited  = line.split(":|")
+                clienteId = uuid.UUID(splited[0])
+                
+                for x in splited[1].split("|"):
+                    palabra, cantidad = x.split(":", 1)
+                    rta[clienteId][palabra] = cantidad
+                        
+        return rta
+
+
 class SumTop:
     def __init__(self):
         self.colaSumTop = MessageMiddlewareQueue(MOMHOST, COLASUMTOP + "_" + ID)
@@ -24,6 +68,7 @@ class SumTop:
         self.contador = contadorEof(TOTALTRANSFORMADORES)
 
         self.clientes = {}
+        self.wal = WalSumtop()
 
 
     def _procesarData(self, mensajes: PalabrasLoteMensajeSistema) -> None:
@@ -57,12 +102,16 @@ class SumTop:
                 self.colaTopParcial[i].send(parcial.aBytes())
             self.colaTopParcial[i].send(FinMensajeSistema(clienteId, origen=int(ID)).aBytes())
 
-        logging.info(f"Mando parciales y EOF de {clienteId}")
+        del self.clientes[clienteId]
+        self.wal.borrarLog(clienteId)
+        logging.debug(f"Mando parciales y EOF de {clienteId}")
 
 
     def procesarMensaje(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
+            self.wal.guardarMensaje(bytes)
+            ack()
             if isinstance(mensaje, FinMensajeSistema):
                 if self.contador.eofRecibido(mensaje.clienteId, mensaje.origen):
                     self._finalizarCliente(mensaje.clienteId)
@@ -71,17 +120,39 @@ class SumTop:
                 logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
             elif self.contador.yaProcesado(mensaje.clienteId, mensaje.secuencia):
                 logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: duplicado")
+                logging.debug(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
+            elif isinstance(mensaje, ClienteMuertoMensajeSistema):
+                for i in range(TOTALTOPPARCIAL):
+                    self.excahangeTopParciales[i].send(bytes)
+                del self.clientes[mensaje.clienteId]
             else:
-                self._procesarData(mensaje)
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
-            ack()
+                self._procesarData(mensaje)
         except Exception as e:
             logging.warning(e)
             logging.warning(traceback.format_exc())
             nack()
 
 
+    def _recuperarLog(self):
+        for log in self.wal.recuperarLogs():
+            if isinstance(log, FinMensajeSistema):
+                self.contador.eofRecibido(log)
+            elif self.contador.yaFinalizado(log.clienteId):
+                logging.debug(f"Descarto lote {log.secuencia} de {log.clienteId}: cliente ya finalizado")
+            else:
+                self.contador.procesado(log.clienteId, log.secuencia)
+                self._procesarData(log)
+
+
     def iniciar(self):
+        latido = Latido(self.colaSumTop.connection)
+        thread_latido = threading.Thread(target=latido.start, daemon=True)
+        thread_latido.start()
+
+        self._recuperarLog()
+        thread_contador = threading.Thread(target=self.contador.iniciar, daemon=True)
+        thread_contador.start()
         self.colaSumTop.start_consuming(self.procesarMensaje)
         self._close_connections()
 

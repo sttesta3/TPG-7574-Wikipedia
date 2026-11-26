@@ -47,6 +47,8 @@ def idRespuestaDeBytes(bytes: bytes) -> tuple:
     indice = int.from_bytes(bytes[12:16], byteorder="big")
     return (etapa, nodo, secuencia, indice)
 
+CLIENTE_MUERTO_MENSAJE = b'\x0E'
+
 
 class MensajeSistema(ABC):
     @abstractmethod
@@ -77,6 +79,39 @@ class FinMensajeSistema(MensajeSistema):
         self.totalMsg = int.from_bytes(bytes[0:4], byteorder="big")
         self.clienteId = uuid.UUID(bytes = bytes[4:20])
         self.origen = int.from_bytes(bytes[20:24], byteorder="big")
+
+
+class ClienteMuertoMensajeSistema(MensajeSistema):
+    def __init__(self, clienteId: uuid.UUID = None) -> None:
+        self.clienteId = clienteId  
+
+    def aBytes(self) -> bytes:
+        mensajeBytes = CLIENTE_MUERTO_MENSAJE
+        mensajeBytes += self.clienteId.bytes
+        return mensajeBytes
+    
+
+    def deBytes(self, bytes):
+        self.clienteId = uuid.UUID(bytes)
+
+
+class AnuncioMensajeSistema(MensajeSistema):
+    def __init__(self, clienteId: uuid.UUID = None, secuencias: list[int] = None) -> None:
+        self.clienteId = clienteId
+        self.secuencias = secuencias
+
+    def aBytes(self) -> bytes:
+        mensajeBytes = ANUNCIO_MENSAJE
+        mensajeBytes += self.clienteId.bytes
+        mensajeBytes += len(self.secuencias).to_bytes(4, byteorder="big")
+        for secuencia in self.secuencias:
+            mensajeBytes += secuencia.to_bytes(4, byteorder="big")
+        return mensajeBytes
+
+    def deBytes(self, bytes: bytes) -> None:
+        self.clienteId = uuid.UUID(bytes=bytes[0:16])
+        cantidad = int.from_bytes(bytes[16:20], byteorder="big")
+        self.secuencias = [int.from_bytes(bytes[20+i*4:24+i*4], byteorder="big") for i in range(cantidad)]
 
 
 class LoteDataMensajeSistema(MensajeSistema):
@@ -670,6 +705,8 @@ def recvMensajeSistema(mensaje: bytes) -> MensajeSistema:
         rta = Respuesta4MensajeSistema()
     elif type == RESPUESTA5_MENSAJE:
         rta = Respuesta5MensajeSistema()
+    elif type == CLIENTE_MUERTO_MENSAJE:
+        rta = ClienteMuertoMensajeSistema()
     else:
         rta = None
     

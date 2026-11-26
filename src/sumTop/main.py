@@ -4,21 +4,24 @@ import signal
 import logging
 import traceback
 import threading
-from wal import Wal, LineaLog
 from latido import Latido
-from contadorDistribuido import contadorDistribuido
-from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
+from wal import Wal, LineaLog
+from contadorEof import contadorEof
+from middleware import MessageMiddlewareQueue
 from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, PalabrasMensajeSistema, ClienteMuertoMensajeSistema
+
 
 MOMHOST = os.environ["MOMHOST"]
 COLASUMTOP = os.environ["COLASUMTOP"]
-EXCHANGESUMTOPEOF = os.environ["EXCHANGESUMTOPEOF"]
-EXCHANGETOPPARCIAL = os.environ["EXCHANGETOPPARCIAL"]
+TOTALTRANSFORMADORES = int(os.environ["TOTALTRANSFORMADORES"])
+COLATOPPARCIAL = os.environ["COLATOPPARCIAL"]
 TOTALTOPPARCIAL = int(os.environ["TOTALTOPPARCIAL"])
+ID = os.environ["ID"]
+CANT_LENGUAJES = 2
 
 
 class WalSumtop(Wal):
-    def __init__():
+    def __init__(self):
         super().__init__()
 
 
@@ -59,12 +62,10 @@ class WalSumtop(Wal):
 
 class SumTop:
     def __init__(self):
-        self.colaSumTop = MessageMiddlewareQueue(MOMHOST, COLASUMTOP)
-        self.excahangeTopParciales = []
-        for i in range(TOTALTOPPARCIAL):
-            self.excahangeTopParciales.append(MessageMiddlewareExchange(MOMHOST, EXCHANGETOPPARCIAL, [EXCHANGETOPPARCIAL+ "_"+str(i)]))
+        self.colaSumTop = MessageMiddlewareQueue(MOMHOST, COLASUMTOP + "_" + ID)
+        self.colaTopParcial = [MessageMiddlewareQueue(MOMHOST, COLATOPPARCIAL + "_" + str(i)) for i in range(TOTALTOPPARCIAL)]
 
-        self.contador = contadorDistribuido(MOMHOST, EXCHANGESUMTOPEOF, self._finalizarCliente, self.colaSumTop.remote_execution)
+        self.contador = contadorEof(TOTALTRANSFORMADORES)
 
         self.clientes = {}
         self.wal = WalSumtop()
@@ -83,7 +84,7 @@ class SumTop:
                 self.clientes[clienteId][mensaje.lenguaje][clave] = self.clientes[clienteId][mensaje.lenguaje].get(clave, 0) + valor
 
 
-    def _finalizarCliente(self, clienteId, fin: FinMensajeSistema, originador: bool) -> None:
+    def _finalizarCliente(self, clienteId) -> None:
         palabrasCliente = self.clientes.pop(clienteId, {})
 
         nodos = [{} for _ in range(TOTALTOPPARCIAL)]
@@ -95,31 +96,38 @@ class SumTop:
 
         for i in range(TOTALTOPPARCIAL):
             for lenguaje, palabras in nodos[i].items():
-                parcial = PalabrasLoteMensajeSistema(clienteId=clienteId, mensajes=[PalabrasMensajeSistema(palabras=palabras, url="", lenguaje=lenguaje)])
-                self.excahangeTopParciales[i].send(parcial.aBytes())
-            self.excahangeTopParciales[i].send(FinMensajeSistema(clienteId).aBytes())
+                # La secuencia identifica (nodo, lenguaje), para que el agregador descarte parciales duplicados
+                secuencia = int(ID) * CANT_LENGUAJES + lenguaje
+                parcial = PalabrasLoteMensajeSistema(clienteId=clienteId, mensajes=[PalabrasMensajeSistema(palabras=palabras, url="", lenguaje=lenguaje)], secuencia=secuencia)
+                self.colaTopParcial[i].send(parcial.aBytes())
+            self.colaTopParcial[i].send(FinMensajeSistema(clienteId, origen=int(ID)).aBytes())
 
-        del self.clientes[clienteId]
-        self.wal.borrarLog(clienteId)
+       #del self.clientes[clienteId]
+       # self.wal.borrarLog(clienteId)
         logging.debug(f"Mando parciales y EOF de {clienteId}")
 
 
     def procesarMensaje(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
-            self.wal.guardarMensaje(bytes)
-            ack()
+            #self.wal.guardarMensaje(bytes)
             if isinstance(mensaje, FinMensajeSistema):
-                self.contador.eofRecibido(mensaje)
+                if self.contador.eofRecibido(mensaje.clienteId, mensaje.origen):
+                    self._finalizarCliente(mensaje.clienteId)
+                    self.contador.finalizar(mensaje.clienteId)
             elif self.contador.yaFinalizado(mensaje.clienteId):
+                logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
+            elif self.contador.yaProcesado(mensaje.clienteId, mensaje.secuencia):
+                logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: duplicado")
                 logging.debug(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
             elif isinstance(mensaje, ClienteMuertoMensajeSistema):
                 for i in range(TOTALTOPPARCIAL):
                     self.excahangeTopParciales[i].send(bytes)
-                del self.clientes[mensaje.clienteId]
+                #del self.clientes[mensaje.clienteId]
             else:
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
                 self._procesarData(mensaje)
+            ack()
         except Exception as e:
             logging.warning(e)
             logging.warning(traceback.format_exc())
@@ -127,7 +135,7 @@ class SumTop:
 
 
     def _recuperarLog(self):
-        for log in self.wal.recuperarLogs():
+        for log in self.wal.recuperarMensajes():
             if isinstance(log, FinMensajeSistema):
                 self.contador.eofRecibido(log)
             elif self.contador.yaFinalizado(log.clienteId):
@@ -143,23 +151,19 @@ class SumTop:
         thread_latido.start()
 
         self._recuperarLog()
-        thread_contador = threading.Thread(target=self.contador.iniciar, daemon=True)
-        thread_contador.start()
+        
         self.colaSumTop.start_consuming(self.procesarMensaje)
-        thread_contador.join()
         self._close_connections()
 
 
     def manejarSigterm(self) -> None:
-        self.contador.detener()
         self.colaSumTop.remote_stop()
 
 
     def _close_connections(self):
         self.colaSumTop.close()
         for i in range(TOTALTOPPARCIAL):
-            self.excahangeTopParciales[i].close()
-        self.contador.cerrar()
+            self.colaTopParcial[i].close()
 
 
 

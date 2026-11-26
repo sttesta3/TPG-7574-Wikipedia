@@ -13,4 +13,4 @@ COPY utils/raft/raft.py raft.py
 COPY utils/protocolo/ protocolo/
 COPY utils/socket/safeSocket.py safeSocket.py
 COPY utils/middleware/middleware.py middleware.py
-COPY utils/contadorDistribuido/contadorDistribuido.py .
+COPY utils/contadorEof/contadorEof.py .

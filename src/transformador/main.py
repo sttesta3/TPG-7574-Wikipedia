@@ -7,17 +7,21 @@ import threading
 import traceback
 from latido import Latido
 from nltk.corpus import stopwords
-from contadorDistribuido import contadorDistribuido
-from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, ClienteMuertoMensajeSistema, TransformadorLoteMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema, PalabrasLoteMensajeSistema, CantidadPalabrasLoteMensajeSistema
+from contadorEof import contadorEof
+from middleware import MessageMiddlewareQueue
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema,ClienteMuertoMensajeSistema, TransformadorLoteMensajeSistema, PalabrasMensajeSistema, CantidadPalabraMensajeSistema, PalabrasLoteMensajeSistema, CantidadPalabrasLoteMensajeSistema
+
 
 MOMHOST = os.environ["MOMHOST"]
 COLATRANSFORMADOR = os.environ["COLATRANSFORMADOR"]
 COLASUMTOP = os.environ["COLASUMTOP"]
 COLACUENTAPROM = os.environ["COLACUENTAPROM"]
-EXCHANGEPROMEDIO = os.environ["EXCHANGEPROMEDIO"]
-EXCHANGETRANSFORMADOREOF = os.environ["EXCHANGETRANSFORMADOREOF"]
+COLAPROMEDIO = os.environ["COLAPROMEDIO"]
+TOTALCLASIFICADORES = int(os.environ["TOTALCLASIFICADORES"])
+ID = int(os.environ["ID"])
 TOTALPROMEDIO = int(os.environ["TOTALPROMEDIO"])
+TOTALSUMTOP = int(os.environ["TOTALSUMTOP"])
+TOTALCUENTAPROM = int(os.environ["TOTALCUENTAPROM"])
 
 WORD_REGEX = r'\b\w+\b'
 NUMBER_REGEX = r'[+-]?((\d+\.?\d*)|(\.\d+))'
@@ -26,16 +30,12 @@ NUMBER_REGEX = r'[+-]?((\d+\.?\d*)|(\.\d+))'
 class Transformador:
     def __init__(self):
         self.stopWords = set(stopwords.words('english')) | set(stopwords.words('french'))
-        self.colaTransformador = MessageMiddlewareQueue(MOMHOST, COLATRANSFORMADOR)
-        self.colaSumTop = MessageMiddlewareQueue(MOMHOST, COLASUMTOP)
-        self.colaCuentaProm = MessageMiddlewareQueue(MOMHOST, COLACUENTAPROM)
-        self.exchangePromedio = []
+        self.colaTransformador = MessageMiddlewareQueue(MOMHOST, COLATRANSFORMADOR + "_" + str(ID))
+        self.colaSumTop = [MessageMiddlewareQueue(MOMHOST, COLASUMTOP + "_" + str(i)) for i in range(TOTALSUMTOP)]
+        self.colaCuentaProm = [MessageMiddlewareQueue(MOMHOST, COLACUENTAPROM + "_" + str(i)) for i in range(TOTALCUENTAPROM)]
+        self.colaPromedio = [MessageMiddlewareQueue(MOMHOST, COLAPROMEDIO + "_" + str(i)) for i in range(TOTALPROMEDIO)]
 
-        for i in range(TOTALPROMEDIO):
-            self.exchangePromedio.append(MessageMiddlewareExchange(MOMHOST, EXCHANGEPROMEDIO, [EXCHANGEPROMEDIO + "_" + str(i)]))
-
-        # TODO: unico dato en memoria (es necesario logear??)
-        self.contador = contadorDistribuido(MOMHOST, EXCHANGETRANSFORMADOREOF, self._finalizarCliente, self.colaTransformador.remote_execution)
+        self.contador = contadorEof(TOTALCLASIFICADORES)
 
 
     def _resumenAPalabras(self, resumen: str) -> dict[str]:
@@ -70,32 +70,41 @@ class Transformador:
 
         secuencia = mensajeLote.secuencia
         nodo = mensajeLote.clienteId.int % TOTALPROMEDIO
-        self.colaCuentaProm.send(CantidadPalabrasLoteMensajeSistema(mensajeLote.clienteId, cuentaPromedio, secuencia).aBytes())
-        self.exchangePromedio[nodo].send(CantidadPalabrasLoteMensajeSistema(mensajeLote.clienteId, promedio, secuencia).aBytes())
-        self.colaSumTop.send(PalabrasLoteMensajeSistema(mensajeLote.clienteId, palabrasSumTop, secuencia).aBytes())
+        # Se suma el clienteId para que la misma secuencia de distintos clientes no caiga siempre en el mismo nodo
+        particion = mensajeLote.clienteId.int + secuencia
+        self.colaCuentaProm[particion % TOTALCUENTAPROM].send(CantidadPalabrasLoteMensajeSistema(mensajeLote.clienteId, cuentaPromedio, secuencia).aBytes())
+        self.colaPromedio[nodo].send(CantidadPalabrasLoteMensajeSistema(mensajeLote.clienteId, promedio, secuencia).aBytes())
+        self.colaSumTop[particion % TOTALSUMTOP].send(PalabrasLoteMensajeSistema(mensajeLote.clienteId, palabrasSumTop, secuencia).aBytes())
 
 
-    def _finalizarCliente(self, clienteId, fin: FinMensajeSistema, originador: bool) -> None:
-        nodo = clienteId.int % TOTALPROMEDIO
-        self.exchangePromedio[nodo].send(FinMensajeSistema(clienteId, fin.totalMsg).aBytes())
+    def _finalizarCliente(self, fin: FinMensajeSistema) -> None:
+        clienteId = fin.clienteId
+        logging.info(f"Mando EOF de {clienteId} con total {fin.totalMsg}")
+        eof = FinMensajeSistema(clienteId, fin.totalMsg, ID).aBytes()
 
-        if originador:
-            logging.debug(f"Mando EOF de {clienteId} con total {fin.totalMsg}")
-            self.colaSumTop.send(FinMensajeSistema(clienteId, fin.totalMsg).aBytes())
+        # Cada nodo de la etapa siguiente espera el EOF de todos los transformadores
+        self.colaPromedio[clienteId.int % TOTALPROMEDIO].send(eof)
+        for cola in self.colaSumTop + self.colaCuentaProm:
+            cola.send(eof)
+        self.contador.finalizar(clienteId)
 
 
     def procesarMensaje(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
             if isinstance(mensaje, FinMensajeSistema):
-                self.contador.eofRecibido(mensaje)
+                if self.contador.eofRecibido(mensaje.clienteId, mensaje.origen):
+                    self._finalizarCliente(mensaje)
             elif self.contador.yaFinalizado(mensaje.clienteId):
+                logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
+            elif self.contador.yaProcesado(mensaje.clienteId, mensaje.secuencia):
+                logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: duplicado")
                 logging.debug(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
             elif isinstance(mensaje, ClienteMuertoMensajeSistema):
                 self.colaCuentaProm.send(bytes)
                 self.colaSumTop.send(bytes)
                 for i in range(TOTALPROMEDIO):
-                    self.exchangePromedio[i].send(bytes)
+                    self.colaPromedio[i].send(bytes)
             else:
                 self._procesarData(mensaje)
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
@@ -110,25 +119,22 @@ class Transformador:
         latido = Latido(self.colaTransformador.connection)
         thread_latido = threading.Thread(target=latido.start, daemon=True)
         thread_latido.start()
-
-        thread_contador = threading.Thread(target=self.contador.iniciar, daemon=True)
-        thread_contador.start()
+        
         self.colaTransformador.start_consuming(self.procesarMensaje)
-        thread_contador.join()
         self._close_connections()
 
 
     def _close_connections(self):
         self.colaTransformador.close()
-        self.colaSumTop.close()
-        self.colaCuentaProm.close()
-        for i in range(TOTALPROMEDIO):
-            self.exchangePromedio[i].close()
-        self.contador.cerrar()
+        for cola in self.colaSumTop:
+            cola.close()
+        for cola in self.colaCuentaProm:
+            cola.close()
+        for cola in self.colaPromedio:
+            cola.close()
 
 
     def manejarSigterm(self) -> None:
-        self.contador.detener()
         self.colaTransformador.remote_stop()
 
 

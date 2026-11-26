@@ -4,14 +4,15 @@ import signal
 import logging
 import traceback
 import threading
-from wal import Wal, LineaLog
 from latido import Latido
-from middleware import MessageMiddlewareExchange, MessageMiddlewareQueue
+from wal import Wal, LineaLog
+from contadorEof import contadorEof
+from middleware import MessageMiddlewareQueue
 from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, CantidadPalabrasLoteMensajeSistema, FinPromMensajeSistema, ClienteMuertoMensajeSistema
 
 
 MOMHOST = os.environ["MOMHOST"]
-EXCHANGEPROMEDIO = os.environ["EXCHANGEPROMEDIO"]
+COLAPROMEDIO = os.environ["COLAPROMEDIO"]
 COLACUENTAPROM = os.environ["COLACUENTAPROM"]
 TOTALCUENTAPROM = int(os.environ["TOTALCUENTAPROM"])
 TOTALTRANSFORMADORES = int(os.environ["TOTALTRANSFORMADORES"])
@@ -19,11 +20,10 @@ ID = os.environ["ID"]
 
 SUMA = 0
 CUENTA = 1
-EOFS_RECIBIDOS = 2
 CUENTA_INICIAL = 0
 
 class WalPromedio(Wal):
-    def __init__():
+    def __init__(self):
         super().__init__()
 
     def guardarEstado(self, estado: dict[uuid.UUID, list]):
@@ -59,16 +59,17 @@ class WalPromedio(Wal):
 
 class Promedio:
     def __init__(self):
-        self.exchangePromedio = MessageMiddlewareExchange(MOMHOST, EXCHANGEPROMEDIO, [EXCHANGEPROMEDIO + "_" + ID])
-        self.colaCuentaProm = MessageMiddlewareQueue(MOMHOST, COLACUENTAPROM)
-
         self.clientes = {}
+        self.contador = contadorEof(TOTALTRANSFORMADORES)
+        self.colaPromedio = MessageMiddlewareQueue(MOMHOST, COLAPROMEDIO + "_" + ID)
+        self.colaCuentaProm = [MessageMiddlewareQueue(MOMHOST, COLACUENTAPROM + "_" + str(i)) for i in range(TOTALCUENTAPROM)]
+
         self.wal = Wal()
 
 
     def _estado(self, clienteId: str) -> list:
         if clienteId not in self.clientes:
-            self.clientes[clienteId] = [0, CUENTA_INICIAL, 0]
+            self.clientes[clienteId] = [0, CUENTA_INICIAL]
         return self.clientes[clienteId]
 
 
@@ -82,11 +83,8 @@ class Promedio:
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
         clienteId = str(mensaje.clienteId)
-        estado = self._estado(clienteId)
-
-        estado[EOFS_RECIBIDOS] += 1
-
-        if estado[EOFS_RECIBIDOS] == TOTALTRANSFORMADORES:
+        if self.contador.eofRecibido(mensaje.clienteId, mensaje.origen):
+            estado = self._estado(clienteId)
             promedio_float = estado[SUMA] / estado[CUENTA]
             promedio = estado[SUMA] // estado[CUENTA]
             logging.debug(f"Total: {estado[SUMA]}")
@@ -94,24 +92,32 @@ class Promedio:
             logging.debug(f"Promedio flotante: {promedio_float}")
             logging.debug(f"Promedio : {promedio}")
 
-            self.colaCuentaProm.send(FinPromMensajeSistema(mensaje.clienteId, promedio, mensaje.totalMsg).aBytes())
+            # Todos los cuentaProm necesitan el promedio para filtrar sus articulos
+            for cola in self.colaCuentaProm:
+                cola.send(FinPromMensajeSistema(mensaje.clienteId, promedio, mensaje.totalMsg).aBytes())
 
-            del self.clientes[clienteId]
-            self.wal.borrarLog(clienteId)
+            self.contador.finalizar(mensaje.clienteId)
+           # self.wal.borrarLog(clienteId)
+           # del self.clientes[clienteId]
         
     
     def procesarMensaje(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
-            self.wal.guardarMensaje(bytes)
-            ack()
+           # self.wal.guardarMensaje(bytes)
             if isinstance(mensaje, FinMensajeSistema):
                 self._procesarEOF(mensaje)
+            elif self.contador.yaFinalizado(mensaje.clienteId):
+                logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
+            elif self.contador.yaProcesado(mensaje.clienteId, mensaje.secuencia):
+                logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: duplicado")
             elif isinstance(mensaje, ClienteMuertoMensajeSistema):
-                del self.clientes[mensaje.clienteId]
+               # del self.clientes[mensaje.clienteId]
                 self.colaCuentaProm.send(bytes)
             else:
                 self._procesarData(mensaje)
+                self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
+            ack()
         except Exception as e:
             logging.info(e)
             logging.info(traceback.format_exc())
@@ -119,7 +125,7 @@ class Promedio:
 
 
     def _recuperarLogs(self):
-        for log in self.wal.recuperarLogs():
+        for log in self.wal.recuperarMensajes():
             if isinstance(log, FinMensajeSistema):
                 self._procesarEOF(log)
             else:
@@ -127,23 +133,23 @@ class Promedio:
 
 
     def iniciar(self):
-        latido = Latido(self.exchangePromedio.connection)
+        latido = Latido(self.colaPromedio.connection)
         thread_latido = threading.Thread(target=latido.start, daemon=True)
         thread_latido.start()
         
         self._recuperarLogs()
-        self.exchangePromedio.start_consuming(self.procesarMensaje)
+        self.colaPromedio.start_consuming(self.procesarMensaje)
         self._close_connections()
 
 
     def manejarSigterm(self) -> None:
-        self.wal.close()
-        self.exchangePromedio.remote_stop()
+        self.colaPromedio.remote_stop()
 
 
     def _close_connections(self):
-        self.exchangePromedio.close()
-        self.colaCuentaProm.close()
+        self.colaPromedio.close()
+        for cola in self.colaCuentaProm:
+            cola.close()
 
 
 def main() -> int:

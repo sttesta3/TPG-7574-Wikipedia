@@ -17,6 +17,7 @@ LOTE = int(os.environ["LOTE"])
 MOMHOST = os.environ["MOMHOST"]
 COLADATOS = os.environ["COLADATOS"]
 COLARESPUESTAS = os.environ["COLARESPUESTAS"]
+TOTALCLASIFICADORES = int(os.environ["TOTALCLASIFICADORES"])
 LATIDOPORT = int(os.environ["LATIDOPORT"])
 
 TOTALCLASIFEOF = int(os.environ["TOTALCLASIFEOF"])
@@ -26,15 +27,14 @@ TOTALTOPEOF = int(os.environ["TOTALTOPEOF"])
 TOTALCUENTAPROMEOF = int(os.environ["TOTALCUENTAPROMEOF"])
 TOTAL_EOFS_ESPERADOS = TOTALCLASIFEOF + TOTALIMGEOF + TOTALAGRTOPEOF + TOTALTOPEOF + TOTALCUENTAPROMEOF
 
-# Cada cliente se guarda como [socket, eofs_recibidos]
+# Cada cliente se guarda como [socket]
 SOCKET = 0
-EOFS_RECIBIDOS = 1
 
 def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
     logging.basicConfig(level=logging.INFO)
     logging.debug(f"manejando cliente {clienteId}")
     try:
-        colaDatos = MessageMiddlewareQueue(MOMHOST, COLADATOS)
+        colasDatos = [MessageMiddlewareQueue(MOMHOST, COLADATOS + "_" + str(i)) for i in range(TOTALCLASIFICADORES)]
         
         eof = False
         contador_mensajes = 0
@@ -43,39 +43,59 @@ def manejarPeticion(clienteId: uuid, clientSocket: socket.socket) -> None:
             if mensaje is None:
                 logging.debug(f"EOF de {clienteId}")
                 eof = True
-                colaDatos.send(FinMensajeSistema(clienteId, contador_mensajes).aBytes())
+                for cola in colasDatos:
+                    cola.send(FinMensajeSistema(clienteId, contador_mensajes).aBytes())
             else:
                 contador_mensajes += 1
-                colaDatos.send(LoteDataMensajeSistema(clienteId, mensaje, contador_mensajes).aBytes())
+                particion = (clienteId.int + contador_mensajes) % TOTALCLASIFICADORES
+                colasDatos[particion].send(LoteDataMensajeSistema(clienteId, mensaje, contador_mensajes).aBytes())
     except socket.error:
         # TODO: si se cae el gateway hacer lo mismo
-        colaDatos.send(ClienteMuertoMensajeSistema(clienteId).aBytes())
+        for cola in colasDatos:
+            cola.send(ClienteMuertoMensajeSistema(clienteId).aBytes())
     except Exception as e:
         print(e)
         logging.warning(e)
     finally:
-        colaDatos.close()
+        for cola in colasDatos:
+            cola.close()
 
 
 def manejarRespuesta(clientes: dict) -> None:
+    logging.basicConfig(level=logging.INFO)
     colaRespuestas = MessageMiddlewareQueue(MOMHOST, COLARESPUESTAS)
+    respuestasVistas = {}
+    finesRecibidos = {}
     def _consumirRespuesta(message: bytes, ack, nack):
         try:
             respuesta = recvMensajeSistema(message)
             clienteId = respuesta.clienteId
+            if clienteId not in clientes:
+                logging.info(f"Descarto respuesta de {clienteId}: cliente ya finalizado")
+                ack()
+                return
             clienteSocket = clientes[clienteId][SOCKET]
 
             logging.debug(f"Respuesta {clienteId}")
             if isinstance(respuesta, FinMensajeSistema):
-                # Es un manager.dict: hay que copiar, modificar y reasignar para que se propague
-                cliente = clientes[clienteId]
-                cliente[EOFS_RECIBIDOS] += 1
-                clientes[clienteId] = cliente
-                if cliente[EOFS_RECIBIDOS] == TOTAL_EOFS_ESPERADOS:
-                    FinMensaje(clienteSocket).send()
-                    del clientes[clienteId]
+                fines = finesRecibidos.setdefault(clienteId, set())
+                if respuesta.origen in fines:
+                    logging.info(f"Descarto Fin duplicado de {respuesta.origen} para {clienteId}")
+                else:
+                    fines.add(respuesta.origen)
+                    if len(fines) == TOTAL_EOFS_ESPERADOS:
+                        FinMensaje(clienteSocket).send()
+                        logging.info(f"Cliente {clienteId} finalizado")
+                        del clientes[clienteId]
+                        finesRecibidos.pop(clienteId, None)
+                        respuestasVistas.pop(clienteId, None)
             else:
-                sendRespuesta(clienteSocket, respuesta.aRespuestaGateway())
+                vistas = respuestasVistas.setdefault(clienteId, set())
+                if respuesta.idRespuesta in vistas:
+                    logging.info(f"Descarto respuesta duplicada {respuesta.idRespuesta} de {clienteId}")
+                else:
+                    sendRespuesta(clienteSocket, respuesta.aRespuestaGateway())
+                    vistas.add(respuesta.idRespuesta)
             ack()
         except Exception as e:
             logging.error(e)
@@ -110,7 +130,7 @@ def iniciar():
                             continue
                         else: 
                             clientId = uuid.uuid4()
-                            clientes[clientId] = [clientSocket, 0]  # [SOCKET, EOFS_RECIBIDOS]
+                            clientes[clientId] = [clientSocket]  # [SOCKET]
                             
                             processes_pool.apply_async(manejarPeticion, args=(clientId, clientSocket))
                     except socket.error:

@@ -3,17 +3,17 @@ import signal
 import logging
 import traceback
 import threading
-from wal import Wal, LineaLog, Recipient
 from latido import Latido
-from middleware import MessageMiddlewareQueue, MessageMiddlewareExchange
-from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, PalabrasMensajeSistema, Respuesta3MensajeSistema, ClienteMuertoMensajeSistema
-
+from contadorEof import contadorEof
+from wal import Wal, LineaLog, Recipient
+from middleware import MessageMiddlewareQueue
+from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, PalabrasMensajeSistema, Respuesta3MensajeSistema, ETAPA_AGREGADOR, origenGateway, ClienteMuertoMensajeSistema
 
 MOMHOST = os.environ["MOMHOST"]
 COLASUMTOP = os.environ["COLASUMTOP"]
 COLARESPUESTAS = os.environ["COLARESPUESTAS"]
-EXCHANGETOPPARCIAL = os.environ["EXCHANGETOPPARCIAL"]
-EXCHANGETOPGLOBAL = os.environ["EXCHANGETOPGLOBAL"]
+COLATOPPARCIAL = os.environ["COLATOPPARCIAL"]
+COLATOPGLOBAL = os.environ["COLATOPGLOBAL"]
 TOTALSUMTOP = int(os.environ["TOTALSUMTOP"])
 TOTALTOPGLOBAL = int(os.environ["TOTALTOPGLOBAL"])
 TOP_SIZE=20
@@ -68,7 +68,7 @@ class PalabrasPorIdioma:
 
 
 class WalAgregadorTop(Wal):
-    def __init__():
+    def __init__(self):
         super().__init__()
 
     def recuperarEstado(self):
@@ -79,13 +79,12 @@ class WalAgregadorTop(Wal):
 
 class AgregadorTop:
     def __init__(self):
-        self.exchangeTopParcial = MessageMiddlewareExchange(MOMHOST, EXCHANGETOPPARCIAL, [EXCHANGETOPPARCIAL+"_"+str(ID)])
-        self.exchangeTopGlobal = []
-        for i in range(TOTALTOPGLOBAL):
-            self.exchangeTopGlobal.append(MessageMiddlewareExchange(MOMHOST, EXCHANGETOPGLOBAL, [EXCHANGETOPGLOBAL+"_"+str(i)]))
+        self.colaTopParcial = MessageMiddlewareQueue(MOMHOST, COLATOPPARCIAL + "_" + str(ID))
+        self.colaTopGlobal = [MessageMiddlewareQueue(MOMHOST, COLATOPGLOBAL + "_" + str(i)) for i in range(TOTALTOPGLOBAL)]
         self.colaRespuestas = MessageMiddlewareQueue(MOMHOST, COLARESPUESTAS)
          
         self.clientes = {}
+        self.contador = contadorEof(TOTALSUMTOP)
         self.wal = WalAgregadorTop()
 
 
@@ -93,25 +92,26 @@ class AgregadorTop:
         mensaje = mensajes.mensajes[0]
         clienteId = mensajes.clienteId
         if clienteId not in self.clientes:
-            self.clientes[clienteId] = [0, PalabrasPorIdioma()]
+            self.clientes[clienteId] = PalabrasPorIdioma()
 
         duplicadas = []
+        tanda = 0
         for clave, valor in mensaje.palabras.items():
-            self.wal.log(LineaLog.REDOLOG, f"{clienteId},add,{clave},{valor},{mensaje.lenguaje}")
-            if self.clientes[clienteId][1].add(palabra=clave, cantidad=valor, lenguaje=mensaje.lenguaje):
-                # Palabra duplicada. 
+            #self.wal.log(LineaLog.REDOLOG, f"{clienteId},add,{clave},{valor},{mensaje.lenguaje}")
+            if self.clientes[clienteId].add(palabra=clave, cantidad=valor, lenguaje=mensaje.lenguaje):
+                # Palabra duplicada.
                 duplicadas.append(clave)
                 if len(duplicadas) == LOTE:
-                    mensaje = Respuesta3MensajeSistema(clienteId=clienteId, palabras=duplicadas).aBytes()
+                    idRespuesta = (ETAPA_AGREGADOR, int(ID), mensajes.secuencia, tanda)
                     self.wal.guardarMensaje(mensaje, Recipient.COLARESPUESTAS)
-                    self.colaRespuestas.send(mensaje)
+                    self.colaRespuestas.send(Respuesta3MensajeSistema(clienteId, duplicadas, idRespuesta).aBytes())
                     duplicadas = []
-        
-        self.wal.log(LineaLog.REDOLOG, f"{clienteId},FINLOTE")
+                    tanda += 1
+        #self.wal.log(LineaLog.REDOLOG, f"{clienteId},FINLOTE")
         if len(duplicadas) > 0:
-            mensaje = Respuesta3MensajeSistema(clienteId=clienteId, palabras=duplicadas).aBytes()
+            idRespuesta = (ETAPA_AGREGADOR, int(ID), mensajes.secuencia, tanda)
             self.wal.guardarMensaje(mensaje, Recipient.COLARESPUESTAS)
-            self.colaRespuestas.send(mensaje)
+            self.colaRespuestas.send(Respuesta3MensajeSistema(clienteId, duplicadas, idRespuesta).aBytes())
 
 
     def _top20(self, palabras: dict[str, int]) -> dict[str, int]:
@@ -119,53 +119,54 @@ class AgregadorTop:
         return dict(top[:TOP_SIZE])
 
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
-        if mensaje.clienteId not in self.clientes:
-            self.clientes[mensaje.clienteId] = [0, PalabrasPorIdioma()]
-
-        self.clientes[mensaje.clienteId][0] += 1
-        self.wal.log(LineaLog.RECVEOF,f"{mensaje.clienteId}")
-        if self.clientes[mensaje.clienteId][0] == TOTALSUMTOP:
-            mensaje_eof = FinMensajeSistema(mensaje.clienteId).aBytes()
-            self.wal.guardarMensaje(mensaje_eof, Recipient.COLARESPUESTAS)
-            self.colaRespuestas.send(mensaje_eof)
+        if self.contador.eofRecibido(mensaje.clienteId, mensaje.origen):
+            palabras = self.clientes.pop(mensaje.clienteId, PalabrasPorIdioma())
+            self.wal.guardarMensaje(mensaje, Recipient.COLARESPUESTAS)
+            self.colaRespuestas.send(FinMensajeSistema(mensaje.clienteId, origen=origenGateway(ETAPA_AGREGADOR, int(ID))).aBytes())
 
             nodo = mensaje.clienteId.int % TOTALTOPGLOBAL
-            mensaje_exchange = PalabrasLoteMensajeSistema(mensaje.clienteId, [PalabrasMensajeSistema( palabras=self._top20(self.clientes[mensaje.clienteId][1].mergeTop()), url="", lenguaje=0)]).aBytes()
-            self.wal.guardarMensaje(mensaje_exchange, Recipient.EXCHANGETOPGLOBAL)
-            self.exchangeTopGlobal[nodo].send()    
+            self.colaTopGlobal[nodo].send(PalabrasLoteMensajeSistema(mensaje.clienteId, [PalabrasMensajeSistema( palabras=self._top20(palabras.mergeTop()), url="", lenguaje=0)], int(ID)).aBytes())
+            self.wal.guardarMensaje(mensaje, Recipient.EXCHANGETOPGLOBAL)
+            self.colaTopGlobal[nodo].send(FinMensajeSistema(mensaje.clienteId, origen=int(ID)).aBytes())
 
-            self.wal.guardarMensaje(mensaje_eof, Recipient.EXCHANGETOPGLOBAL)
-            self.exchangeTopGlobal[nodo].send(mensaje_eof)
+            self.contador.finalizar(mensaje.clienteId)
+            #self.wal.log(LineaLog.FINEOF,f"{mensaje.clienteId}")
+            # del self.clientes[mensaje.clienteId]
             
-            self.wal.log(LineaLog.FINEOF,f"{mensaje.clienteId}")
-            del self.clientes[mensaje.clienteId]
-            
-
     def procesarMensaje(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
             if isinstance(mensaje, FinMensajeSistema):
                 self._procesarEOF(mensaje)
+            elif self.contador.yaFinalizado(mensaje.clienteId):
+                logging.info(f"Descarto parcial de {mensaje.clienteId}: cliente ya finalizado")
+            elif self.contador.yaProcesado(mensaje.clienteId, mensaje.secuencia):
+                logging.info(f"Descarto parcial {mensaje.secuencia} de {mensaje.clienteId}: duplicado")
             elif isinstance(mensaje, ClienteMuertoMensajeSistema):
-                for i in range(EXCHANGETOPGLOBAL):
-                    self.exchangeTopGlobal[i].send(bytes)
-                del self.clientes[mensaje.clienteId]
+                for i in range(TOTALTOPGLOBAL):
+                    self.colaTopGlobal[i].send(bytes)
+                    self.colaTopParcial.send(bytes)
+                # del self.clientes[mensaje.clienteId]
             else:
                 self._procesarData(mensaje)
-            ack()   
+                self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
+            ack()
+
             if self.wal.tiempoDeCheckpoint():
-                self.wal.log(LineaLog.STARTCHECKPOINT)
+                #self.wal.log(LineaLog.STARTCHECKPOINT)
                 self.guardarEstado(self.devolverEstado())
-                self.wal.log(LineaLog.OKCHECKPOINT)
+                #self.wal.log(LineaLog.OKCHECKPOINT)
                 self.wal.estadoTemporalAPermanente()
-                self.wal.log(LineaLog.ENDCHECKPOINT)
+                #self.wal.log(LineaLog.ENDCHECKPOINT)
                 self.wal.truncarRedoLog()
-                
+
+
         except Exception as e:
             logging.warning(e)
             logging.warning(traceback.format_exc())
             if not self.wal.tiempoDeCheckpoint():
                 nack()
+
 
     def devolverEstado(self) -> bytes :
         resultado = b""
@@ -176,6 +177,7 @@ class AgregadorTop:
             resultado += palabras.devolverEstado() + '\0'
         return resultado
 
+
     def cargarEstado(self, bytes):
         for registro_cliente in bytes.split('\0'):
             campos = registro_cliente.split('\1')
@@ -184,8 +186,9 @@ class AgregadorTop:
             palabras = PalabrasPorIdioma.cargarEstado(campos[2:])
             self.clientes[cliente] = [conteo_eofs, palabras]
 
+
     def _recuperarLog(self):
-        for log in self.wal.recuperarLogs():
+        for log in self.wal.recuperarMensajes():
             if isinstance(log, FinMensajeSistema):
                 self._procesarEOF(log)
             else:
@@ -195,25 +198,25 @@ class AgregadorTop:
         pass
 
     def iniciar(self):
+        
         self._recuperarEstado()
         
-        latido = Latido(self.exchangeTopParcial.connection)
+        latido = Latido(self.colaTopParcial.connection)
         thread_latido = threading.Thread(target=latido.start, daemon=True)
         thread_latido.start()
 
-        self.exchangeTopParcial.start_consuming(self.procesarMensaje)
+        self.colaTopParcial.start_consuming(self.procesarMensaje)
         self._close_connections()
 
 
-
     def manejarSigterm(self) -> None:
-        self.exchangeTopParcial.remote_stop()
+        self.colaTopParcial.remote_stop()
 
 
     def _close_connections(self):
-        self.exchangeTopParcial.close()
-        for i in range(TOTALTOPGLOBAL):
-            self.exchangeTopGlobal[i].close()
+        self.colaTopParcial.close()
+        for cola in self.colaTopGlobal:
+            cola.close()
 
 
 def main() -> int:

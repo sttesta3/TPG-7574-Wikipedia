@@ -5,9 +5,10 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from protocolo.mensajesSistema import MensajeSistema
 
-PATH_MSG = "logs/mensajes"
-PATH_LOG = "logs/wal_log"
-PATH_EST = "logs/estado"
+# TODO: poner volumen de logs/ en cada nodo 
+PATH_MSG = "mensajes"
+PATH_LOG = "wal_log"
+PATH_EST = "estado"
 PATH_EST_TMP = f"{PATH_EST}_TMP"
 MENSAJES_PARA_CHECKPOINT = 100 
 
@@ -49,8 +50,8 @@ class Wal(ABC):
             f.truncate(0)
 
     def guardarMensaje(self, mensaje: bytes, to: Recipient) -> None:
-        self.mensajes.write(f"{self.cuenta_mensajes},{to},{mensaje}\n")
-        self.log_f.write(f"{LineaLog.MSGSENT},{self.cuenta_mensajes}")
+        self.mensajes.write(f"{self.cuenta_mensajes},{to},{mensaje}\n".encode("UTF-8"))
+        self.log_f.write(f"{LineaLog.MSGSENT},{self.cuenta_mensajes}".encode("UTF-8"))
         self.cuenta_mensajes += 1
 
     def recuperarMensajes(self) -> Iterator[bytes]:

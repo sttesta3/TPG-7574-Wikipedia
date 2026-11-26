@@ -19,7 +19,7 @@ ID = os.environ["ID"]
 
 
 class WalJoinTop(Wal):
-    def __init__():
+    def __init__(self):
         super().__init__()
 
 
@@ -68,7 +68,7 @@ class JoinTop:
 
         self.clientes = {}
         self.contador = contadorEof(TOTALTOPPARCIAL)
-        self.wal = JoinTop()
+        self.wal = WalJoinTop()
 
 
     def _procesarData(self, mensajes: PalabrasLoteMensajeSistema) -> None:

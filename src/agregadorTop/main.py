@@ -68,7 +68,7 @@ class PalabrasPorIdioma:
 
 
 class WalAgregadorTop(Wal):
-    def __init__():
+    def __init__(self):
         super().__init__()
 
     def recuperarEstado(self):

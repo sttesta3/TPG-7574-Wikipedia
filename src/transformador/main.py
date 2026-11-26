@@ -119,9 +119,7 @@ class Transformador:
         latido = Latido(self.colaTransformador.connection)
         thread_latido = threading.Thread(target=latido.start, daemon=True)
         thread_latido.start()
-
-        thread_contador = threading.Thread(target=self.contador.iniciar, daemon=True)
-        thread_contador.start()
+        
         self.colaTransformador.start_consuming(self.procesarMensaje)
         self._close_connections()
 

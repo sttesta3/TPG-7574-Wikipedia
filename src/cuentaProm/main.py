@@ -94,9 +94,6 @@ class CuentaProm:
         thread_latido = threading.Thread(target=latido.start, daemon=True)
         thread_latido.start()
 
-        thread_contador = threading.Thread(target=self.contador.iniciar, daemon=True)
-        thread_contador.start()
-
         self.colaCuentaProm.start_consuming(self.procesarMensaje)
         self._close_connections()
 

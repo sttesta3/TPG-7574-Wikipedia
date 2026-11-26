@@ -77,13 +77,9 @@ class Clasificador:
 
 
     def iniciar(self):
-        thread_contador = threading.Thread(target=self.contador.iniciar, daemon=True)
-        thread_contador.start()
-
         latido = Latido(self.colaDatos.connection)
         thread_latido = threading.Thread(target=latido.start, daemon=True)
         thread_latido.start()
-
 
         self.colaDatos.start_consuming(self.procesarMensaje)
         self._close_connections()

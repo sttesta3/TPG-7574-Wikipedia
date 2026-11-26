@@ -1,0 +1,914 @@
+Attaching to agregador_top_0, agregador_top_1, agregador_top_2, clasificador_0, clasificador_1, clasificador_2, cliente_0, cuenta_prom_0, cuenta_prom_1, cuenta_prom_2, gateway, img_descargador_0, img_descargador_1, join_top_0, join_top_1, join_top_2, maestro_0, maestro_1, maestro_2, promedio_0, promedio_1, promedio_2, rabbitmq, sum_top_0, sum_top_1, sum_top_2, nodo-base-1, transformador_0, transformador_1, transformador_2
+[Knodo-base-1 exited with code 0
+rabbitmq     | 2026-11-26 21:55:48.406257+00:00 [info] <0.228.0> Feature flags: list of feature flags found:
+rabbitmq     | 2026-11-26 21:55:48.416756+00:00 [info] <0.228.0> Feature flags:   [ ] implicit_default_bindings
+rabbitmq     | 2026-11-26 21:55:48.416800+00:00 [info] <0.228.0> Feature flags:   [ ] maintenance_mode_status
+rabbitmq     | 2026-11-26 21:55:48.416819+00:00 [info] <0.228.0> Feature flags:   [ ] quorum_queue
+rabbitmq     | 2026-11-26 21:55:48.416841+00:00 [info] <0.228.0> Feature flags:   [ ] stream_queue
+rabbitmq     | 2026-11-26 21:55:48.416898+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits
+rabbitmq     | 2026-11-26 21:55:48.416917+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata
+rabbitmq     | 2026-11-26 21:55:48.416933+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes
+rabbitmq     | 2026-11-26 21:55:48.668748+00:00 [noti] <0.44.0> Application syslog exited with reason: stopped
+rabbitmq     | 2026-11-26 21:55:48.668846+00:00 [noti] <0.228.0> Logging: switching to configured handler(s); following messages may not be visible in this log output
+rabbitmq     | [38;5;87m2026-11-26 21:55:48.678732+00:00 [notice] <0.228.0> Logging: configured log handlers are now ACTIVE[0m
+rabbitmq     | 2026-11-26 21:55:48.804207+00:00 [info] <0.228.0> ra: starting system quorum_queues[0m
+rabbitmq     | 2026-11-26 21:55:48.804280+00:00 [info] <0.228.0> starting Ra system: quorum_queues in directory: /var/lib/rabbitmq/mnesia/rabbit@d7fcf0567880/quorum/rabbit@d7fcf0567880[0m
+rabbitmq     | 2026-11-26 21:55:48.843889+00:00 [info] <0.264.0> ra system 'quorum_queues' running pre init for 0 registered servers[0m
+rabbitmq     | 2026-11-26 21:55:48.849344+00:00 [info] <0.265.0> ra: meta data store initialised for system quorum_queues. 0 record(s) recovered[0m
+rabbitmq     | [38;5;87m2026-11-26 21:55:48.857509+00:00 [notice] <0.270.0> WAL: ra_log_wal init, open tbls: ra_log_open_mem_tables, closed tbls: ra_log_closed_mem_tables[0m
+rabbitmq     | 2026-11-26 21:55:48.863931+00:00 [info] <0.228.0> ra: starting system coordination[0m
+rabbitmq     | 2026-11-26 21:55:48.863979+00:00 [info] <0.228.0> starting Ra system: coordination in directory: /var/lib/rabbitmq/mnesia/rabbit@d7fcf0567880/coordination/rabbit@d7fcf0567880[0m
+rabbitmq     | 2026-11-26 21:55:48.864666+00:00 [info] <0.277.0> ra system 'coordination' running pre init for 0 registered servers[0m
+rabbitmq     | 2026-11-26 21:55:48.865196+00:00 [info] <0.278.0> ra: meta data store initialised for system coordination. 0 record(s) recovered[0m
+rabbitmq     | [38;5;87m2026-11-26 21:55:48.865324+00:00 [notice] <0.283.0> WAL: ra_coordination_log_wal init, open tbls: ra_coordination_log_open_mem_tables, closed tbls: ra_coordination_log_closed_mem_tables[0m
+rabbitmq     | 2026-11-26 21:55:48.867454+00:00 [info] <0.228.0> [0m
+rabbitmq     | 2026-11-26 21:55:48.867454+00:00 [info] <0.228.0>  Starting RabbitMQ 3.9.16 on Erlang 24.3.4 [jit][0m
+rabbitmq     | 2026-11-26 21:55:48.867454+00:00 [info] <0.228.0>  Copyright (c) 2007-2022 VMware, Inc. or its affiliates.[0m
+rabbitmq     | 2026-11-26 21:55:48.867454+00:00 [info] <0.228.0>  Licensed under the MPL 2.0. Website: https://rabbitmq.com[0m
+rabbitmq     | 
+rabbitmq     |   ##  ##      RabbitMQ 3.9.16
+rabbitmq     |   ##  ##
+rabbitmq     |   ##########  Copyright (c) 2007-2022 VMware, Inc. or its affiliates.
+rabbitmq     |   ######  ##
+rabbitmq     |   ##########  Licensed under the MPL 2.0. Website: https://rabbitmq.com
+rabbitmq     | 
+rabbitmq     |   Erlang:      24.3.4 [jit]
+rabbitmq     |   TLS Library: OpenSSL - OpenSSL 1.1.1o  3 May 2022
+rabbitmq     | 
+rabbitmq     |   Doc guides:  https://rabbitmq.com/documentation.html
+rabbitmq     |   Support:     https://rabbitmq.com/contact.html
+rabbitmq     |   Tutorials:   https://rabbitmq.com/getstarted.html
+rabbitmq     |   Monitoring:  https://rabbitmq.com/monitoring.html
+rabbitmq     | 
+rabbitmq     |   Logs: /var/log/rabbitmq/rabbit@d7fcf0567880_upgrade.log
+rabbitmq     |         <stdout>
+rabbitmq     | 
+rabbitmq     |   Config file(s): /etc/rabbitmq/conf.d/10-defaults.conf
+rabbitmq     | 
+rabbitmq     |   Starting broker...2026-11-26 21:55:48.868390+00:00 [info] <0.228.0> [0m
+rabbitmq     | 2026-11-26 21:55:48.868390+00:00 [info] <0.228.0>  node           : rabbit@d7fcf0567880[0m
+rabbitmq     | 2026-11-26 21:55:48.868390+00:00 [info] <0.228.0>  home dir       : /var/lib/rabbitmq[0m
+rabbitmq     | 2026-11-26 21:55:48.868390+00:00 [info] <0.228.0>  config file(s) : /etc/rabbitmq/conf.d/10-defaults.conf[0m
+rabbitmq     | 2026-11-26 21:55:48.868390+00:00 [info] <0.228.0>  cookie hash    : hTGBevT3dj+1GYywBOnA6Q==[0m
+rabbitmq     | 2026-11-26 21:55:48.868390+00:00 [info] <0.228.0>  log(s)         : /var/log/rabbitmq/rabbit@d7fcf0567880_upgrade.log[0m
+rabbitmq     | 2026-11-26 21:55:48.868390+00:00 [info] <0.228.0>                 : <stdout>[0m
+rabbitmq     | 2026-11-26 21:55:48.868390+00:00 [info] <0.228.0>  database dir   : /var/lib/rabbitmq/mnesia/rabbit@d7fcf0567880[0m
+rabbitmq     | 2026-11-26 21:55:49.060761+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq     | 2026-11-26 21:55:49.060809+00:00 [info] <0.228.0> Feature flags:   [ ] drop_unroutable_metric[0m
+rabbitmq     | 2026-11-26 21:55:49.060831+00:00 [info] <0.228.0> Feature flags:   [ ] empty_basic_get_metric[0m
+rabbitmq     | 2026-11-26 21:55:49.060860+00:00 [info] <0.228.0> Feature flags:   [ ] implicit_default_bindings[0m
+rabbitmq     | 2026-11-26 21:55:49.060903+00:00 [info] <0.228.0> Feature flags:   [ ] maintenance_mode_status[0m
+rabbitmq     | 2026-11-26 21:55:49.060920+00:00 [info] <0.228.0> Feature flags:   [ ] quorum_queue[0m
+rabbitmq     | 2026-11-26 21:55:49.060936+00:00 [info] <0.228.0> Feature flags:   [ ] stream_queue[0m
+rabbitmq     | 2026-11-26 21:55:49.060988+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq     | 2026-11-26 21:55:49.061006+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq     | 2026-11-26 21:55:49.061022+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq     | 2026-11-26 21:55:51.149797+00:00 [info] <0.228.0> Running boot step pre_boot defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.149870+00:00 [info] <0.228.0> Running boot step rabbit_global_counters defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.150010+00:00 [info] <0.228.0> Running boot step rabbit_osiris_metrics defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.150134+00:00 [info] <0.228.0> Running boot step rabbit_core_metrics defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.150724+00:00 [info] <0.228.0> Running boot step rabbit_alarm defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.152815+00:00 [info] <0.295.0> Memory high watermark set to 6374 MiB (6684557312 bytes) of 15937 MiB (16711393280 bytes) total[0m
+rabbitmq     | 2026-11-26 21:55:51.154784+00:00 [info] <0.297.0> Enabling free disk space monitoring[0m
+rabbitmq     | 2026-11-26 21:55:51.154824+00:00 [info] <0.297.0> Disk free limit set to 50MB[0m
+rabbitmq     | 2026-11-26 21:55:51.156653+00:00 [info] <0.228.0> Running boot step code_server_cache defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.156779+00:00 [info] <0.228.0> Running boot step file_handle_cache defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.157013+00:00 [info] <0.302.0> Limiting to approx 1048479 file handles (943629 sockets)[0m
+rabbitmq     | 2026-11-26 21:55:51.157133+00:00 [info] <0.303.0> FHC read buffering: OFF[0m
+rabbitmq     | 2026-11-26 21:55:51.157184+00:00 [info] <0.303.0> FHC write buffering: ON[0m
+rabbitmq     | 2026-11-26 21:55:51.157448+00:00 [info] <0.228.0> Running boot step worker_pool defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.157498+00:00 [info] <0.285.0> Will use 12 processes for default worker pool[0m
+rabbitmq     | 2026-11-26 21:55:51.157533+00:00 [info] <0.285.0> Starting worker pool 'worker_pool' with 12 processes in it[0m
+rabbitmq     | 2026-11-26 21:55:51.158081+00:00 [info] <0.228.0> Running boot step database defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.158331+00:00 [info] <0.228.0> Node database directory at /var/lib/rabbitmq/mnesia/rabbit@d7fcf0567880 is empty. Assuming we need to join an existing cluster or initialise from scratch...[0m
+rabbitmq     | 2026-11-26 21:55:51.158374+00:00 [info] <0.228.0> Configured peer discovery backend: rabbit_peer_discovery_classic_config[0m
+rabbitmq     | 2026-11-26 21:55:51.158398+00:00 [info] <0.228.0> Will try to lock with peer discovery backend rabbit_peer_discovery_classic_config[0m
+rabbitmq     | 2026-11-26 21:55:51.158457+00:00 [info] <0.228.0> All discovered existing cluster peers:[0m
+rabbitmq     | 2026-11-26 21:55:51.158479+00:00 [info] <0.228.0> Discovered no peer nodes to cluster with. Some discovery backends can filter nodes out based on a readiness criteria. Enabling debug logging might help troubleshoot.[0m
+rabbitmq     | [38;5;87m2026-11-26 21:55:51.160249+00:00 [notice] <0.44.0> Application mnesia exited with reason: stopped[0m
+rabbitmq     | 2026-11-26 21:55:51.262794+00:00 [info] <0.228.0> Waiting for Mnesia tables for 30000 ms, 9 retries left[0m
+rabbitmq     | 2026-11-26 21:55:51.262917+00:00 [info] <0.228.0> Successfully synced tables from a peer[0m
+rabbitmq     | 2026-11-26 21:55:51.273216+00:00 [info] <0.228.0> Waiting for Mnesia tables for 30000 ms, 9 retries left[0m
+rabbitmq     | 2026-11-26 21:55:51.273325+00:00 [info] <0.228.0> Successfully synced tables from a peer[0m
+rabbitmq     | 2026-11-26 21:55:51.273368+00:00 [info] <0.228.0> Feature flag `drop_unroutable_metric`: supported, attempt to enable...[0m
+rabbitmq     | 2026-11-26 21:55:51.273454+00:00 [info] <0.228.0> Feature flag `drop_unroutable_metric`: mark as enabled=state_changing[0m
+rabbitmq     | 2026-11-26 21:55:51.275223+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq     | 2026-11-26 21:55:51.275295+00:00 [info] <0.228.0> Feature flags:   [~] drop_unroutable_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.275378+00:00 [info] <0.228.0> Feature flags:   [ ] empty_basic_get_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.275457+00:00 [info] <0.228.0> Feature flags:   [ ] implicit_default_bindings[0m
+rabbitmq     | 2026-11-26 21:55:51.275515+00:00 [info] <0.228.0> Feature flags:   [ ] maintenance_mode_status[0m
+rabbitmq     | 2026-11-26 21:55:51.275589+00:00 [info] <0.228.0> Feature flags:   [ ] quorum_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.275663+00:00 [info] <0.228.0> Feature flags:   [ ] stream_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.275718+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq     | 2026-11-26 21:55:51.275780+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq     | 2026-11-26 21:55:51.275844+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq     | 2026-11-26 21:55:51.292136+00:00 [info] <0.228.0> Feature flag `drop_unroutable_metric`: mark as enabled=true[0m
+rabbitmq     | 2026-11-26 21:55:51.294190+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq     | 2026-11-26 21:55:51.294264+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.294311+00:00 [info] <0.228.0> Feature flags:   [ ] empty_basic_get_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.294370+00:00 [info] <0.228.0> Feature flags:   [ ] implicit_default_bindings[0m
+rabbitmq     | 2026-11-26 21:55:51.294419+00:00 [info] <0.228.0> Feature flags:   [ ] maintenance_mode_status[0m
+rabbitmq     | 2026-11-26 21:55:51.294480+00:00 [info] <0.228.0> Feature flags:   [ ] quorum_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.294522+00:00 [info] <0.228.0> Feature flags:   [ ] stream_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.294575+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq     | 2026-11-26 21:55:51.294627+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq     | 2026-11-26 21:55:51.294667+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq     | 2026-11-26 21:55:51.309577+00:00 [info] <0.228.0> Feature flag `empty_basic_get_metric`: supported, attempt to enable...[0m
+rabbitmq     | 2026-11-26 21:55:51.309706+00:00 [info] <0.228.0> Feature flag `empty_basic_get_metric`: mark as enabled=state_changing[0m
+rabbitmq     | 2026-11-26 21:55:51.311438+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq     | 2026-11-26 21:55:51.311511+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.311607+00:00 [info] <0.228.0> Feature flags:   [~] empty_basic_get_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.311669+00:00 [info] <0.228.0> Feature flags:   [ ] implicit_default_bindings[0m
+rabbitmq     | 2026-11-26 21:55:51.311747+00:00 [info] <0.228.0> Feature flags:   [ ] maintenance_mode_status[0m
+rabbitmq     | 2026-11-26 21:55:51.311817+00:00 [info] <0.228.0> Feature flags:   [ ] quorum_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.311875+00:00 [info] <0.228.0> Feature flags:   [ ] stream_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.311940+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq     | 2026-11-26 21:55:51.311994+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq     | 2026-11-26 21:55:51.312059+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq     | 2026-11-26 21:55:51.327479+00:00 [info] <0.228.0> Feature flag `empty_basic_get_metric`: mark as enabled=true[0m
+rabbitmq     | 2026-11-26 21:55:51.330652+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq     | 2026-11-26 21:55:51.330759+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.330817+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.330909+00:00 [info] <0.228.0> Feature flags:   [ ] implicit_default_bindings[0m
+rabbitmq     | 2026-11-26 21:55:51.330976+00:00 [info] <0.228.0> Feature flags:   [ ] maintenance_mode_status[0m
+rabbitmq     | 2026-11-26 21:55:51.331054+00:00 [info] <0.228.0> Feature flags:   [ ] quorum_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.331110+00:00 [info] <0.228.0> Feature flags:   [ ] stream_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.331170+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq     | 2026-11-26 21:55:51.331237+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq     | 2026-11-26 21:55:51.331294+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq     | 2026-11-26 21:55:51.348443+00:00 [info] <0.228.0> Feature flag `implicit_default_bindings`: supported, attempt to enable...[0m
+rabbitmq     | 2026-11-26 21:55:51.348568+00:00 [info] <0.228.0> Feature flag `implicit_default_bindings`: mark as enabled=state_changing[0m
+rabbitmq     | 2026-11-26 21:55:51.350526+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq     | 2026-11-26 21:55:51.350614+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.350688+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.350785+00:00 [info] <0.228.0> Feature flags:   [~] implicit_default_bindings[0m
+rabbitmq     | 2026-11-26 21:55:51.350851+00:00 [info] <0.228.0> Feature flags:   [ ] maintenance_mode_status[0m
+rabbitmq     | 2026-11-26 21:55:51.350964+00:00 [info] <0.228.0> Feature flags:   [ ] quorum_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.351020+00:00 [info] <0.228.0> Feature flags:   [ ] stream_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.351078+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq     | 2026-11-26 21:55:51.351155+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq     | 2026-11-26 21:55:51.351234+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq     | 2026-11-26 21:55:51.368324+00:00 [info] <0.228.0> Waiting for Mnesia tables for 30000 ms, 0 retries left[0m
+rabbitmq     | 2026-11-26 21:55:51.368500+00:00 [info] <0.228.0> Successfully synced tables from a peer[0m
+rabbitmq     | 2026-11-26 21:55:51.368636+00:00 [info] <0.228.0> Feature flag `implicit_default_bindings`: mark as enabled=true[0m
+rabbitmq     | 2026-11-26 21:55:51.370843+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq     | 2026-11-26 21:55:51.370902+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.370947+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.371004+00:00 [info] <0.228.0> Feature flags:   [x] implicit_default_bindings[0m
+rabbitmq     | 2026-11-26 21:55:51.371042+00:00 [info] <0.228.0> Feature flags:   [ ] maintenance_mode_status[0m
+rabbitmq     | 2026-11-26 21:55:51.371085+00:00 [info] <0.228.0> Feature flags:   [ ] quorum_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.371111+00:00 [info] <0.228.0> Feature flags:   [ ] stream_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.371141+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq     | 2026-11-26 21:55:51.371175+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq     | 2026-11-26 21:55:51.371201+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq     | 2026-11-26 21:55:51.382347+00:00 [info] <0.228.0> Feature flag `maintenance_mode_status`: supported, attempt to enable...[0m
+rabbitmq     | 2026-11-26 21:55:51.382520+00:00 [info] <0.228.0> Feature flag `maintenance_mode_status`: mark as enabled=state_changing[0m
+rabbitmq     | 2026-11-26 21:55:51.384435+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq     | 2026-11-26 21:55:51.384515+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.384586+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.384671+00:00 [info] <0.228.0> Feature flags:   [x] implicit_default_bindings[0m
+rabbitmq     | 2026-11-26 21:55:51.384730+00:00 [info] <0.228.0> Feature flags:   [~] maintenance_mode_status[0m
+rabbitmq     | 2026-11-26 21:55:51.384824+00:00 [info] <0.228.0> Feature flags:   [ ] quorum_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.384875+00:00 [info] <0.228.0> Feature flags:   [ ] stream_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.384899+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq     | 2026-11-26 21:55:51.384925+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq     | 2026-11-26 21:55:51.384970+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq     | 2026-11-26 21:55:51.394274+00:00 [info] <0.228.0> Creating table rabbit_node_maintenance_states for feature flag `maintenance_mode_status`[0m
+rabbitmq     | 2026-11-26 21:55:51.396925+00:00 [info] <0.228.0> Feature flag `maintenance_mode_status`: mark as enabled=true[0m
+rabbitmq     | 2026-11-26 21:55:51.398515+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq     | 2026-11-26 21:55:51.398561+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.398584+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.398610+00:00 [info] <0.228.0> Feature flags:   [x] implicit_default_bindings[0m
+rabbitmq     | 2026-11-26 21:55:51.398631+00:00 [info] <0.228.0> Feature flags:   [x] maintenance_mode_status[0m
+rabbitmq     | 2026-11-26 21:55:51.398658+00:00 [info] <0.228.0> Feature flags:   [ ] quorum_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.398678+00:00 [info] <0.228.0> Feature flags:   [ ] stream_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.398702+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq     | 2026-11-26 21:55:51.398743+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq     | 2026-11-26 21:55:51.398763+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq     | 2026-11-26 21:55:51.407307+00:00 [info] <0.228.0> Feature flag `quorum_queue`: supported, attempt to enable...[0m
+rabbitmq     | 2026-11-26 21:55:51.407435+00:00 [info] <0.228.0> Feature flag `quorum_queue`: mark as enabled=state_changing[0m
+rabbitmq     | 2026-11-26 21:55:51.408413+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq     | 2026-11-26 21:55:51.408447+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.408490+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.408510+00:00 [info] <0.228.0> Feature flags:   [x] implicit_default_bindings[0m
+rabbitmq     | 2026-11-26 21:55:51.408540+00:00 [info] <0.228.0> Feature flags:   [x] maintenance_mode_status[0m
+rabbitmq     | 2026-11-26 21:55:51.408574+00:00 [info] <0.228.0> Feature flags:   [~] quorum_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.408598+00:00 [info] <0.228.0> Feature flags:   [ ] stream_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.408628+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq     | 2026-11-26 21:55:51.408658+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq     | 2026-11-26 21:55:51.408708+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq     | 2026-11-26 21:55:51.416863+00:00 [info] <0.228.0> Waiting for Mnesia tables for 30000 ms, 9 retries left[0m
+rabbitmq     | 2026-11-26 21:55:51.416953+00:00 [info] <0.228.0> Successfully synced tables from a peer[0m
+rabbitmq     | 2026-11-26 21:55:51.416981+00:00 [info] <0.228.0> Feature flag `quorum_queue`:   migrating Mnesia table rabbit_queue...[0m
+rabbitmq     | 2026-11-26 21:55:51.425691+00:00 [info] <0.228.0> Feature flag `quorum_queue`:   migrating Mnesia table rabbit_durable_queue...[0m
+rabbitmq     | 2026-11-26 21:55:51.441308+00:00 [info] <0.228.0> Feature flag `quorum_queue`:   Mnesia tables migration done[0m
+rabbitmq     | 2026-11-26 21:55:51.441374+00:00 [info] <0.228.0> Feature flag `quorum_queue`: mark as enabled=true[0m
+rabbitmq     | 2026-11-26 21:55:51.442827+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq     | 2026-11-26 21:55:51.442859+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.442879+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.442923+00:00 [info] <0.228.0> Feature flags:   [x] implicit_default_bindings[0m
+rabbitmq     | 2026-11-26 21:55:51.442944+00:00 [info] <0.228.0> Feature flags:   [x] maintenance_mode_status[0m
+rabbitmq     | 2026-11-26 21:55:51.442974+00:00 [info] <0.228.0> Feature flags:   [x] quorum_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.442992+00:00 [info] <0.228.0> Feature flags:   [ ] stream_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.443010+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq     | 2026-11-26 21:55:51.443032+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq     | 2026-11-26 21:55:51.443048+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq     | 2026-11-26 21:55:51.450014+00:00 [info] <0.228.0> Feature flag `stream_queue`: supported, attempt to enable...[0m
+rabbitmq     | 2026-11-26 21:55:51.450096+00:00 [info] <0.228.0> Feature flag `stream_queue`: mark as enabled=state_changing[0m
+rabbitmq     | 2026-11-26 21:55:51.451194+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq     | 2026-11-26 21:55:51.451230+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.451420+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.451477+00:00 [info] <0.228.0> Feature flags:   [x] implicit_default_bindings[0m
+rabbitmq     | 2026-11-26 21:55:51.451530+00:00 [info] <0.228.0> Feature flags:   [x] maintenance_mode_status[0m
+rabbitmq     | 2026-11-26 21:55:51.451563+00:00 [info] <0.228.0> Feature flags:   [x] quorum_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.451632+00:00 [info] <0.228.0> Feature flags:   [~] stream_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.451667+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq     | 2026-11-26 21:55:51.451698+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq     | 2026-11-26 21:55:51.451739+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq     | 2026-11-26 21:55:51.459370+00:00 [info] <0.228.0> Feature flag `stream_queue`: mark as enabled=true[0m
+rabbitmq     | 2026-11-26 21:55:51.460832+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq     | 2026-11-26 21:55:51.460867+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.460888+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.460916+00:00 [info] <0.228.0> Feature flags:   [x] implicit_default_bindings[0m
+rabbitmq     | 2026-11-26 21:55:51.460935+00:00 [info] <0.228.0> Feature flags:   [x] maintenance_mode_status[0m
+rabbitmq     | 2026-11-26 21:55:51.461032+00:00 [info] <0.228.0> Feature flags:   [x] quorum_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.461056+00:00 [info] <0.228.0> Feature flags:   [x] stream_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.461082+00:00 [info] <0.228.0> Feature flags:   [ ] user_limits[0m
+rabbitmq     | 2026-11-26 21:55:51.461104+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq     | 2026-11-26 21:55:51.461135+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq     | 2026-11-26 21:55:51.468671+00:00 [info] <0.228.0> Feature flag `user_limits`: supported, attempt to enable...[0m
+rabbitmq     | 2026-11-26 21:55:51.468741+00:00 [info] <0.228.0> Feature flag `user_limits`: mark as enabled=state_changing[0m
+rabbitmq     | 2026-11-26 21:55:51.469658+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq     | 2026-11-26 21:55:51.469690+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.469726+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.469761+00:00 [info] <0.228.0> Feature flags:   [x] implicit_default_bindings[0m
+rabbitmq     | 2026-11-26 21:55:51.469795+00:00 [info] <0.228.0> Feature flags:   [x] maintenance_mode_status[0m
+rabbitmq     | 2026-11-26 21:55:51.469832+00:00 [info] <0.228.0> Feature flags:   [x] quorum_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.469850+00:00 [info] <0.228.0> Feature flags:   [x] stream_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.469867+00:00 [info] <0.228.0> Feature flags:   [~] user_limits[0m
+rabbitmq     | 2026-11-26 21:55:51.469898+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq     | 2026-11-26 21:55:51.469936+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq     | 2026-11-26 21:55:51.477912+00:00 [info] <0.228.0> Waiting for Mnesia tables for 30000 ms, 9 retries left[0m
+rabbitmq     | 2026-11-26 21:55:51.478003+00:00 [info] <0.228.0> Successfully synced tables from a peer[0m
+rabbitmq     | 2026-11-26 21:55:51.485857+00:00 [info] <0.228.0> Feature flag `user_limits`: mark as enabled=true[0m
+rabbitmq     | 2026-11-26 21:55:51.487751+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq     | 2026-11-26 21:55:51.487824+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.487882+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.487929+00:00 [info] <0.228.0> Feature flags:   [x] implicit_default_bindings[0m
+rabbitmq     | 2026-11-26 21:55:51.487963+00:00 [info] <0.228.0> Feature flags:   [x] maintenance_mode_status[0m
+rabbitmq     | 2026-11-26 21:55:51.488003+00:00 [info] <0.228.0> Feature flags:   [x] quorum_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.488031+00:00 [info] <0.228.0> Feature flags:   [x] stream_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.488071+00:00 [info] <0.228.0> Feature flags:   [x] user_limits[0m
+rabbitmq     | 2026-11-26 21:55:51.488116+00:00 [info] <0.228.0> Feature flags:   [ ] virtual_host_metadata[0m
+rabbitmq     | 2026-11-26 21:55:51.488148+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq     | 2026-11-26 21:55:51.496902+00:00 [info] <0.228.0> Feature flag `virtual_host_metadata`: supported, attempt to enable...[0m
+rabbitmq     | 2026-11-26 21:55:51.496969+00:00 [info] <0.228.0> Feature flag `virtual_host_metadata`: mark as enabled=state_changing[0m
+rabbitmq     | 2026-11-26 21:55:51.497845+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq     | 2026-11-26 21:55:51.497890+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.497917+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.497937+00:00 [info] <0.228.0> Feature flags:   [x] implicit_default_bindings[0m
+rabbitmq     | 2026-11-26 21:55:51.497955+00:00 [info] <0.228.0> Feature flags:   [x] maintenance_mode_status[0m
+rabbitmq     | 2026-11-26 21:55:51.497977+00:00 [info] <0.228.0> Feature flags:   [x] quorum_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.498013+00:00 [info] <0.228.0> Feature flags:   [x] stream_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.498053+00:00 [info] <0.228.0> Feature flags:   [x] user_limits[0m
+rabbitmq     | 2026-11-26 21:55:51.498081+00:00 [info] <0.228.0> Feature flags:   [~] virtual_host_metadata[0m
+rabbitmq     | 2026-11-26 21:55:51.498113+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq     | 2026-11-26 21:55:51.505946+00:00 [info] <0.228.0> Waiting for Mnesia tables for 30000 ms, 9 retries left[0m
+rabbitmq     | 2026-11-26 21:55:51.506056+00:00 [info] <0.228.0> Successfully synced tables from a peer[0m
+rabbitmq     | 2026-11-26 21:55:51.515540+00:00 [info] <0.228.0> Feature flag `virtual_host_metadata`: mark as enabled=true[0m
+rabbitmq     | 2026-11-26 21:55:51.517512+00:00 [info] <0.228.0> Feature flags: list of feature flags found:[0m
+rabbitmq     | 2026-11-26 21:55:51.517562+00:00 [info] <0.228.0> Feature flags:   [x] drop_unroutable_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.517594+00:00 [info] <0.228.0> Feature flags:   [x] empty_basic_get_metric[0m
+rabbitmq     | 2026-11-26 21:55:51.517639+00:00 [info] <0.228.0> Feature flags:   [x] implicit_default_bindings[0m
+rabbitmq     | 2026-11-26 21:55:51.517672+00:00 [info] <0.228.0> Feature flags:   [x] maintenance_mode_status[0m
+rabbitmq     | 2026-11-26 21:55:51.517701+00:00 [info] <0.228.0> Feature flags:   [x] quorum_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.517728+00:00 [info] <0.228.0> Feature flags:   [x] stream_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.517773+00:00 [info] <0.228.0> Feature flags:   [x] user_limits[0m
+rabbitmq     | 2026-11-26 21:55:51.517801+00:00 [info] <0.228.0> Feature flags:   [x] virtual_host_metadata[0m
+rabbitmq     | 2026-11-26 21:55:51.517831+00:00 [info] <0.228.0> Feature flags: feature flag states written to disk: yes[0m
+rabbitmq     | 2026-11-26 21:55:51.526629+00:00 [info] <0.228.0> Waiting for Mnesia tables for 30000 ms, 9 retries left[0m
+rabbitmq     | 2026-11-26 21:55:51.526762+00:00 [info] <0.228.0> Successfully synced tables from a peer[0m
+rabbitmq     | 2026-11-26 21:55:51.538676+00:00 [info] <0.228.0> Waiting for Mnesia tables for 30000 ms, 9 retries left[0m
+rabbitmq     | 2026-11-26 21:55:51.538805+00:00 [info] <0.228.0> Successfully synced tables from a peer[0m
+rabbitmq     | 2026-11-26 21:55:51.538830+00:00 [info] <0.228.0> Peer discovery backend rabbit_peer_discovery_classic_config does not support registration, skipping registration.[0m
+rabbitmq     | 2026-11-26 21:55:51.538860+00:00 [info] <0.228.0> Will try to unlock with peer discovery backend rabbit_peer_discovery_classic_config[0m
+rabbitmq     | 2026-11-26 21:55:51.538920+00:00 [info] <0.228.0> Running boot step database_sync defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.539044+00:00 [info] <0.228.0> Running boot step feature_flags defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.539506+00:00 [info] <0.228.0> Running boot step codec_correctness_check defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.539557+00:00 [info] <0.228.0> Running boot step external_infrastructure defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.539589+00:00 [info] <0.228.0> Running boot step rabbit_registry defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.539672+00:00 [info] <0.228.0> Running boot step rabbit_auth_mechanism_cr_demo defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.539773+00:00 [info] <0.228.0> Running boot step rabbit_queue_location_random defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.539841+00:00 [info] <0.228.0> Running boot step rabbit_event defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.539995+00:00 [info] <0.228.0> Running boot step rabbit_auth_mechanism_amqplain defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.540086+00:00 [info] <0.228.0> Running boot step rabbit_auth_mechanism_plain defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.540189+00:00 [info] <0.228.0> Running boot step rabbit_exchange_type_direct defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.540256+00:00 [info] <0.228.0> Running boot step rabbit_exchange_type_fanout defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.540328+00:00 [info] <0.228.0> Running boot step rabbit_exchange_type_headers defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.540394+00:00 [info] <0.228.0> Running boot step rabbit_exchange_type_topic defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.540454+00:00 [info] <0.228.0> Running boot step rabbit_mirror_queue_mode_all defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.540530+00:00 [info] <0.228.0> Running boot step rabbit_mirror_queue_mode_exactly defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.540604+00:00 [info] <0.228.0> Running boot step rabbit_mirror_queue_mode_nodes defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.540729+00:00 [info] <0.228.0> Running boot step rabbit_priority_queue defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.540778+00:00 [info] <0.228.0> Priority queues enabled, real BQ is rabbit_variable_queue[0m
+rabbitmq     | 2026-11-26 21:55:51.540866+00:00 [info] <0.228.0> Running boot step rabbit_queue_location_client_local defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.540971+00:00 [info] <0.228.0> Running boot step rabbit_queue_location_min_masters defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.541057+00:00 [info] <0.228.0> Running boot step kernel_ready defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.541090+00:00 [info] <0.228.0> Running boot step rabbit_sysmon_minder defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.541254+00:00 [info] <0.228.0> Running boot step rabbit_epmd_monitor defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.541843+00:00 [info] <0.572.0> epmd monitor knows us, inter-node communication (distribution) port: 25672[0m
+rabbitmq     | 2026-11-26 21:55:51.541953+00:00 [info] <0.228.0> Running boot step guid_generator defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.543580+00:00 [info] <0.228.0> Running boot step rabbit_node_monitor defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.543778+00:00 [info] <0.576.0> Starting rabbit_node_monitor[0m
+rabbitmq     | 2026-11-26 21:55:51.543904+00:00 [info] <0.228.0> Running boot step delegate_sup defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.544631+00:00 [info] <0.228.0> Running boot step rabbit_memory_monitor defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.544867+00:00 [info] <0.228.0> Running boot step core_initialized defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.544928+00:00 [info] <0.228.0> Running boot step upgrade_queues defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.554361+00:00 [info] <0.228.0> message_store upgrades: 1 to apply[0m
+rabbitmq     | 2026-11-26 21:55:51.554517+00:00 [info] <0.228.0> message_store upgrades: Applying rabbit_variable_queue:move_messages_to_vhost_store[0m
+rabbitmq     | 2026-11-26 21:55:51.554673+00:00 [info] <0.228.0> message_store upgrades: No durable queues found. Skipping message store migration[0m
+rabbitmq     | 2026-11-26 21:55:51.554746+00:00 [info] <0.228.0> message_store upgrades: Removing the old message store data[0m
+rabbitmq     | 2026-11-26 21:55:51.555416+00:00 [info] <0.228.0> message_store upgrades: All upgrades applied successfully[0m
+rabbitmq     | 2026-11-26 21:55:51.565447+00:00 [info] <0.228.0> Running boot step channel_tracking defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.573136+00:00 [info] <0.228.0> Setting up a table for channel tracking on this node: tracked_channel_on_node_rabbit@d7fcf0567880[0m
+rabbitmq     | 2026-11-26 21:55:51.577870+00:00 [info] <0.228.0> Setting up a table for channel tracking on this node: tracked_channel_table_per_user_on_node_rabbit@d7fcf0567880[0m
+rabbitmq     | 2026-11-26 21:55:51.578103+00:00 [info] <0.228.0> Running boot step rabbit_channel_tracking_handler defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.578194+00:00 [info] <0.228.0> Running boot step connection_tracking defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.580441+00:00 [info] <0.228.0> Setting up a table for connection tracking on this node: tracked_connection_on_node_rabbit@d7fcf0567880[0m
+rabbitmq     | 2026-11-26 21:55:51.582660+00:00 [info] <0.228.0> Setting up a table for per-vhost connection counting on this node: tracked_connection_per_vhost_on_node_rabbit@d7fcf0567880[0m
+rabbitmq     | 2026-11-26 21:55:51.585155+00:00 [info] <0.228.0> Setting up a table for per-user connection counting on this node: tracked_connection_table_per_user_on_node_rabbit@d7fcf0567880[0m
+rabbitmq     | 2026-11-26 21:55:51.585372+00:00 [info] <0.228.0> Running boot step rabbit_connection_tracking_handler defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.585423+00:00 [info] <0.228.0> Running boot step rabbit_exchange_parameters defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.585526+00:00 [info] <0.228.0> Running boot step rabbit_mirror_queue_misc defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.585746+00:00 [info] <0.228.0> Running boot step rabbit_policies defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.586139+00:00 [info] <0.228.0> Running boot step rabbit_policy defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.586209+00:00 [info] <0.228.0> Running boot step rabbit_queue_location_validator defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.586268+00:00 [info] <0.228.0> Running boot step rabbit_quorum_memory_manager defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.586327+00:00 [info] <0.228.0> Running boot step rabbit_stream_coordinator defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.586429+00:00 [info] <0.228.0> Running boot step rabbit_vhost_limit defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.586501+00:00 [info] <0.228.0> Running boot step rabbit_mgmt_reset_handler defined by app rabbitmq_management[0m
+rabbitmq     | 2026-11-26 21:55:51.586558+00:00 [info] <0.228.0> Running boot step rabbit_mgmt_db_handler defined by app rabbitmq_management_agent[0m
+rabbitmq     | 2026-11-26 21:55:51.586605+00:00 [info] <0.228.0> Management plugin: using rates mode 'basic'[0m
+rabbitmq     | 2026-11-26 21:55:51.586987+00:00 [info] <0.228.0> Running boot step recovery defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.587788+00:00 [info] <0.228.0> Running boot step empty_db_check defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.587854+00:00 [info] <0.228.0> Will seed default virtual host and user...[0m
+rabbitmq     | 2026-11-26 21:55:51.588011+00:00 [info] <0.228.0> Adding vhost '/' (description: 'Default virtual host', tags: [])[0m
+rabbitmq     | 2026-11-26 21:55:51.613634+00:00 [info] <0.637.0> Making sure data directory '/var/lib/rabbitmq/mnesia/rabbit@d7fcf0567880/msg_stores/vhosts/628WB79CIFDYO9LJI6DKMI09L' for vhost '/' exists[0m
+rabbitmq     | 2026-11-26 21:55:51.614276+00:00 [info] <0.637.0> Setting segment_entry_count for vhost '/' with 0 queues to '2048'[0m
+rabbitmq     | 2026-11-26 21:55:51.616770+00:00 [info] <0.637.0> Starting message stores for vhost '/'[0m
+rabbitmq     | 2026-11-26 21:55:51.616965+00:00 [info] <0.641.0> Message store "628WB79CIFDYO9LJI6DKMI09L/msg_store_transient": using rabbit_msg_store_ets_index to provide index[0m
+rabbitmq     | 2026-11-26 21:55:51.617874+00:00 [info] <0.637.0> Started message store of type transient for vhost '/'[0m
+rabbitmq     | 2026-11-26 21:55:51.618068+00:00 [info] <0.645.0> Message store "628WB79CIFDYO9LJI6DKMI09L/msg_store_persistent": using rabbit_msg_store_ets_index to provide index[0m
+rabbitmq     | [38;5;214m2026-11-26 21:55:51.618580+00:00 [warning] <0.645.0> Message store "628WB79CIFDYO9LJI6DKMI09L/msg_store_persistent": rebuilding indices from scratch[0m
+rabbitmq     | 2026-11-26 21:55:51.619227+00:00 [info] <0.637.0> Started message store of type persistent for vhost '/'[0m
+rabbitmq     | 2026-11-26 21:55:51.619390+00:00 [info] <0.637.0> Recovering 0 queues of type rabbit_classic_queue took 4ms[0m
+rabbitmq     | 2026-11-26 21:55:51.619443+00:00 [info] <0.637.0> Recovering 0 queues of type rabbit_quorum_queue took 0ms[0m
+rabbitmq     | 2026-11-26 21:55:51.619482+00:00 [info] <0.637.0> Recovering 0 queues of type rabbit_stream_queue took 0ms[0m
+rabbitmq     | 2026-11-26 21:55:51.623862+00:00 [info] <0.228.0> Created user 'guest'[0m
+rabbitmq     | 2026-11-26 21:55:51.625079+00:00 [info] <0.228.0> Successfully set user tags for user 'guest' to [administrator][0m
+rabbitmq     | 2026-11-26 21:55:51.626261+00:00 [info] <0.228.0> Successfully set permissions for 'guest' in virtual host '/' to '.*', '.*', '.*'[0m
+rabbitmq     | 2026-11-26 21:55:51.626335+00:00 [info] <0.228.0> Running boot step rabbit_looking_glass defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.626373+00:00 [info] <0.228.0> Running boot step rabbit_core_metrics_gc defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.626503+00:00 [info] <0.228.0> Running boot step background_gc defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.626638+00:00 [info] <0.228.0> Running boot step routing_ready defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.626684+00:00 [info] <0.228.0> Running boot step pre_flight defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.626722+00:00 [info] <0.228.0> Running boot step notify_cluster defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.626754+00:00 [info] <0.228.0> Running boot step networking defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.626810+00:00 [info] <0.228.0> Running boot step definition_import_worker_pool defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.626891+00:00 [info] <0.285.0> Starting worker pool 'definition_import_pool' with 12 processes in it[0m
+rabbitmq     | 2026-11-26 21:55:51.627896+00:00 [info] <0.228.0> Running boot step cluster_name defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.628026+00:00 [info] <0.228.0> Initialising internal cluster ID to 'rabbitmq-cluster-id-91txGWV7Q9epvIs6y_D9Qw'[0m
+rabbitmq     | 2026-11-26 21:55:51.629286+00:00 [info] <0.228.0> Running boot step direct_client defined by app rabbit[0m
+rabbitmq     | 2026-11-26 21:55:51.629449+00:00 [info] <0.228.0> Running boot step rabbit_management_load_definitions defined by app rabbitmq_management[0m
+rabbitmq     | 2026-11-26 21:55:51.629659+00:00 [info] <0.686.0> Resetting node maintenance status[0m
+rabbitmq     | 2026-11-26 21:55:51.652287+00:00 [info] <0.745.0> Management plugin: HTTP (non-TLS) listener started on port 15672[0m
+rabbitmq     | 2026-11-26 21:55:51.652518+00:00 [info] <0.773.0> Statistics database started.[0m
+rabbitmq     | 2026-11-26 21:55:51.652667+00:00 [info] <0.772.0> Starting worker pool 'management_worker_pool' with 3 processes in it[0m
+rabbitmq     | 2026-11-26 21:55:51.671019+00:00 [info] <0.787.0> Prometheus metrics: HTTP (non-TLS) listener started on port 15692[0m
+rabbitmq     | 2026-11-26 21:55:51.671430+00:00 [info] <0.686.0> Ready to start client connection listeners[0m
+rabbitmq     | 2026-11-26 21:55:51.674268+00:00 [info] <0.831.0> started TCP listener on [::]:5672[0m
+rabbitmq     |  completed with 4 plugins.
+rabbitmq     | 2026-11-26 21:55:51.758982+00:00 [info] <0.686.0> Server startup complete; 4 plugins started.[0m
+rabbitmq     | 2026-11-26 21:55:51.758982+00:00 [info] <0.686.0>  * rabbitmq_prometheus[0m
+rabbitmq     | 2026-11-26 21:55:51.758982+00:00 [info] <0.686.0>  * rabbitmq_management[0m
+rabbitmq     | 2026-11-26 21:55:51.758982+00:00 [info] <0.686.0>  * rabbitmq_web_dispatch[0m
+rabbitmq     | 2026-11-26 21:55:51.758982+00:00 [info] <0.686.0>  * rabbitmq_management_agent[0m
+rabbitmq     | 2026-11-26 21:55:53.415515+00:00 [info] <0.851.0> accepting AMQP connection <0.851.0> (192.168.80.3:51784 -> 192.168.80.2:5672)[0m
+rabbitmq     | 2026-11-26 21:55:53.418219+00:00 [info] <0.851.0> connection <0.851.0> (192.168.80.3:51784 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:53.745896+00:00 [info] <0.868.0> accepting AMQP connection <0.868.0> (192.168.80.4:40704 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:53.748765+00:00 [info] <0.868.0> connection <0.868.0> (192.168.80.4:40704 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:53.757927+00:00 [info] <0.884.0> accepting AMQP connection <0.884.0> (192.168.80.4:40718 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:53.759986+00:00 [info] <0.884.0> connection <0.884.0> (192.168.80.4:40718 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:53.764318+00:00 [info] <0.895.0> accepting AMQP connection <0.895.0> (192.168.80.4:40734 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:53.766334+00:00 [info] <0.895.0> connection <0.895.0> (192.168.80.4:40734 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:53.773707+00:00 [info] <0.911.0> accepting AMQP connection <0.911.0> (192.168.80.4:40748 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:53.775378+00:00 [info] <0.911.0> connection <0.911.0> (192.168.80.4:40748 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:53.782445+00:00 [info] <0.927.0> accepting AMQP connection <0.927.0> (192.168.80.4:40756 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:53.783876+00:00 [info] <0.927.0> connection <0.927.0> (192.168.80.4:40756 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:53.790283+00:00 [info] <0.943.0> accepting AMQP connection <0.943.0> (192.168.80.4:40770 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:53.793020+00:00 [info] <0.943.0> connection <0.943.0> (192.168.80.4:40770 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:53.800163+00:00 [info] <0.959.0> accepting AMQP connection <0.959.0> (192.168.80.4:40774 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:53.801546+00:00 [info] <0.959.0> connection <0.959.0> (192.168.80.4:40774 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:54.584838+00:00 [info] <0.975.0> accepting AMQP connection <0.975.0> (192.168.80.5:38550 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:54.587838+00:00 [info] <0.975.0> connection <0.975.0> (192.168.80.5:38550 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:54.598069+00:00 [info] <0.991.0> accepting AMQP connection <0.991.0> (192.168.80.5:38560 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:54.600376+00:00 [info] <0.991.0> connection <0.991.0> (192.168.80.5:38560 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:54.604726+00:00 [info] <0.1002.0> accepting AMQP connection <0.1002.0> (192.168.80.5:38564 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:54.607121+00:00 [info] <0.1002.0> connection <0.1002.0> (192.168.80.5:38564 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:54.611087+00:00 [info] <0.1013.0> accepting AMQP connection <0.1013.0> (192.168.80.5:38570 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:54.612833+00:00 [info] <0.1013.0> connection <0.1013.0> (192.168.80.5:38570 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:54.616148+00:00 [info] <0.1024.0> accepting AMQP connection <0.1024.0> (192.168.80.5:38584 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:54.617966+00:00 [info] <0.1024.0> connection <0.1024.0> (192.168.80.5:38584 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:54.623849+00:00 [info] <0.1035.0> accepting AMQP connection <0.1035.0> (192.168.80.5:38586 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:54.625769+00:00 [info] <0.1035.0> connection <0.1035.0> (192.168.80.5:38586 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:54.629531+00:00 [info] <0.1046.0> accepting AMQP connection <0.1046.0> (192.168.80.5:38598 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:54.632110+00:00 [info] <0.1046.0> connection <0.1046.0> (192.168.80.5:38598 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:55.316197+00:00 [info] <0.1057.0> accepting AMQP connection <0.1057.0> (192.168.80.6:45498 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:55.318217+00:00 [info] <0.1057.0> connection <0.1057.0> (192.168.80.6:45498 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:55.328745+00:00 [info] <0.1073.0> accepting AMQP connection <0.1073.0> (192.168.80.6:45512 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:55.330853+00:00 [info] <0.1073.0> connection <0.1073.0> (192.168.80.6:45512 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:55.334332+00:00 [info] <0.1084.0> accepting AMQP connection <0.1084.0> (192.168.80.6:45518 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:55.335641+00:00 [info] <0.1084.0> connection <0.1084.0> (192.168.80.6:45518 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:55.338590+00:00 [info] <0.1095.0> accepting AMQP connection <0.1095.0> (192.168.80.6:45534 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:55.339998+00:00 [info] <0.1095.0> connection <0.1095.0> (192.168.80.6:45534 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:55.343488+00:00 [info] <0.1106.0> accepting AMQP connection <0.1106.0> (192.168.80.6:45546 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:55.344963+00:00 [info] <0.1106.0> connection <0.1106.0> (192.168.80.6:45546 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:55.348027+00:00 [info] <0.1117.0> accepting AMQP connection <0.1117.0> (192.168.80.6:45560 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:55.349361+00:00 [info] <0.1117.0> connection <0.1117.0> (192.168.80.6:45560 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:55.352783+00:00 [info] <0.1128.0> accepting AMQP connection <0.1128.0> (192.168.80.6:45564 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:55.355448+00:00 [info] <0.1128.0> connection <0.1128.0> (192.168.80.6:45564 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:55.682189+00:00 [info] <0.1139.0> accepting AMQP connection <0.1139.0> (192.168.80.3:51796 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:55.687840+00:00 [info] <0.1139.0> connection <0.1139.0> (192.168.80.3:51796 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:55.694962+00:00 [info] <0.1150.0> accepting AMQP connection <0.1150.0> (192.168.80.3:51808 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:55.697856+00:00 [info] <0.1150.0> connection <0.1150.0> (192.168.80.3:51808 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:55.706354+00:00 [info] <0.1161.0> accepting AMQP connection <0.1161.0> (192.168.80.3:51824 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:55.708666+00:00 [info] <0.1161.0> connection <0.1161.0> (192.168.80.3:51824 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:56.552118+00:00 [info] <0.1172.0> accepting AMQP connection <0.1172.0> (192.168.80.8:46134 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:56.555707+00:00 [info] <0.1172.0> connection <0.1172.0> (192.168.80.8:46134 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:56.574197+00:00 [info] <0.1183.0> accepting AMQP connection <0.1183.0> (192.168.80.8:46136 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:56.577524+00:00 [info] <0.1183.0> connection <0.1183.0> (192.168.80.8:46136 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | [38;5;214m2026-11-26 21:55:56.712969+00:00 [warning] <0.1172.0> closing AMQP connection <0.1172.0> (192.168.80.8:46134 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq        | [38;5;214m2026-11-26 21:55:56.712969+00:00 [warning] <0.1172.0> client unexpectedly closed TCP connection[0m
+rabbitmq        | [38;5;214m2026-11-26 21:55:56.713680+00:00 [warning] <0.1183.0> closing AMQP connection <0.1183.0> (192.168.80.8:46136 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq        | [38;5;214m2026-11-26 21:55:56.713680+00:00 [warning] <0.1183.0> client unexpectedly closed TCP connection[0m
+rabbitmq        | 2026-11-26 21:55:56.796869+00:00 [info] <0.1207.0> accepting AMQP connection <0.1207.0> (192.168.80.10:35844 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:56.801633+00:00 [info] <0.1207.0> connection <0.1207.0> (192.168.80.10:35844 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:56.815576+00:00 [info] <0.1218.0> accepting AMQP connection <0.1218.0> (192.168.80.10:35846 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:56.819586+00:00 [info] <0.1218.0> connection <0.1218.0> (192.168.80.10:35846 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | [38;5;214m2026-11-26 21:55:56.925216+00:00 [warning] <0.1218.0> closing AMQP connection <0.1218.0> (192.168.80.10:35846 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq        | [38;5;214m2026-11-26 21:55:56.925216+00:00 [warning] <0.1218.0> client unexpectedly closed TCP connection[0m
+rabbitmq        | [38;5;214m2026-11-26 21:55:56.925216+00:00 [warning] <0.1207.0> closing AMQP connection <0.1207.0> (192.168.80.10:35844 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq        | [38;5;214m2026-11-26 21:55:56.925216+00:00 [warning] <0.1207.0> client unexpectedly closed TCP connection[0m
+rabbitmq        | 2026-11-26 21:55:57.148048+00:00 [info] <0.1242.0> accepting AMQP connection <0.1242.0> (192.168.80.13:45448 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:57.150449+00:00 [info] <0.1242.0> connection <0.1242.0> (192.168.80.13:45448 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:57.175663+00:00 [info] <0.1258.0> accepting AMQP connection <0.1258.0> (192.168.80.13:45454 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:57.177850+00:00 [info] <0.1258.0> connection <0.1258.0> (192.168.80.13:45454 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq        | 2026-11-26 21:55:57.186887+00:00 [info] <0.1274.0> accepting AMQP connection <0.1274.0> (192.168.80.13:45470 -> 192.168.80.2:5672)[0m
+rabbitmq        | 2026-11-26 21:55:57.190016+00:00 [info] <0.1274.0> connection <0.1274.0> (192.168.80.13:45470 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-11-26 21:55:57.247388+00:00 [info] <0.1290.0> accepting AMQP connection <0.1290.0> (192.168.80.14:37266 -> 192.168.80.2:5672)[0m
+rabbitmq         | 2026-11-26 21:55:57.247650+00:00 [info] <0.1293.0> accepting AMQP connection <0.1293.0> (192.168.80.13:45476 -> 192.168.80.2:5672)[0m
+rabbitmq         | 2026-11-26 21:55:57.250522+00:00 [info] <0.1293.0> connection <0.1293.0> (192.168.80.13:45476 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq         | 2026-11-26 21:55:57.250663+00:00 [info] <0.1290.0> connection <0.1290.0> (192.168.80.14:37266 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:57.262515+00:00 [info] <0.1317.0> accepting AMQP connection <0.1317.0> (192.168.80.12:55812 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.267692+00:00 [info] <0.1317.0> connection <0.1317.0> (192.168.80.12:55812 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:57.267972+00:00 [info] <0.1320.0> accepting AMQP connection <0.1320.0> (192.168.80.14:37278 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.272054+00:00 [info] <0.1320.0> connection <0.1320.0> (192.168.80.14:37278 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:57.275076+00:00 [info] <0.1339.0> accepting AMQP connection <0.1339.0> (192.168.80.12:55814 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.282382+00:00 [info] <0.1348.0> accepting AMQP connection <0.1348.0> (192.168.80.11:55458 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.282586+00:00 [info] <0.1339.0> connection <0.1339.0> (192.168.80.12:55814 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:57.285776+00:00 [info] <0.1348.0> connection <0.1348.0> (192.168.80.11:55458 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:57.286459+00:00 [info] <0.1361.0> accepting AMQP connection <0.1361.0> (192.168.80.14:37284 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.288743+00:00 [info] <0.1361.0> connection <0.1361.0> (192.168.80.14:37284 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:57.293473+00:00 [info] <0.1377.0> accepting AMQP connection <0.1377.0> (192.168.80.11:55470 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.294059+00:00 [info] <0.1380.0> accepting AMQP connection <0.1380.0> (192.168.80.9:52854 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.294112+00:00 [info] <0.1383.0> accepting AMQP connection <0.1383.0> (192.168.80.14:37292 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.298546+00:00 [info] <0.1383.0> connection <0.1383.0> (192.168.80.14:37292 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:57.299699+00:00 [info] <0.1377.0> connection <0.1377.0> (192.168.80.11:55470 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:57.301856+00:00 [info] <0.1380.0> connection <0.1380.0> (192.168.80.9:52854 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:57.304107+00:00 [info] <0.1410.0> accepting AMQP connection <0.1410.0> (192.168.80.14:37304 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.309450+00:00 [info] <0.1410.0> connection <0.1410.0> (192.168.80.14:37304 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:57.310440+00:00 [info] <0.1418.0> accepting AMQP connection <0.1418.0> (192.168.80.9:52866 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.336532+00:00 [info] <0.1418.0> connection <0.1418.0> (192.168.80.9:52866 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:57.340305+00:00 [warning] <0.1293.0> closing AMQP connection <0.1293.0> (192.168.80.13:45476 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:57.340305+00:00 [warning] <0.1293.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:57.341445+00:00 [warning] <0.1274.0> closing AMQP connection <0.1274.0> (192.168.80.13:45470 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:57.341445+00:00 [warning] <0.1274.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:57.342187+00:00 [warning] <0.1258.0> closing AMQP connection <0.1258.0> (192.168.80.13:45454 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:57.342187+00:00 [warning] <0.1258.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | 2026-11-26 21:55:57.351572+00:00 [info] <0.1449.0> accepting AMQP connection <0.1449.0> (192.168.80.9:52874 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.354351+00:00 [info] <0.1449.0> connection <0.1449.0> (192.168.80.9:52874 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:57.367875+00:00 [warning] <0.1242.0> closing AMQP connection <0.1242.0> (192.168.80.13:45448 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:57.367875+00:00 [warning] <0.1242.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | 2026-11-26 21:55:57.367978+00:00 [info] <0.1465.0> accepting AMQP connection <0.1465.0> (192.168.80.9:52890 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.370733+00:00 [info] <0.1465.0> connection <0.1465.0> (192.168.80.9:52890 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:57.378445+00:00 [info] <0.1480.0> accepting AMQP connection <0.1480.0> (192.168.80.9:52904 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.384045+00:00 [info] <0.1480.0> connection <0.1480.0> (192.168.80.9:52904 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:57.388979+00:00 [warning] <0.1361.0> closing AMQP connection <0.1361.0> (192.168.80.14:37284 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:57.388979+00:00 [warning] <0.1361.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:57.388979+00:00 [warning] <0.1383.0> closing AMQP connection <0.1383.0> (192.168.80.14:37292 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:57.388979+00:00 [warning] <0.1383.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:57.389269+00:00 [warning] <0.1290.0> closing AMQP connection <0.1290.0> (192.168.80.14:37266 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:57.389269+00:00 [warning] <0.1290.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:57.389292+00:00 [warning] <0.1410.0> closing AMQP connection <0.1410.0> (192.168.80.14:37304 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:57.389292+00:00 [warning] <0.1410.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:57.389473+00:00 [warning] <0.1320.0> closing AMQP connection <0.1320.0> (192.168.80.14:37278 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:57.389473+00:00 [warning] <0.1320.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | 2026-11-26 21:55:57.474093+00:00 [info] <0.1516.0> accepting AMQP connection <0.1516.0> (192.168.80.9:52910 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.477871+00:00 [info] <0.1516.0> connection <0.1516.0> (192.168.80.9:52910 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:57.563591+00:00 [info] <0.1533.0> accepting AMQP connection <0.1533.0> (192.168.80.9:52924 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.566911+00:00 [info] <0.1533.0> connection <0.1533.0> (192.168.80.9:52924 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:57.681107+00:00 [info] <0.1549.0> accepting AMQP connection <0.1549.0> (192.168.80.9:52940 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.683504+00:00 [info] <0.1549.0> connection <0.1549.0> (192.168.80.9:52940 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:57.739094+00:00 [info] <0.1564.0> accepting AMQP connection <0.1564.0> (192.168.80.15:40464 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.744384+00:00 [info] <0.1564.0> connection <0.1564.0> (192.168.80.15:40464 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:57.750625+00:00 [info] <0.1575.0> accepting AMQP connection <0.1575.0> (192.168.80.15:40474 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.754812+00:00 [info] <0.1575.0> connection <0.1575.0> (192.168.80.15:40474 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:57.760889+00:00 [info] <0.1586.0> accepting AMQP connection <0.1586.0> (192.168.80.15:40488 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.764443+00:00 [info] <0.1586.0> connection <0.1586.0> (192.168.80.15:40488 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:57.770171+00:00 [info] <0.1598.0> accepting AMQP connection <0.1598.0> (192.168.80.15:40496 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.772636+00:00 [info] <0.1598.0> connection <0.1598.0> (192.168.80.15:40496 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:57.779465+00:00 [info] <0.1609.0> accepting AMQP connection <0.1609.0> (192.168.80.15:40506 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.783143+00:00 [info] <0.1609.0> connection <0.1609.0> (192.168.80.15:40506 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:57.788547+00:00 [info] <0.1620.0> accepting AMQP connection <0.1620.0> (192.168.80.15:40514 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.793492+00:00 [info] <0.1620.0> connection <0.1620.0> (192.168.80.15:40514 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:57.799769+00:00 [info] <0.1631.0> accepting AMQP connection <0.1631.0> (192.168.80.15:40518 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.802333+00:00 [info] <0.1631.0> connection <0.1631.0> (192.168.80.15:40518 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:57.807890+00:00 [info] <0.1642.0> accepting AMQP connection <0.1642.0> (192.168.80.15:40530 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.814411+00:00 [info] <0.1642.0> connection <0.1642.0> (192.168.80.15:40530 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:57.885242+00:00 [info] <0.1653.0> accepting AMQP connection <0.1653.0> (192.168.80.9:52948 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.887199+00:00 [info] <0.1656.0> accepting AMQP connection <0.1656.0> (192.168.80.15:40538 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.890391+00:00 [info] <0.1656.0> connection <0.1656.0> (192.168.80.15:40538 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:57.891571+00:00 [info] <0.1653.0> connection <0.1653.0> (192.168.80.9:52948 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:57.943477+00:00 [info] <0.1680.0> accepting AMQP connection <0.1680.0> (192.168.80.9:52962 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.943776+00:00 [info] <0.1683.0> accepting AMQP connection <0.1683.0> (192.168.80.15:40542 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:57.951727+00:00 [info] <0.1680.0> connection <0.1680.0> (192.168.80.9:52962 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:57.953334+00:00 [info] <0.1683.0> connection <0.1683.0> (192.168.80.15:40542 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:58.233349+00:00 [info] <0.1726.0> accepting AMQP connection <0.1726.0> (192.168.80.17:37006 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:58.236520+00:00 [info] <0.1726.0> connection <0.1726.0> (192.168.80.17:37006 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:58.242690+00:00 [info] <0.1737.0> accepting AMQP connection <0.1737.0> (192.168.80.17:37022 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:58.247232+00:00 [info] <0.1737.0> connection <0.1737.0> (192.168.80.17:37022 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:58.252942+00:00 [info] <0.1748.0> accepting AMQP connection <0.1748.0> (192.168.80.17:37038 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:58.254913+00:00 [info] <0.1748.0> connection <0.1748.0> (192.168.80.17:37038 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:58.261648+00:00 [info] <0.1759.0> accepting AMQP connection <0.1759.0> (192.168.80.17:37040 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:58.273662+00:00 [info] <0.1759.0> connection <0.1759.0> (192.168.80.17:37040 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:58.284768+00:00 [info] <0.1770.0> accepting AMQP connection <0.1770.0> (192.168.80.17:37046 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:58.288619+00:00 [info] <0.1770.0> connection <0.1770.0> (192.168.80.17:37046 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.385316+00:00 [warning] <0.1770.0> closing AMQP connection <0.1770.0> (192.168.80.17:37046 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.385316+00:00 [warning] <0.1770.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.385540+00:00 [warning] <0.1748.0> closing AMQP connection <0.1748.0> (192.168.80.17:37038 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.385540+00:00 [warning] <0.1748.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.385613+00:00 [warning] <0.1759.0> closing AMQP connection <0.1759.0> (192.168.80.17:37040 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.385613+00:00 [warning] <0.1759.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.385678+00:00 [warning] <0.1737.0> closing AMQP connection <0.1737.0> (192.168.80.17:37022 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.385678+00:00 [warning] <0.1737.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.385774+00:00 [warning] <0.1726.0> closing AMQP connection <0.1726.0> (192.168.80.17:37006 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.385774+00:00 [warning] <0.1726.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386116+00:00 [error] <0.1774.0>     supervisor: {<0.1774.0>,rabbit_channel_sup}[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386116+00:00 [error] <0.1774.0>     errorContext: shutdown_error[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386116+00:00 [error] <0.1774.0>     reason: noproc[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386116+00:00 [error] <0.1774.0>     offender: [{pid,<0.1777.0>},[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386116+00:00 [error] <0.1774.0>                {id,channel},[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386116+00:00 [error] <0.1774.0>                {mfargs,[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386116+00:00 [error] <0.1774.0>                    {rabbit_channel,start_link,[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386116+00:00 [error] <0.1774.0>                        [1,<0.1770.0>,<0.1775.0>,<0.1770.0>,[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386116+00:00 [error] <0.1774.0>                         <<"192.168.80.17:37046 -> 192.168.80.2:5672">>,[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386116+00:00 [error] <0.1774.0>                         rabbit_framing_amqp_0_9_1,[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386116+00:00 [error] <0.1774.0>                         {user,<<"guest">>,[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386116+00:00 [error] <0.1774.0>                             [administrator],[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386116+00:00 [error] <0.1774.0>                             [{rabbit_auth_backend_internal,none}]},[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386116+00:00 [error] <0.1774.0>                         <<"/">>,[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386116+00:00 [error] <0.1774.0>                         [{<<"authentication_failure_close">>,bool,true},[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386116+00:00 [error] <0.1774.0>                          {<<"basic.nack">>,bool,true},[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386116+00:00 [error] <0.1774.0>                          {<<"connection.blocked">>,bool,true},[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386116+00:00 [error] <0.1774.0>                          {<<"consumer_cancel_notify">>,bool,true},[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386116+00:00 [error] <0.1774.0>                          {<<"exchange_exchange_bindings">>,bool,true},[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386116+00:00 [error] <0.1774.0>                          {<<"publisher_confirms">>,bool,true}],[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386116+00:00 [error] <0.1774.0>                         <0.1771.0>,<0.1776.0>]}},[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386116+00:00 [error] <0.1774.0>                {restart_type,intrinsic},[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386116+00:00 [error] <0.1774.0>                {shutdown,70000},[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386116+00:00 [error] <0.1774.0>                {child_type,worker}][0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386357+00:00 [error] <0.1752.0>     supervisor: {<0.1752.0>,rabbit_channel_sup}[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386357+00:00 [error] <0.1752.0>     errorContext: shutdown_error[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386357+00:00 [error] <0.1752.0>     reason: noproc[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386357+00:00 [error] <0.1752.0>     offender: [{pid,<0.1755.0>},[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386357+00:00 [error] <0.1752.0>                {id,channel},[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386357+00:00 [error] <0.1752.0>                {mfargs,[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386357+00:00 [error] <0.1752.0>                    {rabbit_channel,start_link,[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386357+00:00 [error] <0.1752.0>                        [1,<0.1748.0>,<0.1753.0>,<0.1748.0>,[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386357+00:00 [error] <0.1752.0>                         <<"192.168.80.17:37038 -> 192.168.80.2:5672">>,[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386357+00:00 [error] <0.1752.0>                         rabbit_framing_amqp_0_9_1,[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386357+00:00 [error] <0.1752.0>                         {user,<<"guest">>,[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386357+00:00 [error] <0.1752.0>                             [administrator],[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386357+00:00 [error] <0.1752.0>                             [{rabbit_auth_backend_internal,none}]},[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386357+00:00 [error] <0.1752.0>                         <<"/">>,[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386357+00:00 [error] <0.1752.0>                         [{<<"authentication_failure_close">>,bool,true},[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386357+00:00 [error] <0.1752.0>                          {<<"basic.nack">>,bool,true},[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386357+00:00 [error] <0.1752.0>                          {<<"connection.blocked">>,bool,true},[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386357+00:00 [error] <0.1752.0>                          {<<"consumer_cancel_notify">>,bool,true},[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386357+00:00 [error] <0.1752.0>                          {<<"exchange_exchange_bindings">>,bool,true},[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386357+00:00 [error] <0.1752.0>                          {<<"publisher_confirms">>,bool,true}],[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386357+00:00 [error] <0.1752.0>                         <0.1749.0>,<0.1754.0>]}},[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386357+00:00 [error] <0.1752.0>                {restart_type,intrinsic},[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386357+00:00 [error] <0.1752.0>                {shutdown,70000},[0m
+rabbitmq           | [38;5;160m2026-11-26 21:55:58.386357+00:00 [error] <0.1752.0>                {child_type,worker}][0m
+rabbitmq           | 2026-11-26 21:55:58.579690+00:00 [info] <0.1801.0> accepting AMQP connection <0.1801.0> (192.168.80.18:43516 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:58.581859+00:00 [info] <0.1801.0> connection <0.1801.0> (192.168.80.18:43516 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:58.586333+00:00 [info] <0.1812.0> accepting AMQP connection <0.1812.0> (192.168.80.18:43530 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:58.587960+00:00 [info] <0.1812.0> connection <0.1812.0> (192.168.80.18:43530 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:58.604058+00:00 [info] <0.1823.0> accepting AMQP connection <0.1823.0> (192.168.80.18:43544 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:58.606417+00:00 [info] <0.1823.0> connection <0.1823.0> (192.168.80.18:43544 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:58.609890+00:00 [info] <0.1834.0> accepting AMQP connection <0.1834.0> (192.168.80.18:43548 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:58.611917+00:00 [info] <0.1834.0> connection <0.1834.0> (192.168.80.18:43548 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:58.629625+00:00 [info] <0.1845.0> accepting AMQP connection <0.1845.0> (192.168.80.20:51744 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:58.633184+00:00 [info] <0.1845.0> connection <0.1845.0> (192.168.80.20:51744 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:58.639269+00:00 [info] <0.1856.0> accepting AMQP connection <0.1856.0> (192.168.80.20:51750 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:58.640912+00:00 [info] <0.1856.0> connection <0.1856.0> (192.168.80.20:51750 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:58.645290+00:00 [info] <0.1867.0> accepting AMQP connection <0.1867.0> (192.168.80.20:51760 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:58.647106+00:00 [info] <0.1867.0> connection <0.1867.0> (192.168.80.20:51760 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:58.650575+00:00 [info] <0.1878.0> accepting AMQP connection <0.1878.0> (192.168.80.20:51776 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:58.652166+00:00 [info] <0.1878.0> connection <0.1878.0> (192.168.80.20:51776 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:58.683415+00:00 [info] <0.1890.0> accepting AMQP connection <0.1890.0> (192.168.80.16:36948 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:58.686844+00:00 [info] <0.1890.0> connection <0.1890.0> (192.168.80.16:36948 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:58.695896+00:00 [info] <0.1901.0> accepting AMQP connection <0.1901.0> (192.168.80.16:36964 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:58.698487+00:00 [info] <0.1901.0> connection <0.1901.0> (192.168.80.16:36964 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:58.703613+00:00 [info] <0.1912.0> accepting AMQP connection <0.1912.0> (192.168.80.16:36968 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:58.719469+00:00 [info] <0.1912.0> connection <0.1912.0> (192.168.80.16:36968 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:58.725610+00:00 [info] <0.1923.0> accepting AMQP connection <0.1923.0> (192.168.80.16:36982 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:58.728539+00:00 [info] <0.1923.0> connection <0.1923.0> (192.168.80.16:36982 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.737954+00:00 [warning] <0.1823.0> closing AMQP connection <0.1823.0> (192.168.80.18:43544 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.737954+00:00 [warning] <0.1823.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.737954+00:00 [warning] <0.1834.0> closing AMQP connection <0.1834.0> (192.168.80.18:43548 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.737954+00:00 [warning] <0.1834.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | 2026-11-26 21:55:58.738223+00:00 [info] <0.1934.0> accepting AMQP connection <0.1934.0> (192.168.80.16:36992 -> 192.168.80.2:5672)[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.738109+00:00 [warning] <0.1812.0> closing AMQP connection <0.1812.0> (192.168.80.18:43530 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.738109+00:00 [warning] <0.1812.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | 2026-11-26 21:55:58.741996+00:00 [info] <0.1934.0> connection <0.1934.0> (192.168.80.16:36992 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:58.757172+00:00 [info] <0.1957.0> accepting AMQP connection <0.1957.0> (192.168.80.16:36998 -> 192.168.80.2:5672)[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.758914+00:00 [warning] <0.1878.0> closing AMQP connection <0.1878.0> (192.168.80.20:51776 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.758914+00:00 [warning] <0.1878.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.758948+00:00 [warning] <0.1867.0> closing AMQP connection <0.1867.0> (192.168.80.20:51760 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.758948+00:00 [warning] <0.1867.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.759335+00:00 [warning] <0.1856.0> closing AMQP connection <0.1856.0> (192.168.80.20:51750 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.759335+00:00 [warning] <0.1856.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | 2026-11-26 21:55:58.760942+00:00 [info] <0.1957.0> connection <0.1957.0> (192.168.80.16:36998 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.766758+00:00 [warning] <0.1801.0> closing AMQP connection <0.1801.0> (192.168.80.18:43516 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.766758+00:00 [warning] <0.1801.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | 2026-11-26 21:55:58.770134+00:00 [info] <0.1984.0> accepting AMQP connection <0.1984.0> (192.168.80.16:37010 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:58.774074+00:00 [info] <0.1984.0> connection <0.1984.0> (192.168.80.16:37010 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:58.780927+00:00 [info] <0.1995.0> accepting AMQP connection <0.1995.0> (192.168.80.16:37020 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:58.784477+00:00 [info] <0.1995.0> connection <0.1995.0> (192.168.80.16:37020 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:58.790100+00:00 [info] <0.2006.0> accepting AMQP connection <0.2006.0> (192.168.80.16:37026 -> 192.168.80.2:5672)[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.790161+00:00 [warning] <0.1845.0> closing AMQP connection <0.1845.0> (192.168.80.20:51744 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:58.790161+00:00 [warning] <0.1845.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | 2026-11-26 21:55:58.794082+00:00 [info] <0.2006.0> connection <0.2006.0> (192.168.80.16:37026 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:58.799039+00:00 [info] <0.2021.0> accepting AMQP connection <0.2021.0> (192.168.80.16:37040 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:58.801034+00:00 [info] <0.2021.0> connection <0.2021.0> (192.168.80.16:37040 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+[Kjoin_top_2 exited with code 1
+[Kjoin_top_1 exited with code 1
+[Ksum_top_2 exited with code 1
+rabbitmq           | 2026-11-26 21:55:59.383467+00:00 [info] <0.2032.0> accepting AMQP connection <0.2032.0> (192.168.80.19:57862 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:59.386652+00:00 [info] <0.2032.0> connection <0.2032.0> (192.168.80.19:57862 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:59.395229+00:00 [info] <0.2043.0> accepting AMQP connection <0.2043.0> (192.168.80.19:57870 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:59.400727+00:00 [info] <0.2043.0> connection <0.2043.0> (192.168.80.19:57870 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+[Kagregador_top_2 exited with code 1
+rabbitmq           | 2026-11-26 21:55:59.423219+00:00 [info] <0.2054.0> accepting AMQP connection <0.2054.0> (192.168.80.21:60950 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:59.426585+00:00 [info] <0.2054.0> connection <0.2054.0> (192.168.80.21:60950 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:59.433305+00:00 [info] <0.2065.0> accepting AMQP connection <0.2065.0> (192.168.80.21:60952 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:59.435470+00:00 [info] <0.2065.0> connection <0.2065.0> (192.168.80.21:60952 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:59.443043+00:00 [info] <0.2076.0> accepting AMQP connection <0.2076.0> (192.168.80.21:60968 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:59.445540+00:00 [info] <0.2076.0> connection <0.2076.0> (192.168.80.21:60968 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:59.450063+00:00 [info] <0.2087.0> accepting AMQP connection <0.2087.0> (192.168.80.21:60978 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:59.453237+00:00 [info] <0.2087.0> connection <0.2087.0> (192.168.80.21:60978 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:55:59.458111+00:00 [info] <0.2098.0> accepting AMQP connection <0.2098.0> (192.168.80.21:60980 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:55:59.466057+00:00 [info] <0.2098.0> connection <0.2098.0> (192.168.80.21:60980 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:59.481093+00:00 [warning] <0.2043.0> closing AMQP connection <0.2043.0> (192.168.80.19:57870 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:59.481093+00:00 [warning] <0.2043.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:59.481045+00:00 [warning] <0.2032.0> closing AMQP connection <0.2032.0> (192.168.80.19:57862 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:59.481045+00:00 [warning] <0.2032.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:59.533172+00:00 [warning] <0.2098.0> closing AMQP connection <0.2098.0> (192.168.80.21:60980 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:59.533172+00:00 [warning] <0.2098.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:59.533240+00:00 [warning] <0.2087.0> closing AMQP connection <0.2087.0> (192.168.80.21:60978 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:59.533240+00:00 [warning] <0.2087.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:59.533412+00:00 [warning] <0.2076.0> closing AMQP connection <0.2076.0> (192.168.80.21:60968 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:59.533412+00:00 [warning] <0.2076.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:59.533531+00:00 [warning] <0.2065.0> closing AMQP connection <0.2065.0> (192.168.80.21:60952 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:59.533531+00:00 [warning] <0.2065.0> client unexpectedly closed TCP connection[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:59.533666+00:00 [warning] <0.2054.0> closing AMQP connection <0.2054.0> (192.168.80.21:60950 -> 192.168.80.2:5672, vhost: '/', user: 'guest'):[0m
+rabbitmq           | [38;5;214m2026-11-26 21:55:59.533666+00:00 [warning] <0.2054.0> client unexpectedly closed TCP connection[0m
+[Ksum_top_0 exited with code 1
+[Ksum_top_1 exited with code 1
+[Kagregador_top_1 exited with code 1
+[Kjoin_top_0 exited with code 1
+[Kagregador_top_0 exited with code 1
+rabbitmq           | 2026-11-26 21:56:01.866000+00:00 [info] <0.2138.0> accepting AMQP connection <0.2138.0> (192.168.80.8:40122 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:56:01.869081+00:00 [info] <0.2138.0> connection <0.2138.0> (192.168.80.8:40122 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:56:01.874158+00:00 [info] <0.2149.0> accepting AMQP connection <0.2149.0> (192.168.80.8:40128 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:56:01.876855+00:00 [info] <0.2149.0> connection <0.2149.0> (192.168.80.8:40128 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:56:01.883693+00:00 [info] <0.2160.0> accepting AMQP connection <0.2160.0> (192.168.80.8:40140 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:56:01.885931+00:00 [info] <0.2160.0> connection <0.2160.0> (192.168.80.8:40140 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:56:01.890603+00:00 [info] <0.2171.0> accepting AMQP connection <0.2171.0> (192.168.80.8:40146 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:56:01.892803+00:00 [info] <0.2171.0> connection <0.2171.0> (192.168.80.8:40146 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:56:01.922977+00:00 [info] <0.2182.0> accepting AMQP connection <0.2182.0> (192.168.80.10:58778 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:56:01.926894+00:00 [info] <0.2182.0> connection <0.2182.0> (192.168.80.10:58778 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:56:01.932531+00:00 [info] <0.2193.0> accepting AMQP connection <0.2193.0> (192.168.80.10:58788 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:56:01.934325+00:00 [info] <0.2193.0> connection <0.2193.0> (192.168.80.10:58788 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:56:02.054959+00:00 [info] <0.2204.0> accepting AMQP connection <0.2204.0> (192.168.80.13:48658 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:56:02.058527+00:00 [info] <0.2204.0> connection <0.2204.0> (192.168.80.13:48658 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:56:02.068027+00:00 [info] <0.2215.0> accepting AMQP connection <0.2215.0> (192.168.80.13:48672 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:56:02.074189+00:00 [info] <0.2215.0> connection <0.2215.0> (192.168.80.13:48672 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:56:02.286174+00:00 [info] <0.2226.0> accepting AMQP connection <0.2226.0> (192.168.80.17:33164 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:56:02.291701+00:00 [info] <0.2226.0> connection <0.2226.0> (192.168.80.17:33164 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:56:02.300230+00:00 [info] <0.2237.0> accepting AMQP connection <0.2237.0> (192.168.80.17:33176 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:56:02.303460+00:00 [info] <0.2237.0> connection <0.2237.0> (192.168.80.17:33176 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:56:02.311391+00:00 [info] <0.2248.0> accepting AMQP connection <0.2248.0> (192.168.80.17:33180 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:56:02.331480+00:00 [info] <0.2248.0> connection <0.2248.0> (192.168.80.17:33180 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:56:02.353868+00:00 [info] <0.2259.0> accepting AMQP connection <0.2259.0> (192.168.80.17:33192 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:56:02.360957+00:00 [info] <0.2259.0> connection <0.2259.0> (192.168.80.17:33192 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:56:02.396093+00:00 [info] <0.2270.0> accepting AMQP connection <0.2270.0> (192.168.80.14:53148 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:56:02.419703+00:00 [info] <0.2270.0> connection <0.2270.0> (192.168.80.14:53148 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:56:02.428193+00:00 [info] <0.2281.0> accepting AMQP connection <0.2281.0> (192.168.80.14:53156 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:56:02.434046+00:00 [info] <0.2281.0> connection <0.2281.0> (192.168.80.14:53156 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:56:02.581290+00:00 [info] <0.2293.0> accepting AMQP connection <0.2293.0> (192.168.80.18:38958 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:56:02.584101+00:00 [info] <0.2293.0> connection <0.2293.0> (192.168.80.18:38958 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:56:02.591774+00:00 [info] <0.2304.0> accepting AMQP connection <0.2304.0> (192.168.80.18:38968 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:56:02.604246+00:00 [info] <0.2304.0> connection <0.2304.0> (192.168.80.18:38968 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:56:02.609119+00:00 [info] <0.2315.0> accepting AMQP connection <0.2315.0> (192.168.80.18:38976 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:56:02.613498+00:00 [info] <0.2315.0> connection <0.2315.0> (192.168.80.18:38976 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+rabbitmq           | 2026-11-26 21:56:02.617440+00:00 [info] <0.2326.0> accepting AMQP connection <0.2326.0> (192.168.80.18:38978 -> 192.168.80.2:5672)[0m
+rabbitmq           | 2026-11-26 21:56:02.620733+00:00 [info] <0.2326.0> connection <0.2326.0> (192.168.80.18:38978 -> 192.168.80.2:5672): user 'guest' authenticated and granted access to vhost '/'[0m
+maestro_1          | soy lider
+clasificador_0     | se conecto un lider
+maestro_1          | me conecto a clasificador_0
+clasificador_1     | se conecto un lider
+maestro_1          | Latio clasificador_0
+maestro_1          | me conecto a clasificador_1
+maestro_1          | Latio clasificador_1
+maestro_1          | me conecto a clasificador_2
+transformador_0    | se conecto un lider
+maestro_1          | Latio clasificador_2
+maestro_1          | me conecto a transformador_0
+clasificador_2     | se conecto un lider
+maestro_1          | Latio transformador_0
+transformador_1    | se conecto un lider
+maestro_1          | me conecto a transformador_1
+maestro_1          | Latio transformador_1
+maestro_1          | me conecto a transformador_2
+img_descargador_0  | se conecto un lider
+maestro_1          | me conecto a img_descargador_0
+img_descargador_1  | se conecto un lider
+maestro_1          | Latio img_descargador_0
+maestro_1          | me conecto a img_descargador_1
+maestro_1          | Latio img_descargador_1
+maestro_1          | me conecto a promedio_0
+maestro_1          | Latio promedio_0
+transformador_2    | se conecto un lider
+maestro_1          | me conecto a promedio_1
+promedio_0         | se conecto un lider
+promedio_1         | se conecto un lider
+promedio_2         | se conecto un lider
+maestro_1          | Latio promedio_1
+maestro_1          | me conecto a promedio_2
+cuenta_prom_0      | se conecto un lider
+maestro_1          | me conecto a cuenta_prom_0
+maestro_1          | Latio cuenta_prom_0
+maestro_1          | me conecto a cuenta_prom_1
+maestro_1          | Latio promedio_2
+maestro_1          | Latio cuenta_prom_1
+maestro_1          | me conecto a cuenta_prom_2
+maestro_1          | Latio cuenta_prom_2
+cuenta_prom_2      | se conecto un lider
+cuenta_prom_1      | se conecto un lider
+maestro_1          | Latio transformador_2
+maestro_1          | Latio promedio_2
+maestro_1          | Latio clasificador_1
+maestro_1          | Latio cuenta_prom_2
+maestro_1          | Latio promedio_0
+maestro_1          | Latio img_descargador_0
+maestro_1          | Latio clasificador_0
+maestro_1          | Latio transformador_1
+maestro_1          | Latio cuenta_prom_0
+maestro_1          | Latio transformador_2
+maestro_1          | Latio transformador_0
+maestro_1          | Latio clasificador_2
+maestro_1          | Latio promedio_1
+maestro_1          | Latio img_descargador_1
+maestro_1          | Latio cuenta_prom_1
+maestro_1          | Latio promedio_2
+maestro_1          | Latio clasificador_1
+maestro_1          | Latio img_descargador_0
+maestro_1          | Latio transformador_1
+maestro_1          | Latio clasificador_0
+maestro_1          | Latio promedio_0
+maestro_1          | Latio transformador_0
+maestro_1          | Latio promedio_1
+maestro_1          | Latio cuenta_prom_2
+maestro_1          | Latio transformador_2
+maestro_1          | Latio cuenta_prom_1
+maestro_1          | Latio img_descargador_1
+maestro_1          | Latio clasificador_2
+maestro_1          | Latio cuenta_prom_0
+maestro_1          | Latio clasificador_1
+maestro_1          | Latio transformador_1
+maestro_1          | Latio promedio_2
+maestro_1          | Latio img_descargador_0
+maestro_1          | Latio promedio_0
+maestro_1          | Latio promedio_1
+maestro_1          | Latio cuenta_prom_1
+maestro_1          | Latio cuenta_prom_2
+maestro_1          | Latio clasificador_2
+maestro_1          | Latio transformador_0
+maestro_1          | Latio clasificador_0
+maestro_1          | Latio cuenta_prom_0
+maestro_1          | Latio transformador_2
+maestro_1          | Latio img_descargador_1
+maestro_1          | Latio promedio_2
+maestro_1          | Latio promedio_1
+maestro_1          | Latio img_descargador_0
+maestro_1          | Latio clasificador_1
+maestro_1          | Latio promedio_0
+maestro_1          | Latio clasificador_2
+maestro_1          | Latio transformador_0
+maestro_1          | Latio transformador_1
+maestro_1          | Latio cuenta_prom_1
+maestro_1          | Latio cuenta_prom_2
+maestro_1          | Latio clasificador_0
+maestro_1          | Latio cuenta_prom_0
+maestro_1          | Latio img_descargador_1
+maestro_1          | Latio transformador_2
+maestro_1          | Latio promedio_2
+maestro_1          | Latio promedio_1
+maestro_1          | Latio clasificador_1
+maestro_1          | Latio img_descargador_0
+maestro_1          | Latio clasificador_2
+maestro_1          | Latio promedio_0
+maestro_1          | Latio cuenta_prom_2
+maestro_1          | Latio transformador_1
+maestro_1          | Latio transformador_0
+maestro_1          | Latio cuenta_prom_1
+maestro_1          | Latio cuenta_prom_0
+maestro_1          | Latio promedio_2
+maestro_1          | Latio clasificador_0
+maestro_1          | Latio transformador_2
+maestro_1          | Latio promedio_1
+maestro_1          | Latio img_descargador_1
+Gracefully Stopping... press Ctrl+C again to force
+[K Container promedio_2  [32mStopping[0m
+[K Container promedio_1  [32mStopping[0m
+[K Container join_top_1  [32mStopping[0m
+[K Container cuenta_prom_2  [32mStopping[0m
+[K Container img_descargador_0  [32mStopping[0m
+[K Container maestro_0  [32mStopping[0m
+[K Container maestro_1  [32mStopping[0m
+[K Container join_top_2  [32mStopping[0m
+[K Container agregador_top_2  [32mStopping[0m
+[K Container sum_top_1  [32mStopping[0m
+[K Container img_descargador_1  [32mStopping[0m
+[K Container cuenta_prom_1  [32mStopping[0m
+[K Container sum_top_2  [32mStopping[0m
+[K Container maestro_2  [32mStopping[0m
+[K Container agregador_top_1  [32mStopping[0m
+[K Container cliente_0  [32mStopping[0m
+[K Container join_top_1  [32mStopped[0m
+[K Container join_top_2  [32mStopped[0m
+[K Container agregador_top_2  [32mStopped[0m
+[K Container agregador_top_1  [32mStopped[0m
+[K Container sum_top_2  [32mStopped[0m
+[K Container sum_top_1  [32mStopped[0m
+[K Container cuenta_prom_1  [32mStopped[0m
+[K Container promedio_1  [32mStopped[0m
+[K Container promedio_2  [32mStopped[0m
+[K Container cuenta_prom_2  [32mStopped[0m
+[K Container img_descargador_1  [32mStopped[0m
+[K Container cliente_0  [32mStopped[0m
+[K Container img_descargador_0  [32mStopped[0m
+[K Container maestro_2  [32mStopped[0m
+[K Container maestro_0  [32mStopped[0m
+[K Container maestro_1  [32mStopped[0m
+[K Container promedio_0  [32mStopping[0m
+[K Container cuenta_prom_0  [32mStopping[0m
+[K Container sum_top_0  [32mStopping[0m
+[K Container join_top_0  [32mStopping[0m
+[K Container agregador_top_0  [32mStopping[0m
+[K Container sum_top_0  [32mStopped[0m
+[K Container join_top_0  [32mStopped[0m
+[K Container agregador_top_0  [32mStopped[0m
+[K Container cuenta_prom_0  [32mStopped[0m
+[K Container promedio_0  [32mStopped[0m
+[K Container transformador_1  [32mStopping[0m
+[K Container transformador_2  [32mStopping[0m
+[K Container transformador_0  [32mStopping[0m
+[K Container transformador_0  [32mStopped[0m
+[K Container transformador_1  [32mStopped[0m
+[K Container transformador_2  [32mStopped[0m
+[K Container clasificador_2  [32mStopping[0m
+[K Container clasificador_2  [32mStopped[0m
+[K Container clasificador_1  [32mStopping[0m
+[K Container clasificador_1  [32mStopped[0m
+[K Container clasificador_0  [32mStopping[0m
+[K Container clasificador_0  [32mStopped[0m
+[K Container gateway  [32mStopping[0m
+[K Container tpg-7574-wikipedia-nodo-base-1  [32mStopping[0m
+[K Container tpg-7574-wikipedia-nodo-base-1  [32mStopped[0m
+[K Container gateway  [32mStopped[0m
+[K Container rabbitmq  [32mStopping[0m
+[K Container rabbitmq  [32mStopped[0m

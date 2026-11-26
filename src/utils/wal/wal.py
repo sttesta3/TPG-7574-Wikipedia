@@ -5,9 +5,10 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterator
 from protocolo.mensajesSistema import MensajeSistema
 
-PATH_MSG = "logs/mensajes"
-PATH_LOG = "logs/wal_log"
-PATH_EST = "logs/estado"
+# TODO: poner volumen de logs/ en cada nodo 
+PATH_MSG = "mensajes"
+PATH_LOG = "wal_log"
+PATH_EST = "estado"
 PATH_EST_TMP = f"{PATH_EST}_TMP"
 MENSAJES_PARA_CHECKPOINT = 100 
 

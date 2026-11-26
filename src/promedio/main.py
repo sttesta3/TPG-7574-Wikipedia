@@ -23,7 +23,7 @@ CUENTA = 1
 CUENTA_INICIAL = 0
 
 class WalPromedio(Wal):
-    def __init__():
+    def __init__(self):
         super().__init__()
 
     def guardarEstado(self, estado: dict[uuid.UUID, list]):
@@ -126,7 +126,7 @@ class Promedio:
 
 
     def _recuperarLogs(self):
-        for log in self.wal.recuperarLogs():
+        for log in self.wal.recuperarMensajes():
             if isinstance(log, FinMensajeSistema):
                 self._procesarEOF(log)
             else:
@@ -134,7 +134,7 @@ class Promedio:
 
 
     def iniciar(self):
-        latido = Latido(self.exchangePromedio.connection)
+        latido = Latido(self.colaPromedio.connection)
         thread_latido = threading.Thread(target=latido.start, daemon=True)
         thread_latido.start()
         
@@ -144,7 +144,6 @@ class Promedio:
 
 
     def manejarSigterm(self) -> None:
-        self.wal.close()
         self.colaPromedio.remote_stop()
 
 

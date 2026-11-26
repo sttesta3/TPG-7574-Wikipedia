@@ -21,7 +21,7 @@ CANT_LENGUAJES = 2
 
 
 class WalSumtop(Wal):
-    def __init__():
+    def __init__(self):
         super().__init__()
 
 

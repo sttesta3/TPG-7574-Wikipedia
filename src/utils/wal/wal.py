@@ -50,8 +50,8 @@ class Wal(ABC):
             f.truncate(0)
 
     def guardarMensaje(self, mensaje: bytes, to: Recipient) -> None:
-        self.mensajes.write(f"{self.cuenta_mensajes},{to},{mensaje}\n")
-        self.log_f.write(f"{LineaLog.MSGSENT},{self.cuenta_mensajes}")
+        self.mensajes.write(f"{self.cuenta_mensajes},{to},{mensaje}\n".encode("UTF-8"))
+        self.log_f.write(f"{LineaLog.MSGSENT},{self.cuenta_mensajes}".encode("UTF-8"))
         self.cuenta_mensajes += 1
 
     def recuperarMensajes(self) -> Iterator[bytes]:

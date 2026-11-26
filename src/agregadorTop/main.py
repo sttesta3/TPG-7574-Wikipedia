@@ -97,7 +97,7 @@ class AgregadorTop:
         duplicadas = []
         tanda = 0
         for clave, valor in mensaje.palabras.items():
-            self.wal.log(LineaLog.REDOLOG, f"{clienteId},add,{clave},{valor},{mensaje.lenguaje}")
+            #self.wal.log(LineaLog.REDOLOG, f"{clienteId},add,{clave},{valor},{mensaje.lenguaje}")
             if self.clientes[clienteId].add(palabra=clave, cantidad=valor, lenguaje=mensaje.lenguaje):
                 # Palabra duplicada.
                 duplicadas.append(clave)
@@ -107,7 +107,7 @@ class AgregadorTop:
                     self.colaRespuestas.send(Respuesta3MensajeSistema(clienteId, duplicadas, idRespuesta).aBytes())
                     duplicadas = []
                     tanda += 1
-        self.wal.log(LineaLog.REDOLOG, f"{clienteId},FINLOTE")
+        #self.wal.log(LineaLog.REDOLOG, f"{clienteId},FINLOTE")
         if len(duplicadas) > 0:
             idRespuesta = (ETAPA_AGREGADOR, int(ID), mensajes.secuencia, tanda)
             self.wal.guardarMensaje(mensaje, Recipient.COLARESPUESTAS)
@@ -130,8 +130,8 @@ class AgregadorTop:
             self.colaTopGlobal[nodo].send(FinMensajeSistema(mensaje.clienteId, origen=int(ID)).aBytes())
 
             self.contador.finalizar(mensaje.clienteId)
-            self.wal.log(LineaLog.FINEOF,f"{mensaje.clienteId}")
-            del self.clientes[mensaje.clienteId]
+            #self.wal.log(LineaLog.FINEOF,f"{mensaje.clienteId}")
+            # del self.clientes[mensaje.clienteId]
             
     def procesarMensaje(self, bytes, ack, nack):
         try:
@@ -146,21 +146,20 @@ class AgregadorTop:
                 for i in range(TOTALTOPGLOBAL):
                     self.colaTopGlobal[i].send(bytes)
                     self.colaTopParcial.send(bytes)
-                del self.clientes[mensaje.clienteId]
-            else:
-                self._procesarData(mensaje)
-            ack()   
-            if self.wal.tiempoDeCheckpoint():
-                self.wal.log(LineaLog.STARTCHECKPOINT)
-                self.guardarEstado(self.devolverEstado())
-                self.wal.log(LineaLog.OKCHECKPOINT)
-                self.wal.estadoTemporalAPermanente()
-                self.wal.log(LineaLog.ENDCHECKPOINT)
-                self.wal.truncarRedoLog()
+                # del self.clientes[mensaje.clienteId]
             else:
                 self._procesarData(mensaje)
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
             ack()
+
+            if self.wal.tiempoDeCheckpoint():
+                #self.wal.log(LineaLog.STARTCHECKPOINT)
+                self.guardarEstado(self.devolverEstado())
+                #self.wal.log(LineaLog.OKCHECKPOINT)
+                self.wal.estadoTemporalAPermanente()
+                #self.wal.log(LineaLog.ENDCHECKPOINT)
+                self.wal.truncarRedoLog()
+
 
         except Exception as e:
             logging.warning(e)
@@ -189,7 +188,7 @@ class AgregadorTop:
 
 
     def _recuperarLog(self):
-        for log in self.wal.recuperarLogs():
+        for log in self.wal.recuperarMensajes():
             if isinstance(log, FinMensajeSistema):
                 self._procesarEOF(log)
             else:
@@ -202,7 +201,7 @@ class AgregadorTop:
         
         self._recuperarEstado()
         
-        latido = Latido(self.exchangeTopParcial.connection)
+        latido = Latido(self.colaTopParcial.connection)
         thread_latido = threading.Thread(target=latido.start, daemon=True)
         thread_latido.start()
 

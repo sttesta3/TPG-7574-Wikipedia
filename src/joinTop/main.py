@@ -92,8 +92,8 @@ class JoinTop:
             self.colaRespuestas.send(Respuesta4MensajeSistema(mensaje.clienteId, self._top20(palabras), idRespuesta).aBytes())
             self.colaRespuestas.send(FinMensajeSistema(mensaje.clienteId, origen=origenGateway(ETAPA_JOIN, int(ID))).aBytes())
             self.contador.finalizar(mensaje.clienteId)
-            self.wal.borrarLog(mensaje.clienteId)
-            del self.clientes[mensaje.clienteId]
+            #self.wal.borrarLog(mensaje.clienteId)
+            #del self.clientes[mensaje.clienteId]
 
 
 
@@ -107,7 +107,8 @@ class JoinTop:
             elif self.contador.yaProcesado(mensaje.clienteId, mensaje.secuencia):
                 logging.info(f"Descarto parcial {mensaje.secuencia} de {mensaje.clienteId}: duplicado")
             elif isinstance(mensaje, ClienteMuertoMensajeSistema):
-                del self.clientes[mensaje.clientId]
+                #del self.clientes[mensaje.clientId]
+                pass
             else:
                 self._procesarData(mensaje)
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
@@ -119,7 +120,7 @@ class JoinTop:
 
 
     def _recuperarLog(self):
-        for log in self.wal.recuperarLogs():
+        for log in self.wal.recuperarMensajes():
             if isinstance(log, FinMensajeSistema):
                 self._procesarEOF(log)
             else:
@@ -127,7 +128,7 @@ class JoinTop:
 
 
     def iniciar(self):
-        latido = Latido(self.exchangeTopGlobal.connection)
+        latido = Latido(self.colaTopGlobal.connection)
         thread_latido = threading.Thread(target=latido.start, daemon=True)
         thread_latido.start()
 

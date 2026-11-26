@@ -97,15 +97,14 @@ class Promedio:
                 cola.send(FinPromMensajeSistema(mensaje.clienteId, promedio, mensaje.totalMsg).aBytes())
 
             self.contador.finalizar(mensaje.clienteId)
-            self.wal.borrarLog(clienteId)
-            del self.clientes[clienteId]
+           # self.wal.borrarLog(clienteId)
+           # del self.clientes[clienteId]
         
     
     def procesarMensaje(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
-            self.wal.guardarMensaje(bytes)
-            ack()
+           # self.wal.guardarMensaje(bytes)
             if isinstance(mensaje, FinMensajeSistema):
                 self._procesarEOF(mensaje)
             elif self.contador.yaFinalizado(mensaje.clienteId):
@@ -113,7 +112,7 @@ class Promedio:
             elif self.contador.yaProcesado(mensaje.clienteId, mensaje.secuencia):
                 logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: duplicado")
             elif isinstance(mensaje, ClienteMuertoMensajeSistema):
-                del self.clientes[mensaje.clienteId]
+               # del self.clientes[mensaje.clienteId]
                 self.colaCuentaProm.send(bytes)
             else:
                 self._procesarData(mensaje)

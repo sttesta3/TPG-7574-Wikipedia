@@ -102,16 +102,15 @@ class SumTop:
                 self.colaTopParcial[i].send(parcial.aBytes())
             self.colaTopParcial[i].send(FinMensajeSistema(clienteId, origen=int(ID)).aBytes())
 
-        del self.clientes[clienteId]
-        self.wal.borrarLog(clienteId)
+       #del self.clientes[clienteId]
+       # self.wal.borrarLog(clienteId)
         logging.debug(f"Mando parciales y EOF de {clienteId}")
 
 
     def procesarMensaje(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
-            self.wal.guardarMensaje(bytes)
-            ack()
+            #self.wal.guardarMensaje(bytes)
             if isinstance(mensaje, FinMensajeSistema):
                 if self.contador.eofRecibido(mensaje.clienteId, mensaje.origen):
                     self._finalizarCliente(mensaje.clienteId)
@@ -124,10 +123,11 @@ class SumTop:
             elif isinstance(mensaje, ClienteMuertoMensajeSistema):
                 for i in range(TOTALTOPPARCIAL):
                     self.excahangeTopParciales[i].send(bytes)
-                del self.clientes[mensaje.clienteId]
+                #del self.clientes[mensaje.clienteId]
             else:
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
                 self._procesarData(mensaje)
+            ack()
         except Exception as e:
             logging.warning(e)
             logging.warning(traceback.format_exc())
@@ -135,7 +135,7 @@ class SumTop:
 
 
     def _recuperarLog(self):
-        for log in self.wal.recuperarLogs():
+        for log in self.wal.recuperarMensajes():
             if isinstance(log, FinMensajeSistema):
                 self.contador.eofRecibido(log)
             elif self.contador.yaFinalizado(log.clienteId):
@@ -151,8 +151,7 @@ class SumTop:
         thread_latido.start()
 
         self._recuperarLog()
-        thread_contador = threading.Thread(target=self.contador.iniciar, daemon=True)
-        thread_contador.start()
+        
         self.colaSumTop.start_consuming(self.procesarMensaje)
         self._close_connections()
 

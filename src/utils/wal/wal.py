@@ -61,7 +61,7 @@ class Wal(ABC):
         elif isinstance(content, list) or isinstance(content, set):
             return [self._normalize_keys(item) for item in content]
         elif isinstance(content, uuid.UUID):
-            return str(uuid.UUID)
+            return str(content)
         elif not isinstance(content, str) and not isinstance(content, int) and not isinstance(content, set):
             return content.serialize()
         return content
@@ -92,15 +92,25 @@ class Wal(ABC):
 
 
     def guardarMensaje(self, mensaje: bytes) -> None:
+        self.mensajes.write(len(mensaje).to_bytes(4, byteorder="big"))
         self.mensajes.write(mensaje)
-        self.mensajes.write("\n".encode("UTF-8"))
+
+        self.mensajes.flush()
+        os.fsync(self.mensajes.fileno())
+
         self.cuenta_mensajes += 1
 
 
     def recuperarMensajes(self) -> Iterator[bytes]:
         with open(PATH_MSG, "rb") as log:
-            for line in log.readlines():
-                yield line.rstrip(b"\0").split(b"\1")[1].deBytes()
+            largo = int.from_bytes(log.read(4), byteorder="big")
+
+            msg = log.read(largo)
+
+            if len(msg) != largo:
+                raise ValueError("Mensaje incompleto en WAL")
+
+            yield msg
     
 
     def borrarLog(self):  
@@ -120,5 +130,5 @@ class Wal(ABC):
 
 
     def tiempoDeCheckpoint(self) -> bool:
-        print(f"Tiempo de checkpoint: {self.cuenta_mensajes > MENSAJES_PARA_CHECKPOINT}")
+        #print(f"Tiempo de checkpoint: {self.cuenta_mensajes > MENSAJES_PARA_CHECKPOINT}")
         return self.cuenta_mensajes >= MENSAJES_PARA_CHECKPOINT

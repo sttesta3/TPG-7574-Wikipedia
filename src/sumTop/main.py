@@ -68,7 +68,7 @@ class SumTop:
         try:
             mensaje = recvMensajeSistema(bytes)
             self.wal.guardarMensaje(bytes)
-            
+
             if isinstance(mensaje, FinMensajeSistema):
                 if self.contador.eofRecibido(mensaje.clienteId, mensaje.origen):
                     self._finalizarCliente(mensaje.clienteId)
@@ -85,27 +85,40 @@ class SumTop:
             ack()
 
             if self.wal.tiempoDeCheckpoint():
-                self.wal.guardarEstado(self.clientes, self.contador)
+                self.wal.guardarEstado(self.clientes, self.contador.state())
 
 
         except Exception as e:
-            logging.warning(e)
-            logging.warning(traceback.format_exc())
+            print(e)
+            print(f"{traceback.format_exc()}")
+            logging.error(e)
+            logging.error(traceback.format_exc())
             nack()
 
 
     def _recuperarse(self):
-        self.clientes, self.contador = self.wal.recuperarEstado()
+        try:
+            self.clientes, contador = self.wal.recuperarEstado()
+            self.contador.load_state(contador)
 
-        for log in self.wal.recuperarMensajes():
-            if self.contador.yaFinalizado(log.clienteId) or self.contador.yaProcesado(log.clienteId, log.secuencia):
-                logging.debug(f"Descarto lote {log.secuencia} de {log.clienteId}")
-            elif isinstance(log, FinMensajeSistema):
-                self.contador.eofRecibido(log)
-            else:
-                self.contador.procesado(log.clienteId, log.secuencia)
-                self._procesarData(log)
+            print(self.clientes)
 
+            print(self.contador)
+
+            for logBytes in self.wal.recuperarMensajes():
+                
+                log = recvMensajeSistema(logBytes)
+                if self.contador.yaFinalizado(log.clienteId) or self.contador.yaProcesado(log.clienteId, log.secuencia):
+                    logging.debug(f"Descarto lote {log.secuencia} de {log.clienteId}")
+                elif isinstance(log, FinMensajeSistema):
+                    self.contador.eofRecibido(log)
+                else:
+                    self.contador.procesado(log.clienteId, log.secuencia)
+                    self._procesarData(log)
+        except Exception as e:
+            print(logBytes)
+            print(f"adad{e}")
+            print(traceback.format_exc())
 
     def iniciar(self):
         latido = Latido(self.colaSumTop.connection)

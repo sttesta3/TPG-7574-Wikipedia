@@ -56,4 +56,4 @@ class contadorEof():
             self.esperados = state[0]
             self.procesados = state[1]
             self.eofs = state[2]
-            self.finalizados = state[3]
+            self.finalizados = set(state[3])

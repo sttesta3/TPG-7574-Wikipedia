@@ -107,10 +107,10 @@ class SumTop:
                 log = recvMensajeSistema(logBytes)
 
                 print(f"proceso {log}")
-                if self.contador.yaFinalizado(log.clienteId) or self.contador.yaProcesado(log.clienteId, log.secuencia):
-                    logging.debug(f"Descarto lote {log.secuencia} de {log.clienteId}")
-                elif isinstance(log, FinMensajeSistema):
+                if isinstance(log, FinMensajeSistema):
                     self.contador.eofRecibido(log)
+                elif self.contador.yaFinalizado(log.clienteId) or self.contador.yaProcesado(log.clienteId, log.secuencia):
+                    logging.debug(f"Descarto lote {log.secuencia} de {log.clienteId}")
                 else:
                     self.contador.procesado(log.clienteId, log.secuencia)
                     self._procesarData(log)

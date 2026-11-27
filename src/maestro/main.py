@@ -41,14 +41,13 @@ class Maestro:
                 reader, writer = await asyncio.open_connection(servicio, MAESTROPORT)
                 conectado = True
             except Exception as e:
-                asyncio.sleep(1)
+                await asyncio.sleep(1)
 
         self.nodos[servicio].setearLargo(lambda: self.pedirLatido(servicio, writer, reader))
         
 
     async def pedirLatido(self, servicio, writer, reader):
         try:
-            self.nodos[servicio].setearLargo(lambda: self.reiniciarServicio(servicio))
             writer.write(LATIDO_MENSAJE)
             await writer.drain() 
 
@@ -59,6 +58,7 @@ class Maestro:
 
         except Exception as e:
             print(e)
+            self.nodos[servicio].setearCorto(lambda: self.reiniciarServicio(servicio))
             return
 
     async def controlar(self):
@@ -85,7 +85,7 @@ def main() -> int:
     logging.basicConfig(level=logging.INFO)
     maestro = Maestro()
     signal.signal(signal.SIGTERM, lambda signum, frame: maestro.manejarSigterm())
-    #maestro.iniciar()
+    maestro.iniciar()
     return 0
 
 

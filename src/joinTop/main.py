@@ -132,7 +132,7 @@ class JoinTop:
         thread_latido = threading.Thread(target=latido.start, daemon=True)
         thread_latido.start()
 
-        self._recuperarLog()
+        #self._recuperarLog()
         self.colaTopGlobal.start_consuming(self.procesarMensaje)
         self._close_connections()
 

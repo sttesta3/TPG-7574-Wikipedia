@@ -56,7 +56,7 @@ class SumTop:
         for i in range(TOTALTOPPARCIAL):
             for lenguaje, palabras in nodos[i].items():
                 # La secuencia identifica (nodo, lenguaje), para que el agregador descarte parciales duplicados
-                secuencia = int(ID) * CANT_LENGUAJES + lenguaje
+                secuencia = int(ID) * CANT_LENGUAJES + int(lenguaje)
                 parcial = PalabrasLoteMensajeSistema(clienteId=clienteId, mensajes=[PalabrasMensajeSistema(palabras=palabras, url="", lenguaje=lenguaje)], secuencia=secuencia)
                 self.colaTopParcial[i].send(parcial.aBytes())
             self.colaTopParcial[i].send(FinMensajeSistema(clienteId, origen=int(ID)).aBytes())
@@ -101,13 +101,12 @@ class SumTop:
             self.clientes, contador = self.wal.recuperarEstado()
             self.contador.load_state(contador)
 
-            print(self.clientes)
-
-            print(self.contador)
+            print(self.contador.eofs)
 
             for logBytes in self.wal.recuperarMensajes():
-                
                 log = recvMensajeSistema(logBytes)
+
+                print(f"proceso {log}")
                 if self.contador.yaFinalizado(log.clienteId) or self.contador.yaProcesado(log.clienteId, log.secuencia):
                     logging.debug(f"Descarto lote {log.secuencia} de {log.clienteId}")
                 elif isinstance(log, FinMensajeSistema):
@@ -116,7 +115,6 @@ class SumTop:
                     self.contador.procesado(log.clienteId, log.secuencia)
                     self._procesarData(log)
         except Exception as e:
-            print(logBytes)
             print(f"adad{e}")
             print(traceback.format_exc())
 

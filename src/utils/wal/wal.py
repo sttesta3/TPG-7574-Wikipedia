@@ -107,8 +107,8 @@ class Wal(ABC):
 
             msg = log.read(largo)
 
-            if len(msg) != largo:
-                raise ValueError("Mensaje incompleto en WAL")
+            if len(msg) != largo or msg == b'':
+                return None
 
             yield msg
     

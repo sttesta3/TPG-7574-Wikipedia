@@ -137,7 +137,7 @@ class Promedio:
         thread_latido = threading.Thread(target=latido.start, daemon=True)
         thread_latido.start()
         
-        self._recuperarLogs()
+        #self._recuperarLogs()
         self.colaPromedio.start_consuming(self.procesarMensaje)
         self._close_connections()
 

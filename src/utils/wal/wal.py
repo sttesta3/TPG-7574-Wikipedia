@@ -49,14 +49,26 @@ class Wal(ABC):
 
     def _dump_state(self,file: str, content: dict | list) :
         with open(file,"wb") as f:
-            f.write(json.dumps(content, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
+            f.write(json.dumps(self._normalize_keys(content), ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
             f.flush()
             os.fsync(f.fileno())
+
+    def _normalize_keys(self, content):
+        if isinstance(content, dict):
+            return {str(k) if isinstance(k, uuid.UUID) else k: self._normalize_keys(v) for k, v in content.items()}
+        elif isinstance(content, list) or isinstance(content, set):
+            return [self._normalize_keys(item) for item in content]
+        elif isinstance(content, uuid.UUID):
+            return str(uuid.UUID)
+        elif not isinstance(content, str) and not isinstance(content, int) and not isinstance(content, set):
+            return content.serialize()
+        return content
 
     def recuperarEstado(self) -> list[dict,list]:
         try:
             with open(PATH_EST,"rb") as f:
-                state = json.loads(f.read().decode("utf-8"))
+                non_normalized_state = json.loads(f.read().decode("utf-8"))
+                state = {uuid.UUID(k): v for k, v in non_normalized_state.items()}
             with open(PATH_CTD,"rb") as f:
                 contador_state = json.loads(f.read().decode("utf-8"))
             return [state, contador_state]

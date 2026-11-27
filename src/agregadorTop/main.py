@@ -46,6 +46,10 @@ class PalabrasPorIdioma:
             result[clave] = valor[0]
         return result
 
+    def serialize(self) -> dict[str, list]:
+        return self.palabras
+            
+
 class AgregadorTop:
     def __init__(self):
         self.colaTopParcial = MessageMiddlewareQueue(MOMHOST, COLATOPPARCIAL + "_" + str(ID))

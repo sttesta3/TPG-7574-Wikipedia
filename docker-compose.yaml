@@ -69,8 +69,8 @@ services:
     environment:
     - DATASETPATHEN=/datasets/enwiki_namespace_0_
     - DATASETPATHFR=/datasets/frwiki_namespace_0_
-    - TOTALDATASETSEN=1
-    - TOTALDATASETSFR=1
+    - TOTALDATASETSEN=2
+    - TOTALDATASETSFR=2
     - GATEWAYHOST=gateway
     - GATEWAYPORT=8000
     - LOTE=256

@@ -41,6 +41,7 @@ class Maestro:
                 reader, writer = await asyncio.open_connection(servicio, MAESTROPORT)
                 conectado = True
             except Exception as e:
+                print(f"no levanta {servicio}")
                 await asyncio.sleep(1)
 
         self.nodos[servicio].setearLargo(lambda: self.pedirLatido(servicio, writer, reader))
@@ -85,7 +86,7 @@ def main() -> int:
     logging.basicConfig(level=logging.INFO)
     maestro = Maestro()
     signal.signal(signal.SIGTERM, lambda signum, frame: maestro.manejarSigterm())
-    maestro.iniciar()
+    #maestro.iniciar()
     return 0
 
 

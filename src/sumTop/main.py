@@ -57,7 +57,7 @@ class SumTop:
             for lenguaje, palabras in nodos[i].items():
                 # La secuencia identifica (nodo, lenguaje), para que el agregador descarte parciales duplicados
                 secuencia = int(ID) * CANT_LENGUAJES + int(lenguaje)
-                parcial = PalabrasLoteMensajeSistema(clienteId=clienteId, mensajes=[PalabrasMensajeSistema(palabras=palabras, url="", lenguaje=lenguaje)], secuencia=secuencia)
+                parcial = PalabrasLoteMensajeSistema(clienteId=clienteId, mensajes=[PalabrasMensajeSistema(palabras=palabras, url="", lenguaje=int(lenguaje))], secuencia=secuencia)
                 self.colaTopParcial[i].send(parcial.aBytes())
             self.colaTopParcial[i].send(FinMensajeSistema(clienteId, origen=int(ID)).aBytes())
 
@@ -102,6 +102,7 @@ class SumTop:
             self.contador.load_state(contador)
 
             print(self.contador.eofs)
+            print(self.clientes)
 
             for logBytes in self.wal.recuperarMensajes():
                 log = recvMensajeSistema(logBytes)
@@ -141,6 +142,7 @@ class SumTop:
 
 
 def main() -> int:
+    print("INIICIII")
     logging.basicConfig(level=logging.INFO)
     sumTop = SumTop()
     signal.signal(signal.SIGTERM, lambda signum, frame: sumTop.manejarSigterm())

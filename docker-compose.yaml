@@ -344,6 +344,8 @@ services:
       - TOTALTRANSFORMADORES=3
       - ID=0
       - LATIDOPORT=6060
+    volumes:
+      - state-promedio_0:/states
 
   promedio_1:
     build:
@@ -378,6 +380,8 @@ services:
       - TOTALTRANSFORMADORES=3
       - ID=1
       - LATIDOPORT=6060
+    volumes:
+      - state-promedio_1:/states
 
   promedio_2:
     build:
@@ -412,6 +416,8 @@ services:
       - TOTALTRANSFORMADORES=3
       - ID=2
       - LATIDOPORT=6060
+    volumes:
+      - state-promedio_2:/states
 
   cuenta_prom_0:
     build:
@@ -539,6 +545,8 @@ services:
       - ID=0
       - TOTALTRANSFORMADORES=3
       - LATIDOPORT=6060
+    volumes:
+      - state-sum_top_0:/states
 
   sum_top_1:
     build:
@@ -567,6 +575,8 @@ services:
       - ID=1
       - TOTALTRANSFORMADORES=3
       - LATIDOPORT=6060
+    volumes:
+      - state-sum_top_1:/states
 
   sum_top_2:
     build:
@@ -595,6 +605,8 @@ services:
       - ID=2
       - TOTALTRANSFORMADORES=3
       - LATIDOPORT=6060
+    volumes:
+      - state-sum_top_2:/states
 
   agregador_top_0:
     build:
@@ -718,6 +730,8 @@ services:
       - TOTALTOPPARCIAL=3
       - ID=0
       - LATIDOPORT=6060
+    volumes:
+      - state-join_top_0:/states
 
   join_top_1:
     build:
@@ -745,6 +759,8 @@ services:
       - TOTALTOPPARCIAL=3
       - ID=1
       - LATIDOPORT=6060
+    volumes:
+      - state-join_top_1:/states
 
   join_top_2:
     build:
@@ -772,6 +788,8 @@ services:
       - TOTALTOPPARCIAL=3
       - ID=2
       - LATIDOPORT=6060
+    volumes:
+      - state-join_top_2:/states
 
   maestro_0:
     build:
@@ -886,6 +904,15 @@ services:
       - SERVICIOS=clasificador_0,clasificador_1,clasificador_2,transformador_0,transformador_1,transformador_2,img_descargador_0,img_descargador_1,promedio_0,promedio_1,promedio_2,cuenta_prom_0,cuenta_prom_1,cuenta_prom_2,sum_top_0,sum_top_1,sum_top_2,agregador_top_0,agregador_top_1,agregador_top_2,join_top_0,join_top_1,join_top_2
 
 volumes:
+  state-sum_top_0:
+  state-sum_top_1:
+  state-sum_top_2:
   state-agregador_top_0:
   state-agregador_top_1:
   state-agregador_top_2:
+  state-join_top_0:
+  state-join_top_1:
+  state-join_top_2:
+  state-promedio_0:
+  state-promedio_1:
+  state-promedio_2:

@@ -13,7 +13,7 @@ PATH_EST = "/states/estado"
 PATH_CTD = "/states/contador"
 PATH_EST_TMP = f"{PATH_EST}_TMP"
 PATH_CTD_TMP = f"{PATH_CTD}_TMP"
-MENSAJES_PARA_CHECKPOINT = 100 
+MENSAJES_PARA_CHECKPOINT = 1
 
 class Recipient(Enum):
     COLARESPUESTAS = 0
@@ -36,17 +36,19 @@ class Wal(ABC):
         self.cuenta_mensajes = 0
 
     def guardarEstado(self, state: dict, state_contador: list):
-        self.log(LineaLog.STARTCHECKPOINT)
+        self.log(LineaLog.STARTCHECKPOINT, None)
 
-        self._dump_state(PATH_EST_TMP, state)
-        self._dump_state(PATH_CTD_TMP, state_contador)
+        self._dump_state(file=PATH_EST_TMP, content=state)
+        self._dump_state(file=PATH_CTD_TMP, content=state_contador)
 
-        self.log(LineaLog.ENDCHECKPOINT)
+        self.log(LineaLog.ENDCHECKPOINT, None)
         self.estadoTemporalAPermanente()
         self.truncarRedoLog()
+        
+        self.cuenta_mensajes = 0
 
-    def _dump_state(file: str, content: dict | list) :
-        with open(file,"ab") as f:
+    def _dump_state(self,file: str, content: dict | list) :
+        with open(file,"wb") as f:
             f.write(json.dumps(content, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
             f.flush()
             os.fsync(f.fileno())
@@ -73,7 +75,7 @@ class Wal(ABC):
 
     def guardarMensaje(self, mensaje: bytes, to: Recipient) -> None:
         self.mensajes.write(f"{self.cuenta_mensajes},{to},{mensaje}\n".encode("UTF-8"))
-        self.log_f.write(f"{LineaLog.MSGSENT},{self.cuenta_mensajes}".encode("UTF-8"))
+        self.log_f.write(f"{LineaLog.MSGSENT},{self.cuenta_mensajes}\n".encode("UTF-8"))
         self.cuenta_mensajes += 1
 
     def recuperarMensajes(self) -> Iterator[bytes]:
@@ -93,9 +95,11 @@ class Wal(ABC):
         self.log_f.close()
 
     def log(self, linea: LineaLog, contenido: str | None ):
-        write = f"{linea},{contenido}\n" if contenido else f"{linea}\n"
-        self.log_f.write(write)
+        write_line = f"{linea},{contenido}\n" if contenido else f"{linea}\n"
+        write_bytes = write_line.encode("utf-8")
+        self.log_f.write(write_bytes)
 
 
     def tiempoDeCheckpoint(self) -> bool:
-        return self.cuenta_mensajes == MENSAJES_PARA_CHECKPOINT
+        print(f"Tiempo de checkpoint: {self.cuenta_mensajes > MENSAJES_PARA_CHECKPOINT}")
+        return self.cuenta_mensajes >= MENSAJES_PARA_CHECKPOINT

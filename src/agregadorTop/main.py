@@ -24,15 +24,6 @@ ID = os.environ["ID"]
 class PalabrasPorIdioma:
     def __init__(self, bytes=None):
         self.palabras: dict[str, list] = json.loads(bytes.decode("utf-8")) if bytes else {}
-        if bytes:
-            for registro in bytes.split('\2'):
-                campos = registro.split('\1')
-                palabra = campos[0]
-                conteo = campos[1]
-                idiomas = {}
-                for idioma in campos[2:]:
-                    idiomas[idioma] = 1
-                self.palabras[palabra] = [conteo, idiomas]
 
     def add(self, cantidad: int, lenguaje, palabra: str) -> bool:
         '''
@@ -74,21 +65,23 @@ class AgregadorTop:
         duplicadas = []
         tanda = 0
         for clave, valor in mensaje.palabras.items():
-            #self.wal.log(LineaLog.REDOLOG, f"{clienteId},add,{clave},{valor},{mensaje.lenguaje}")
+            self.wal.log(LineaLog.REDOLOG, f"{clienteId},add,{clave},{valor},{mensaje.lenguaje}")
             if self.clientes[clienteId].add(palabra=clave, cantidad=valor, lenguaje=mensaje.lenguaje):
                 # Palabra duplicada.
                 duplicadas.append(clave)
                 if len(duplicadas) == LOTE:
                     idRespuesta = (ETAPA_AGREGADOR, int(ID), mensajes.secuencia, tanda)
-                    self.wal.guardarMensaje(mensaje, Recipient.COLARESPUESTAS)
-                    self.colaRespuestas.send(Respuesta3MensajeSistema(clienteId, duplicadas, idRespuesta).aBytes())
+                    mensaje_salida = Respuesta3MensajeSistema(clienteId, duplicadas, idRespuesta).aBytes()
+                    self.wal.guardarMensaje(mensaje_salida, Recipient.COLARESPUESTAS)
+                    self.colaRespuestas.send(mensaje_salida)
                     duplicadas = []
                     tanda += 1
-        #self.wal.log(LineaLog.REDOLOG, f"{clienteId},FINLOTE")
+        self.wal.log(LineaLog.REDOLOG, f"{clienteId},FINLOTE")
         if len(duplicadas) > 0:
             idRespuesta = (ETAPA_AGREGADOR, int(ID), mensajes.secuencia, tanda)
-            self.wal.guardarMensaje(mensaje, Recipient.COLARESPUESTAS)
-            self.colaRespuestas.send(Respuesta3MensajeSistema(clienteId, duplicadas, idRespuesta).aBytes())
+            mensaje_salida = Respuesta3MensajeSistema(clienteId, duplicadas, idRespuesta).aBytes()
+            self.wal.guardarMensaje(mensaje_salida, Recipient.COLARESPUESTAS)
+            self.colaRespuestas.send(mensaje_salida)
 
 
     def _top20(self, palabras: dict[str, int]) -> dict[str, int]:
@@ -98,13 +91,18 @@ class AgregadorTop:
     def _procesarEOF(self, mensaje: FinMensajeSistema) -> None:
         if self.contador.eofRecibido(mensaje.clienteId, mensaje.origen):
             palabras = self.clientes.pop(mensaje.clienteId, PalabrasPorIdioma())
-            self.wal.guardarMensaje(mensaje, Recipient.COLARESPUESTAS)
-            self.colaRespuestas.send(FinMensajeSistema(mensaje.clienteId, origen=origenGateway(ETAPA_AGREGADOR, int(ID))).aBytes())
+            mensaje_eof = FinMensajeSistema(mensaje.clienteId, origen=origenGateway(ETAPA_AGREGADOR, int(ID))).aBytes()
+            self.wal.guardarMensaje(mensaje_eof, Recipient.COLARESPUESTAS)
+            self.colaRespuestas.send(mensaje_eof)
 
             nodo = mensaje.clienteId.int % TOTALTOPGLOBAL
-            self.colaTopGlobal[nodo].send(PalabrasLoteMensajeSistema(mensaje.clienteId, [PalabrasMensajeSistema( palabras=self._top20(palabras.mergeTop()), url="", lenguaje=0)], int(ID)).aBytes())
-            self.wal.guardarMensaje(mensaje, Recipient.EXCHANGETOPGLOBAL)
-            self.colaTopGlobal[nodo].send(FinMensajeSistema(mensaje.clienteId, origen=int(ID)).aBytes())
+            mensaje_top_global = PalabrasLoteMensajeSistema(mensaje.clienteId, [PalabrasMensajeSistema( palabras=self._top20(palabras.mergeTop()), url="",     lenguaje=0)], int(ID)).aBytes()
+            self.wal.guardarMensaje(mensaje_top_global, Recipient.EXCHANGETOPGLOBAL)
+            self.colaTopGlobal[nodo].send(mensaje_top_global)
+            
+            mensaje_eof = FinMensajeSistema(mensaje.clienteId, origen=int(ID)).aBytes()
+            self.wal.guardarMensaje(mensaje_eof, Recipient.EXCHANGETOPGLOBAL)
+            self.colaTopGlobal[nodo].send(mensaje_eof)
 
             self.contador.finalizar(mensaje.clienteId)
             self.wal.log(LineaLog.FINEOF,f"{mensaje.clienteId}")
@@ -112,6 +110,7 @@ class AgregadorTop:
     def procesarMensaje(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
+            print("recv")
             if isinstance(mensaje, FinMensajeSistema):
                 self._procesarEOF(mensaje)
             elif self.contador.yaFinalizado(mensaje.clienteId):
@@ -127,9 +126,11 @@ class AgregadorTop:
                 self._procesarData(mensaje)
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
             ack()
-
+            
+            print("ACK")
             if self.wal.tiempoDeCheckpoint():
-                self.wal.guardarEstado(state=self.clientes, msgs=self.contador.state())
+                print("guardarestado")
+                self.wal.guardarEstado(state=self.clientes, state_contador=self.contador.state())
 
         except Exception as e:
             logging.warning(e)

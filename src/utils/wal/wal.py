@@ -6,7 +6,6 @@ from collections.abc import Iterator
 from protocolo.mensajesSistema import MensajeSistema
 import json 
 
-# TODO: poner volumen de logs/ en cada nodo 
 PATH_MSG = "/states/mensajes"
 PATH_LOG = "/states/wal_log"
 PATH_EST = "/states/estado"
@@ -31,9 +30,10 @@ class LineaLog(Enum):
 
 class Wal(ABC):
     def __init__(self) -> None:
-        self.log_f = open(PATH_LOG,"ab")
+        self.log_f = open(PATH_LOG,"a")
         self.mensajes = open(PATH_MSG,"ab")
         self.cuenta_mensajes = 0
+
 
     def guardarEstado(self, state: dict, state_contador: list):
         self.log(LineaLog.STARTCHECKPOINT, None)
@@ -41,17 +41,19 @@ class Wal(ABC):
         self._dump_state(file=PATH_EST_TMP, content=state)
         self._dump_state(file=PATH_CTD_TMP, content=state_contador)
 
-        self.log(LineaLog.ENDCHECKPOINT, None)
         self.estadoTemporalAPermanente()
         self.truncarRedoLog()
+        self.log(LineaLog.ENDCHECKPOINT, None)
         
         self.cuenta_mensajes = 0
 
+
     def _dump_state(self,file: str, content: dict | list) :
-        with open(file,"wb") as f:
-            f.write(json.dumps(self._normalize_keys(content), ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
+        with open(file,"w") as f:
+            f.write(json.dumps(self._normalize_keys(content), ensure_ascii=False, separators=(",", ":")))
             f.flush()
             os.fsync(f.fileno())
+
 
     def _normalize_keys(self, content):
         if isinstance(content, dict):
@@ -64,20 +66,23 @@ class Wal(ABC):
             return content.serialize()
         return content
 
+
     def recuperarEstado(self) -> list[dict,list]:
         try:
-            with open(PATH_EST,"rb") as f:
-                non_normalized_state = json.loads(f.read().decode("utf-8"))
+            with open(PATH_EST,"r") as f:
+                non_normalized_state = json.loads(f.read())
                 state = {uuid.UUID(k): v for k, v in non_normalized_state.items()}
-            with open(PATH_CTD,"rb") as f:
-                contador_state = json.loads(f.read().decode("utf-8"))
+            with open(PATH_CTD,"r") as f:
+                contador_state = json.loads(f.read())
             return [state, contador_state]
         except Exception: # TODO: Super generico 
             return [{}, []]
 
+
     def estadoTemporalAPermanente(self):
         os.rename(PATH_EST_TMP,PATH_EST)
         os.rename(PATH_CTD_TMP,PATH_CTD)
+
 
     def truncarRedoLog(self):
         with open(PATH_MSG,"w") as f:
@@ -85,18 +90,19 @@ class Wal(ABC):
         with open(PATH_LOG,"w") as f:
             f.truncate(0)
 
-    def guardarMensaje(self, mensaje: bytes, to: Recipient) -> None:
-        self.mensajes.write(f"{self.cuenta_mensajes},{to},{mensaje}\n".encode("UTF-8"))
-        self.log_f.write(f"{LineaLog.MSGSENT},{self.cuenta_mensajes}\n".encode("UTF-8"))
+
+    def guardarMensaje(self, mensaje: bytes) -> None:
+        self.mensajes.write(mensaje)
+        self.mensajes.write("\n".encode("UTF-8"))
         self.cuenta_mensajes += 1
 
-    def recuperarMensajes(self) -> Iterator[bytes]:
-        return
 
-        with open(PATH_LOGS, "rb") as log:
+    def recuperarMensajes(self) -> Iterator[bytes]:
+        with open(PATH_MSG, "rb") as log:
             for line in log.readlines():
                 yield line.rstrip(b"\0").split(b"\1")[1].deBytes()
     
+
     def borrarLog(self):  
         os.remove(PATH_LOG)
         os.remove(PATH_MSG)
@@ -106,9 +112,10 @@ class Wal(ABC):
         self.mensajes.close()
         self.log_f.close()
 
+
     def log(self, linea: LineaLog, contenido: str | None ):
         write_line = f"{linea},{contenido}\n" if contenido else f"{linea}\n"
-        write_bytes = write_line.encode("utf-8")
+        write_bytes = write_line
         self.log_f.write(write_bytes)
 
 

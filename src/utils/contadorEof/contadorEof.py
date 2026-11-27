@@ -17,6 +17,7 @@ class contadorEof():
         self.eofs: dict[uuid.UUID, set[int]] = {}
         self.finalizados: set[uuid.UUID] = set()
 
+
     def yaFinalizado(self, clienteId: uuid.UUID) -> bool:
         return clienteId in self.finalizados
 
@@ -45,8 +46,10 @@ class contadorEof():
         self.procesados.pop(clienteId, None)
         self.eofs.pop(clienteId, None)
 
+
     def state(self) -> list:
         return [self.esperados, self.procesados, self.eofs, self.finalizados]
+
 
     def load_state(self, state: list):
         if len(state) == 4:

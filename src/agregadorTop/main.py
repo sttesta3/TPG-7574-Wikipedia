@@ -113,8 +113,8 @@ class AgregadorTop:
             
     def procesarMensaje(self, bytes, ack, nack):
         try:
+            
             mensaje = recvMensajeSistema(bytes)
-            print("recv")
             if isinstance(mensaje, FinMensajeSistema):
                 self._procesarEOF(mensaje)
             elif self.contador.yaFinalizado(mensaje.clienteId):
@@ -125,15 +125,12 @@ class AgregadorTop:
                 for i in range(TOTALTOPGLOBAL):
                     self.colaTopGlobal[i].send(bytes)
                     self.colaTopParcial.send(bytes)
-                # del self.clientes[mensaje.clienteId]
             else:
                 self._procesarData(mensaje)
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
             ack()
-            
-            print("ACK")
+
             if self.wal.tiempoDeCheckpoint():
-                print("guardarestado")
                 self.wal.guardarEstado(state=self.clientes, state_contador=self.contador.state())
 
         except Exception as e:

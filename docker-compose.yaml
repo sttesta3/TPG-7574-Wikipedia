@@ -80,7 +80,6 @@ services:
     volumes:
     - ./datasets:/datasets
     - ./output:/output
-    - ./output:/log
 
   clasificador_0:
     build:
@@ -626,6 +625,8 @@ services:
       - TOTALSUMTOP=3
       - ID=0
       - LATIDOPORT=6060
+    volumes:
+      - state-agregador_top_0:/states
 
   agregador_top_1:
     build:
@@ -656,6 +657,8 @@ services:
       - TOTALSUMTOP=3
       - ID=1
       - LATIDOPORT=6060
+    volumes:
+      - state-agregador_top_1:/states
 
   agregador_top_2:
     build:
@@ -686,6 +689,8 @@ services:
       - TOTALSUMTOP=3
       - ID=2
       - LATIDOPORT=6060
+    volumes:
+      - state-agregador_top_2:/states
 
   join_top_0:
     build:
@@ -879,3 +884,8 @@ services:
       - CANTIDADNODOS=3
       - MAESTROPORT=6060
       - SERVICIOS=clasificador_0,clasificador_1,clasificador_2,transformador_0,transformador_1,transformador_2,img_descargador_0,img_descargador_1,promedio_0,promedio_1,promedio_2,cuenta_prom_0,cuenta_prom_1,cuenta_prom_2,sum_top_0,sum_top_1,sum_top_2,agregador_top_0,agregador_top_1,agregador_top_2,join_top_0,join_top_1,join_top_2
+
+volumes:
+  state-agregador_top_0:
+  state-agregador_top_1:
+  state-agregador_top_2:

@@ -8,6 +8,7 @@ from contadorEof import contadorEof
 from wal import Wal, LineaLog, Recipient
 from middleware import MessageMiddlewareQueue
 from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, PalabrasMensajeSistema, Respuesta3MensajeSistema, ETAPA_AGREGADOR, origenGateway, ClienteMuertoMensajeSistema
+import json 
 
 MOMHOST = os.environ["MOMHOST"]
 COLASUMTOP = os.environ["COLASUMTOP"]
@@ -22,7 +23,7 @@ ID = os.environ["ID"]
 
 class PalabrasPorIdioma:
     def __init__(self, bytes=None):
-        self.palabras = {}
+        self.palabras: dict[str, list] = json.loads(bytes.decode("utf-8")) if bytes else {}
         if bytes:
             for registro in bytes.split('\2'):
                 campos = registro.split('\1')
@@ -54,29 +55,6 @@ class PalabrasPorIdioma:
             result[clave] = valor[0]
         return result
 
-    def devolverEstado(self) -> bytes:
-        # Devuelve bytes para guardar en log. palabra \1 conteo \1 idioma 1 \1 idioma 2 \1 ... \0  
-        # \2 es el marcador de nuevo registro y \1 el separador de campos 
-        resultado = b''
-        for palabra, contador in self.palabras.values():
-            apariciones = contador[0]
-            resultado += palabra + '\1' + apariciones 
-            for idioma in contador[1].keys():
-                resultado += '\1' + idioma 
-            resultado += '\2'
-        return resultado                         
-
-
-class WalAgregadorTop(Wal):
-    def __init__(self):
-        super().__init__()
-
-    def recuperarEstado(self):
-        # Misma operacion que guardarEstado
-        # Nota: Si no esta la linea 2. ,el checkpoint es invalido y debes recrear el estado desde el estado anterior + mensajes 
-        #       Si esta la linea 2. , es valido y tenes que ejecutar 3-4-5 y seguir con tu vida 
-        pass
-
 class AgregadorTop:
     def __init__(self):
         self.colaTopParcial = MessageMiddlewareQueue(MOMHOST, COLATOPPARCIAL + "_" + str(ID))
@@ -85,8 +63,7 @@ class AgregadorTop:
          
         self.clientes = {}
         self.contador = contadorEof(TOTALSUMTOP)
-        self.wal = WalAgregadorTop()
-
+        self.wal = Wal()
 
     def _procesarData(self, mensajes: PalabrasLoteMensajeSistema) -> None:
         mensaje = mensajes.mensajes[0]
@@ -130,8 +107,7 @@ class AgregadorTop:
             self.colaTopGlobal[nodo].send(FinMensajeSistema(mensaje.clienteId, origen=int(ID)).aBytes())
 
             self.contador.finalizar(mensaje.clienteId)
-            #self.wal.log(LineaLog.FINEOF,f"{mensaje.clienteId}")
-            # del self.clientes[mensaje.clienteId]
+            self.wal.log(LineaLog.FINEOF,f"{mensaje.clienteId}")
             
     def procesarMensaje(self, bytes, ack, nack):
         try:
@@ -153,39 +129,13 @@ class AgregadorTop:
             ack()
 
             if self.wal.tiempoDeCheckpoint():
-                #self.wal.log(LineaLog.STARTCHECKPOINT)
-                self.guardarEstado(self.devolverEstado())
-                #self.wal.log(LineaLog.OKCHECKPOINT)
-                self.wal.estadoTemporalAPermanente()
-                #self.wal.log(LineaLog.ENDCHECKPOINT)
-                self.wal.truncarRedoLog()
-
+                self.wal.guardarEstado(state=self.clientes, msgs=self.contador.state())
 
         except Exception as e:
             logging.warning(e)
             logging.warning(traceback.format_exc())
             if not self.wal.tiempoDeCheckpoint():
                 nack()
-
-
-    def devolverEstado(self) -> bytes :
-        resultado = b""
-        for cliente, values in self.clientes.items():            
-            conteo_eofs: int = values[0]
-            resultado += cliente + '\1' + conteo_eofs + '\1'
-            palabras: PalabrasPorIdioma = values[1]
-            resultado += palabras.devolverEstado() + '\0'
-        return resultado
-
-
-    def cargarEstado(self, bytes):
-        for registro_cliente in bytes.split('\0'):
-            campos = registro_cliente.split('\1')
-            cliente = campos[0]
-            conteo_eofs = campos[1]
-            palabras = PalabrasPorIdioma.cargarEstado(campos[2:])
-            self.clientes[cliente] = [conteo_eofs, palabras]
-
 
     def _recuperarLog(self):
         for log in self.wal.recuperarMensajes():
@@ -195,7 +145,10 @@ class AgregadorTop:
                 self._procesarData(log)
 
     def _recuperarEstado(self):
-        pass
+        state, contador_state = self.wal.recuperarEstado()
+        self.clientes = state
+        self.contador.load_state(contador_state)
+        self.wal.recuperarMensajes()
 
     def iniciar(self):
         

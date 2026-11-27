@@ -151,7 +151,7 @@ class SumTop:
         thread_latido.start()
 
         self._recuperarLog()
-        
+
         self.colaSumTop.start_consuming(self.procesarMensaje)
         self._close_connections()
 

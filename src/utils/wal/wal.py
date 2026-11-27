@@ -1,15 +1,18 @@
 import os
 import uuid
 from enum import Enum
-from abc import ABC, abstractmethod
+from abc import ABC
 from collections.abc import Iterator
 from protocolo.mensajesSistema import MensajeSistema
+import json 
 
 # TODO: poner volumen de logs/ en cada nodo 
-PATH_MSG = "mensajes"
-PATH_LOG = "wal_log"
-PATH_EST = "estado"
+PATH_MSG = "/states/mensajes"
+PATH_LOG = "/states/wal_log"
+PATH_EST = "/states/estado"
+PATH_CTD = "/states/contador"
 PATH_EST_TMP = f"{PATH_EST}_TMP"
+PATH_CTD_TMP = f"{PATH_CTD}_TMP"
 MENSAJES_PARA_CHECKPOINT = 100 
 
 class Recipient(Enum):
@@ -32,16 +35,35 @@ class Wal(ABC):
         self.mensajes = open(PATH_MSG,"ab")
         self.cuenta_mensajes = 0
 
-    def guardarEstado(self, bytes):
-        with open(PATH_EST_TMP,"ab") as f:
-            f.write(bytes)
+    def guardarEstado(self, state: dict, state_contador: list):
+        self.log(LineaLog.STARTCHECKPOINT)
 
-    def recuperarEstado(self):
-        with open(PATH_EST,"ab") as f:
-            f.write(bytes)
+        self._dump_state(PATH_EST_TMP, state)
+        self._dump_state(PATH_CTD_TMP, state_contador)
+
+        self.log(LineaLog.ENDCHECKPOINT)
+        self.estadoTemporalAPermanente()
+        self.truncarRedoLog()
+
+    def _dump_state(file: str, content: dict | list) :
+        with open(file,"ab") as f:
+            f.write(json.dumps(content, ensure_ascii=False, separators=(",", ":")).encode("utf-8"))
+            f.flush()
+            os.fsync(f.fileno())
+
+    def recuperarEstado(self) -> list[dict,list]:
+        try:
+            with open(PATH_EST,"rb") as f:
+                state = json.loads(f.read().decode("utf-8"))
+            with open(PATH_CTD,"rb") as f:
+                contador_state = json.loads(f.read().decode("utf-8"))
+            return [state, contador_state]
+        except Exception: # TODO: Super generico 
+            return [{}, []]
 
     def estadoTemporalAPermanente(self):
         os.rename(PATH_EST_TMP,PATH_EST)
+        os.rename(PATH_CTD_TMP,PATH_CTD)
 
     def truncarRedoLog(self):
         with open(PATH_MSG,"w") as f:

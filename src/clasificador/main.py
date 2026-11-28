@@ -2,6 +2,7 @@ import os
 import logging
 import signal
 import threading
+from wal import Wal
 from latido import Latido
 from contadorEof import contadorEof
 from middleware import MessageMiddlewareQueue
@@ -27,6 +28,8 @@ class Clasificador:
 
         # El unico nodo anterior es el gateway
         self.contador = contadorEof(1)
+
+        self.wal = Wal()
 
 
     def _procesarData(self, loteMensaje: LoteDataMensajeSistema) -> None:
@@ -60,26 +63,53 @@ class Clasificador:
     def procesarMensaje(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
+            self.wal.guardarMensaje(bytes)
+
             if isinstance(mensaje, FinMensajeSistema):
                 if self.contador.eofRecibido(mensaje.clienteId, mensaje.origen):
                     self._finalizarCliente(mensaje)
-            elif self.contador.yaFinalizado(mensaje.clienteId):
-                logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
-            elif self.contador.yaProcesado(mensaje.clienteId, mensaje.secuencia):
-                logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: duplicado")
+            elif self.contador.yaFinalizado(mensaje.clienteId) or self.contador.yaProcesado(mensaje.clienteId, mensaje.secuencia):
+                logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}")
             else:
                 self._procesarData(mensaje)
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
+            
+            if self.wal.tiempoDeCheckpoint():
+                self.wal.guardarEstado({}, self.contador.state())
             ack()
+
         except Exception as e:
             logging.info(e)
             nack()
+
+
+    def _recuperarse(self):
+        try:
+            _, contador = self.wal.recuperarEstado()
+            self.contador.load_state(contador)
+
+            for logBytes in self.wal.recuperarMensajes():
+                log = recvMensajeSistema(logBytes)
+
+                if isinstance(log, FinMensajeSistema):
+                    if self.contador.eofRecibido(log.clienteId, log.origen):
+                        self._finalizarCliente(log.clienteId)
+                        self.contador.finalizar(log.clienteId)
+                elif self.contador.yaFinalizado(log.clienteId) or self.contador.yaProcesado(log.clienteId, log.secuencia):
+                    logging.debug(f"Descarto lote {log.secuencia} de {log.clienteId}")
+                else:
+                    self.contador.procesado(log.clienteId, log.secuencia)
+                    self._procesarData(log)
+        except Exception as e:
+            print(e)
 
 
     def iniciar(self):
         latido = Latido(self.colaDatos.connection)
         thread_latido = threading.Thread(target=latido.start, daemon=True)
         thread_latido.start()
+
+        self._recuperarse()
 
         self.colaDatos.start_consuming(self.procesarMensaje)
         self._close_connections()
@@ -94,7 +124,6 @@ class Clasificador:
         self.colaRespuestas.close()
         for cola in self.colaImgDescarga + self.colaTransformador:
             cola.close()
-
 
 
 def main() -> int:

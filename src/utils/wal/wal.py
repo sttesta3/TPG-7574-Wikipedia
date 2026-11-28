@@ -41,10 +41,10 @@ class Wal(ABC):
         self._dump_state(file=PATH_EST_TMP, content=state)
         self._dump_state(file=PATH_CTD_TMP, content=state_contador)
 
-        self.estadoTemporalAPermanente()
-        self.truncarRedoLog()
-
         self.log(LineaLog.ENDCHECKPOINT, None)
+
+        self.estadoTemporalAPermanente()
+        self.truncarLogMensajes()
         
         self.cuenta_mensajes = 0
 
@@ -92,12 +92,11 @@ class Wal(ABC):
         os.rename(PATH_CTD_TMP,PATH_CTD)
 
 
-    def truncarRedoLog(self):
+    def truncarLogMensajes(self):
         with open(PATH_MSG,"w") as f:
             f.truncate(0)
         with open(PATH_LOG,"w") as f:
             f.truncate(0)
-
 
     def guardarMensaje(self, mensaje: bytes) -> None:
         self.mensajes.write(len(mensaje).to_bytes(4, byteorder="big"))

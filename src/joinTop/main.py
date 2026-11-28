@@ -18,49 +18,6 @@ TOTALTOPPARCIAL = int(os.environ["TOTALTOPPARCIAL"])
 ID = os.environ["ID"]
 
 
-class WalJoinTop(Wal):
-    def __init__(self):
-        super().__init__()
-
-
-    def guardarEstado(self, estado: dict[uuid.UUID, list[int, dict[str, int]]]):
-        self.wal_log(LineaLog.STARTCHECKPOINT)
-        
-        tmp = open("tmp", "a")
-
-        for cliente, EofYPalabras in estado.items():
-            tmp.write(str(cliente) + "|" + EofYPalabras[0] + ":")
-            for palabra, cantidad in EofYPalabras[1].items():
-                tmp.write("|" +palabra + ":" + cantidad)
-            tmp.write("\n")
-        
-        tmp.flush()
-        tmp.close()
-        os.replace("tmp", "checkpoint")
-
-        self.wal_log(LineaLog.ENDCHECKPOINT)
-
-
-    def recuperarEstado(self) -> dict[uuid.UUID, list[int, dict[str, int]]]:
-        
-        rta = {}
-        
-        with open("estado", "r") as f:
-            for line in f.readlines():
-
-                splited  = line.split(":|")
-                clienteId = uuid.UUID(splited[0].split("|")[0])
-                
-                tmp = {}
-                for x in splited[1].split("|"):
-                    palabra, cantidad = x.split(":", 1)
-                    tmp[palabra] = cantidad
-
-                rta[clienteId] = [splited[0].split("|")[1], tmp]
-                        
-        return rta
-
-
 class JoinTop:
     def __init__(self):
         self.colaRespuestas = MessageMiddlewareQueue(MOMHOST, COLARESPUESTAS)
@@ -68,7 +25,7 @@ class JoinTop:
 
         self.clientes = {}
         self.contador = contadorEof(TOTALTOPPARCIAL)
-        self.wal = WalJoinTop()
+        self.wal = Wal()
 
 
     def _procesarData(self, mensajes: PalabrasLoteMensajeSistema) -> None:
@@ -100,6 +57,8 @@ class JoinTop:
     def procesarMensaje(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
+            self.wal.guardarMensaje(bytes)
+
             if isinstance(mensaje, FinMensajeSistema):
                 self._procesarEOF(mensaje)
             elif self.contador.yaFinalizado(mensaje.clienteId):
@@ -112,6 +71,9 @@ class JoinTop:
             else:
                 self._procesarData(mensaje)
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
+
+            if self.wal.tiempoDeCheckpoint():
+                self.wal.guardarEstado(self.clientes, self.contador.state())
             ack()
         except Exception as e:
             logging.info(e)
@@ -119,20 +81,35 @@ class JoinTop:
             nack()
 
 
-    def _recuperarLog(self):
-        for log in self.wal.recuperarMensajes():
-            if isinstance(log, FinMensajeSistema):
-                self._procesarEOF(log)
-            else:
-                self._procesarData(log)
+    def _recuperarse(self):
+        try:
+            self.clientes, contador = self.wal.recuperarEstado()
+            self.contador.load_state(contador)
+
+            for logBytes in self.wal.recuperarMensajes():
+                log = recvMensajeSistema(logBytes)
+
+                if isinstance(log, FinMensajeSistema):
+                    if self.contador.eofRecibido(log.clienteId, log.origen):
+                        self._finalizarCliente(log.clienteId)
+                        self.contador.finalizar(log.clienteId)
+                elif self.contador.yaFinalizado(log.clienteId) or self.contador.yaProcesado(log.clienteId, log.secuencia):
+                    logging.debug(f"Descarto lote {log.secuencia} de {log.clienteId}")
+                else:
+                    self.contador.procesado(log.clienteId, log.secuencia)
+                    self._procesarData(log)
+        except Exception as e:
+            print(f"{e}")
+            print(traceback.format_exc())
 
 
     def iniciar(self):
+        # self._recuperarse()
+
         latido = Latido(self.colaTopGlobal.connection)
         thread_latido = threading.Thread(target=latido.start, daemon=True)
         thread_latido.start()
 
-        #self._recuperarLog()
         self.colaTopGlobal.start_consuming(self.procesarMensaje)
         self._close_connections()
 

@@ -5,6 +5,7 @@ import signal
 import logging
 import threading
 import traceback
+from wal import Wal 
 from latido import Latido
 from nltk.corpus import stopwords
 from contadorEof import contadorEof
@@ -36,6 +37,8 @@ class Transformador:
         self.colaPromedio = [MessageMiddlewareQueue(MOMHOST, COLAPROMEDIO + "_" + str(i)) for i in range(TOTALPROMEDIO)]
 
         self.contador = contadorEof(TOTALCLASIFICADORES)
+
+        self.wal = Wal()
 
 
     def _resumenAPalabras(self, resumen: str) -> dict[str]:
@@ -92,14 +95,13 @@ class Transformador:
     def procesarMensaje(self, bytes, ack, nack):
         try:
             mensaje = recvMensajeSistema(bytes)
+            self.wal.guardarMensaje(bytes)
+
             if isinstance(mensaje, FinMensajeSistema):
                 if self.contador.eofRecibido(mensaje.clienteId, mensaje.origen):
                     self._finalizarCliente(mensaje)
-            elif self.contador.yaFinalizado(mensaje.clienteId):
-                logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
-            elif self.contador.yaProcesado(mensaje.clienteId, mensaje.secuencia):
-                logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: duplicado")
-                logging.debug(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
+            elif self.contador.yaFinalizado(mensaje.clienteId) or self.contador.yaProcesado(mensaje.clienteId, mensaje.secuencia):
+                logging.info(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}")
             elif isinstance(mensaje, ClienteMuertoMensajeSistema):
                 self.colaCuentaProm.send(bytes)
                 self.colaSumTop.send(bytes)
@@ -108,12 +110,37 @@ class Transformador:
             else:
                 self._procesarData(mensaje)
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
+
+            if self.wal.tiempoDeCheckpoint():
+                self.wal.guardarEstado(self.clientes, self.contador.state())
             ack()
         except Exception as e:
             logging.info(e)
             logging.info(traceback.format_exc())
             nack()
 
+
+    def _recuperarse(self):
+        try:
+            _, contador = self.wal.recuperarEstado()
+            self.contador.load_state(contador)
+
+            for logBytes in self.wal.recuperarMensajes():
+                log = recvMensajeSistema(logBytes)
+
+                if isinstance(log, FinMensajeSistema):
+                    if self.contador.eofRecibido(log.clienteId, log.origen):
+                        self._finalizarCliente(log.clienteId)
+                        self.contador.finalizar(log.clienteId)
+                elif self.contador.yaFinalizado(log.clienteId) or self.contador.yaProcesado(log.clienteId, log.secuencia):
+                    logging.debug(f"Descarto lote {log.secuencia} de {log.clienteId}")
+                else:
+                    self.contador.procesado(log.clienteId, log.secuencia)
+                    self._procesarData(log)
+        except Exception as e:
+            print(f"{e}")
+            print(traceback.format_exc())
+    
 
     def iniciar(self):
         latido = Latido(self.colaTransformador.connection)

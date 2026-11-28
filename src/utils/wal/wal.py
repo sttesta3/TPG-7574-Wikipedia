@@ -43,7 +43,7 @@ class Wal(ABC):
 
         self.estadoTemporalAPermanente()
         self.truncarRedoLog()
-        
+
         self.log(LineaLog.ENDCHECKPOINT, None)
         
         self.cuenta_mensajes = 0
@@ -72,7 +72,14 @@ class Wal(ABC):
         try:
             with open(PATH_EST,"r") as f:
                 non_normalized_state = json.loads(f.read())
-                state = {uuid.UUID(k): v for k, v in non_normalized_state.items()}
+
+                state = {
+                    uuid.UUID(cliente_id): {
+                        int(lenguaje): palabras
+                        for lenguaje, palabras in lenguajes.items()
+                    }
+                    for cliente_id, lenguajes in non_normalized_state.items()
+                }
             with open(PATH_CTD,"r") as f:
                 contador_state = json.loads(f.read())
             return [state, contador_state]

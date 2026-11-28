@@ -86,7 +86,7 @@ def main() -> int:
     logging.basicConfig(level=logging.INFO)
     maestro = Maestro()
     signal.signal(signal.SIGTERM, lambda signum, frame: maestro.manejarSigterm())
-    #maestro.iniciar()
+    maestro.iniciar()
     return 0
 
 

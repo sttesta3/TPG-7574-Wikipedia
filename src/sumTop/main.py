@@ -70,7 +70,6 @@ class SumTop:
             self.wal.guardarMensaje(bytes)
 
             if isinstance(mensaje, FinMensajeSistema):
-                print("llego EOF")
                 if self.contador.eofRecibido(mensaje.clienteId, mensaje.origen):
                     self._finalizarCliente(mensaje.clienteId)
                     self.contador.finalizar(mensaje.clienteId)
@@ -81,22 +80,15 @@ class SumTop:
             elif self.contador.yaFinalizado(mensaje.clienteId) or self.contador.yaProcesado(mensaje.clienteId, mensaje.secuencia):
                 logging.debug(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
             else:
-                print("llega msg")
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
-                print("procesado")
                 self._procesarData(mensaje)
-                print("listo")
 
             if self.wal.tiempoDeCheckpoint():
-                print("ckpt")
                 self.wal.guardarEstado(self.clientes, self.contador.state())
-                print("end")
             ack()
 
 
         except Exception as e:
-            print(e)
-            print(f"{traceback.format_exc()}")
             logging.error(e)
             logging.error(traceback.format_exc())
             nack()
@@ -107,13 +99,9 @@ class SumTop:
             self.clientes, contador = self.wal.recuperarEstado()
             self.contador.load_state(contador)
 
-            print(self.contador.eofs)
-            print(self.clientes)
-
             for logBytes in self.wal.recuperarMensajes():
                 log = recvMensajeSistema(logBytes)
 
-                print(f"proceso {log}")
                 if isinstance(log, FinMensajeSistema):
                     if self.contador.eofRecibido(log.clienteId, log.origen):
                         self._finalizarCliente(log.clienteId)
@@ -124,7 +112,7 @@ class SumTop:
                     self.contador.procesado(log.clienteId, log.secuencia)
                     self._procesarData(log)
         except Exception as e:
-            print(f"adad{e}")
+            print(f"{e}")
             print(traceback.format_exc())
 
     def iniciar(self):
@@ -150,7 +138,6 @@ class SumTop:
 
 
 def main() -> int:
-    print("INIICIII")
     logging.basicConfig(level=logging.INFO)
     sumTop = SumTop()
     signal.signal(signal.SIGTERM, lambda signum, frame: sumTop.manejarSigterm())

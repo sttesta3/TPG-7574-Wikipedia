@@ -58,7 +58,7 @@ class AgregadorTop:
          
         self.clientes = {}
         self.contador = contadorEof(TOTALSUMTOP)
-        #self.wal = Wal()
+        self.wal = Wal()
 
     def _procesarData(self, mensajes: PalabrasLoteMensajeSistema) -> None:
         mensaje = mensajes.mensajes[0]
@@ -69,22 +69,18 @@ class AgregadorTop:
         duplicadas = []
         tanda = 0
         for clave, valor in mensaje.palabras.items():
-            #self.wal.log(LineaLog.REDOLOG, f"{clienteId},add,{clave},{valor},{mensaje.lenguaje}")
             if self.clientes[clienteId].add(palabra=clave, cantidad=valor, lenguaje=mensaje.lenguaje):
                 # Palabra duplicada.
                 duplicadas.append(clave)
                 if len(duplicadas) == LOTE:
                     idRespuesta = (ETAPA_AGREGADOR, int(ID), mensajes.secuencia, tanda)
                     mensaje_salida = Respuesta3MensajeSistema(clienteId, duplicadas, idRespuesta).aBytes()
-                    #self.wal.guardarMensaje(mensaje_salida, Recipient.COLARESPUESTAS)
                     self.colaRespuestas.send(mensaje_salida)
                     duplicadas = []
                     tanda += 1
-        #self.wal.log(LineaLog.REDOLOG, f"{clienteId},FINLOTE")
         if len(duplicadas) > 0:
             idRespuesta = (ETAPA_AGREGADOR, int(ID), mensajes.secuencia, tanda)
             mensaje_salida = Respuesta3MensajeSistema(clienteId, duplicadas, idRespuesta).aBytes()
-            #self.wal.guardarMensaje(mensaje_salida, Recipient.COLARESPUESTAS)
             self.colaRespuestas.send(mensaje_salida)
 
 
@@ -96,31 +92,27 @@ class AgregadorTop:
         if self.contador.eofRecibido(mensaje.clienteId, mensaje.origen):
             palabras = self.clientes.pop(mensaje.clienteId, PalabrasPorIdioma())
             mensaje_eof = FinMensajeSistema(mensaje.clienteId, origen=origenGateway(ETAPA_AGREGADOR, int(ID))).aBytes()
-            #self.wal.guardarMensaje(mensaje_eof, Recipient.COLARESPUESTAS)
             self.colaRespuestas.send(mensaje_eof)
 
             nodo = mensaje.clienteId.int % TOTALTOPGLOBAL
-            mensaje_top_global = PalabrasLoteMensajeSistema(mensaje.clienteId, [PalabrasMensajeSistema( palabras=self._top20(palabras.mergeTop()), url="",     lenguaje=0)], int(ID)).aBytes()
-            #self.wal.guardarMensaje(mensaje_top_global, Recipient.EXCHANGETOPGLOBAL)
+            mensaje_top_global = PalabrasLoteMensajeSistema(mensaje.clienteId, [PalabrasMensajeSistema( palabras=self._top20(palabras.mergeTop()), url="", lenguaje=0)], int(ID)).aBytes()
             self.colaTopGlobal[nodo].send(mensaje_top_global)
             
             mensaje_eof = FinMensajeSistema(mensaje.clienteId, origen=int(ID)).aBytes()
-            #self.wal.guardarMensaje(mensaje_eof, Recipient.EXCHANGETOPGLOBAL)
             self.colaTopGlobal[nodo].send(mensaje_eof)
 
             self.contador.finalizar(mensaje.clienteId)
-            #self.wal.log(LineaLog.FINEOF,f"{mensaje.clienteId}")
-            
+
     def procesarMensaje(self, bytes, ack, nack):
         try:
             
             mensaje = recvMensajeSistema(bytes)
+            self.wal.guardarMensaje(bytes)
+
             if isinstance(mensaje, FinMensajeSistema):
                 self._procesarEOF(mensaje)
-            elif self.contador.yaFinalizado(mensaje.clienteId):
-                logging.info(f"Descarto parcial de {mensaje.clienteId}: cliente ya finalizado")
-            elif self.contador.yaProcesado(mensaje.clienteId, mensaje.secuencia):
-                logging.info(f"Descarto parcial {mensaje.secuencia} de {mensaje.clienteId}: duplicado")
+            elif self.contador.yaFinalizado(mensaje.clienteId) or self.contador.yaProcesado(mensaje.clienteId, mensaje.secuencia):
+                logging.info(f"Descarto parcial {mensaje.secuencia} de {mensaje.clienteId}")
             elif isinstance(mensaje, ClienteMuertoMensajeSistema):
                 for i in range(TOTALTOPGLOBAL):
                     self.colaTopGlobal[i].send(bytes)
@@ -128,35 +120,41 @@ class AgregadorTop:
             else:
                 self._procesarData(mensaje)
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
+            
+            if self.wal.tiempoDeCheckpoint():
+                self.wal.guardarEstado(self.clientes, self.contador.state())
             ack()
-
-            #if #self.wal.tiempoDeCheckpoint():
-                #self.wal.guardarEstado(state=self.clientes, state_contador=self.contador.state())
-
         except Exception as e:
             logging.warning(e)
             logging.warning(traceback.format_exc())
-            #if not #self.wal.tiempoDeCheckpoint():
-             #   nack()
+            nack()
 
-    def _recuperarLog(self):
-        pass
-        #for log in #self.wal.recuperarMensajes():
-        #    if isinstance(log, FinMensajeSistema):
-        #        self._procesarEOF(log)
-        #    else:
-        #        self._procesarData(log)
 
-    def _recuperarEstado(self):
-        pass
-        #state, contador_state = #self.wal.recuperarEstado()
-        #self.clientes = state
-        #self.contador.load_state(contador_state)
-        #self.wal.recuperarMensajes()
+    def _recuperarse(self):
+        try:
+            self.clientes, contador = self.wal.recuperarEstado()
+            self.contador.load_state(contador)
+
+            for logBytes in self.wal.recuperarMensajes():
+                log = recvMensajeSistema(logBytes)
+
+                if isinstance(log, FinMensajeSistema):
+                    if self.contador.eofRecibido(log.clienteId, log.origen):
+                        self._finalizarCliente(log.clienteId)
+                        self.contador.finalizar(log.clienteId)
+                elif self.contador.yaFinalizado(log.clienteId) or self.contador.yaProcesado(log.clienteId, log.secuencia):
+                    logging.debug(f"Descarto lote {log.secuencia} de {log.clienteId}")
+                else:
+                    self.contador.procesado(log.clienteId, log.secuencia)
+                    self._procesarData(log)
+        except Exception as e:
+            print(f"{e}")
+            print(traceback.format_exc())
+
 
     def iniciar(self):
         
-        self._recuperarEstado()
+        self._recuperarse()
         
         latido = Latido(self.colaTopParcial.connection)
         thread_latido = threading.Thread(target=latido.start, daemon=True)

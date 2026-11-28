@@ -54,6 +54,17 @@ class contadorEof():
     def load_state(self, state: list):
         if len(state) == 4:
             self.esperados = state[0]
-            self.procesados = state[1]
-            self.eofs = state[2]
-            self.finalizados = set(state[3])
+            self.procesados = {
+                uuid.UUID(cliente): set(secuencias)
+                for cliente, secuencias in state[1].items()
+            }
+
+            self.eofs = {
+                uuid.UUID(cliente): set(origenes)
+                for cliente, origenes in state[2].items()
+            }
+
+            self.finalizados = {
+                uuid.UUID(cliente)
+                for cliente in state[3]
+            }

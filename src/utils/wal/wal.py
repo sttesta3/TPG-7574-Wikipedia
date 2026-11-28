@@ -12,7 +12,7 @@ PATH_EST = "/states/estado"
 PATH_CTD = "/states/contador"
 PATH_EST_TMP = f"{PATH_EST}_TMP"
 PATH_CTD_TMP = f"{PATH_CTD}_TMP"
-MENSAJES_PARA_CHECKPOINT = 1
+MENSAJES_PARA_CHECKPOINT = 10
 
 class Recipient(Enum):
     COLARESPUESTAS = 0
@@ -43,6 +43,7 @@ class Wal(ABC):
 
         self.estadoTemporalAPermanente()
         self.truncarRedoLog()
+        
         self.log(LineaLog.ENDCHECKPOINT, None)
         
         self.cuenta_mensajes = 0
@@ -103,14 +104,26 @@ class Wal(ABC):
 
     def recuperarMensajes(self) -> Iterator[bytes]:
         with open(PATH_MSG, "rb") as log:
-            largo = int.from_bytes(log.read(4), byteorder="big")
+            while True:
+                header = log.read(4)
 
-            msg = log.read(largo)
+                if not header:
+                    break
+                
+                if len(header) != 4:
+                    raise IOError("Header incompleto en WAL")
 
-            if len(msg) != largo or msg == b'':
-                return None
+                largo = int.from_bytes(header, byteorder="big")
 
-            yield msg
+                if largo <= 0:
+                    raise IOError("Longitud inválida en WAL")
+
+                msg = log.read(largo)
+
+                if len(msg) != largo:
+                    raise IOError("Mensaje incompleto en WAL")
+
+                yield msg
     
 
     def borrarLog(self):  

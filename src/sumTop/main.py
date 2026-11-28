@@ -3,8 +3,8 @@ import signal
 import logging
 import traceback
 import threading
-from latido import Latido
 from wal import Wal
+from latido import Latido
 from contadorEof import contadorEof
 from middleware import MessageMiddlewareQueue
 from protocolo.mensajesSistema import recvMensajeSistema, FinMensajeSistema, PalabrasLoteMensajeSistema, PalabrasMensajeSistema, ClienteMuertoMensajeSistema
@@ -51,7 +51,7 @@ class SumTop:
             for clave, valor in palabras.items():
                 i = int.from_bytes(clave.encode("UTF-8")) % TOTALTOPPARCIAL
                 nodos[i][lenguaje] = nodos[i].get(lenguaje, {})
-                nodos[i][lenguaje][clave] = nodos[i][lenguaje].get(clave,valor)
+                nodos[i][lenguaje][clave] = (nodos[i][lenguaje].get(clave, 0) + valor)
 
         for i in range(TOTALTOPPARCIAL):
             for lenguaje, palabras in nodos[i].items():
@@ -70,6 +70,7 @@ class SumTop:
             self.wal.guardarMensaje(bytes)
 
             if isinstance(mensaje, FinMensajeSistema):
+                print("llego EOF")
                 if self.contador.eofRecibido(mensaje.clienteId, mensaje.origen):
                     self._finalizarCliente(mensaje.clienteId)
                     self.contador.finalizar(mensaje.clienteId)
@@ -80,12 +81,17 @@ class SumTop:
             elif self.contador.yaFinalizado(mensaje.clienteId) or self.contador.yaProcesado(mensaje.clienteId, mensaje.secuencia):
                 logging.debug(f"Descarto lote {mensaje.secuencia} de {mensaje.clienteId}: cliente ya finalizado")
             else:
+                print("llega msg")
                 self.contador.procesado(mensaje.clienteId, mensaje.secuencia)
+                print("procesado")
                 self._procesarData(mensaje)
-            ack()
+                print("listo")
 
             if self.wal.tiempoDeCheckpoint():
+                print("ckpt")
                 self.wal.guardarEstado(self.clientes, self.contador.state())
+                print("end")
+            ack()
 
 
         except Exception as e:
@@ -109,7 +115,9 @@ class SumTop:
 
                 print(f"proceso {log}")
                 if isinstance(log, FinMensajeSistema):
-                    self.contador.eofRecibido(log)
+                    if self.contador.eofRecibido(log.clienteId, log.origen):
+                        self._finalizarCliente(log.clienteId)
+                        self.contador.finalizar(log.clienteId)
                 elif self.contador.yaFinalizado(log.clienteId) or self.contador.yaProcesado(log.clienteId, log.secuencia):
                     logging.debug(f"Descarto lote {log.secuencia} de {log.clienteId}")
                 else:
